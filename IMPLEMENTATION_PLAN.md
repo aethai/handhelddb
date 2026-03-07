@@ -1489,3 +1489,326 @@ PUBLIC_SITE_NAME=Handheld GameDB
 | **TOTAL** | **$45-75** | Skaluje się do ~300K visitors |
 
 **Punkt eskalacji kosztów**: >100K visitors/mies → Supabase Pro $25→$50-100, VPS upgrade $10-20. Wciąż <$150/mies.
+
+---
+
+## SEKCJA NEWSOWA — SPECYFIKACJA (Faza 7, trigger: >20K/mies traffic)
+
+### Strategia
+
+Newsy NIE są standalone produktem. Są **retention mechanism** — użytkownicy wracają po newsy, widzą bazę danych, generują raporty. Cross-linking news → strony gier = SEO juice.
+
+**Pozycjonowanie**: Jedyny **multi-device** aggregator newsów handheldowych. SteamDeckHQ pokrywa tylko Steam Decka. Tom's Hardware/PC Gamer pokrywają handheldy fragmentarycznie. Nikt nie zbiera wszystkiego w jednym miejscu.
+
+**Częstotliwość**: 3-5 newsów dziennie (20-30 min human review), NIE 5-8 jak oryginalny plan.
+
+**Scope newsów**:
+- Nowe urządzenia handheldowe (premiery, zapowiedzi, leaki)
+- Aktualizacje SteamOS / Windows dla handheldów
+- Driver updates wpływające na performance
+- Duże patche gier (zwłaszcza wpływające na wydajność)
+- Firmware updates urządzeń (TDP tuning, fan curves)
+- Porównania i testy wydajności (linkowanie do game pages)
+- Eventy: Steam Sale, Game Awards, duże premiery
+- Akcesorium i peripheria (docki, kontrolery, screen protectory)
+
+### AI-Assisted News Pipeline
+
+```
+1. ŹRÓDŁA (RSS/API/scraping):
+   ├── Reddit: r/SteamDeck, r/ROGAlly, r/HandheldGamePC, r/linux_gaming
+   ├── RSS: SteamDeckHQ, The Verge (gaming), Tom's Hardware, PC Gamer
+   ├── Steam News Hub (API: ISteamNews/GetNewsForApp)
+   ├── Twitter/X: @OnDeck, @ValveSoftware, @ABORVS (ROG)
+   ├── YouTube: ETA Prime, Retro Game Corps, Fan The Deck (nowe wideo = trigger)
+   └── Discord: SteamDeck community servers (manual monitoring)
+
+2. AI AGGREGATION (Claude Haiku — $0.003/artykuł):
+   ├── Deduplikacja: ten sam news z 3 źródeł → 1 artykuł
+   ├── Klasyfikacja: urządzenie, kategoria, pilność
+   ├── Draft: tytuł, lead (2 zdania), body (3-5 paragrafów)
+   ├── Auto-linking: rozpoznaj nazwy gier → link do /games/[slug]
+   └── Sentiment: pozytywne/neutralne/negatywne
+
+3. HUMAN REVIEW (20-30 min/dzień):
+   ├── Weryfikacja faktów
+   ├── Edycja tonalna (redakcyjny głos, nie wiki)
+   ├── Dodanie opinii/kontekstu ("co to znaczy dla graczy")
+   ├── Approve/reject/edit
+   └── Publish
+
+4. AUTO-PUBLISH:
+   ├── Dodaj structured data (NewsArticle schema)
+   ├── Generuj OG image
+   ├── Cross-link do relevant game pages
+   ├── Push to Meilisearch (news index)
+   └── Trigger notyfikacje (followers gier wymienionych w newsie)
+```
+
+### Database Schema — News
+
+```typescript
+// Dodatkowe tabele w src/lib/db/schema.ts
+
+export const newsCategoryEnum = pgEnum('news_category', [
+  'device_launch',         // Nowe urządzenie
+  'device_update',         // Firmware, accessories
+  'os_update',             // SteamOS, Windows handheld mode
+  'driver_update',         // GPU drivers
+  'game_patch',            // Patch wpływający na performance
+  'game_launch',           // Duża premiera
+  'sale_event',            // Steam Sale, deals
+  'performance_analysis',  // Porównania, benchmarki
+  'industry',              // Trendy, analizy rynku
+  'editorial',             // Opinie, poradniki
+]);
+
+export const newsStatusEnum = pgEnum('news_status', [
+  'draft',          // AI-generated, czeka na review
+  'in_review',      // W trakcie edycji
+  'published',      // Live
+  'archived',       // Stare, ukryte z feedu
+]);
+
+export const articles = pgTable('articles', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  slug: varchar('slug', { length: 300 }).notNull().unique(),
+  title: text('title').notNull(),
+  lead: text('lead').notNull(),                             // 2 zdania, wyświetlane w feedzie
+  body: text('body').notNull(),                             // Markdown
+  bodyHtml: text('body_html').notNull(),                    // Rendered HTML
+  coverImage: text('cover_image'),                          // URL
+
+  // Classification
+  category: newsCategoryEnum('category').notNull(),
+  tags: jsonb('tags').$type<string[]>().default([]),
+  devices: jsonb('devices').$type<string[]>().default([]),  // slugi urządzeń których dotyczy
+  sentiment: text('sentiment'),                             // positive/neutral/negative
+
+  // Relations
+  authorId: uuid('author_id').references(() => users.id),   // null = AI-generated
+  relatedGameIds: jsonb('related_game_ids').$type<string[]>().default([]),
+
+  // Status
+  status: newsStatusEnum('status').default('draft'),
+  publishedAt: timestamp('published_at'),
+
+  // AI pipeline metadata
+  aiGenerated: boolean('ai_generated').default(false),
+  aiModel: text('ai_model'),                                // 'haiku-4.5'
+  sourceUrls: jsonb('source_urls').$type<string[]>().default([]),
+  editedFromAi: boolean('edited_from_ai').default(false),   // Human edited AI draft
+
+  // SEO
+  metaTitle: text('meta_title'),
+  metaDescription: text('meta_description'),
+
+  // Engagement
+  viewCount: integer('view_count').default(0),
+  commentCount: integer('comment_count').default(0),
+
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+}, (table) => [
+  index('idx_articles_slug').on(table.slug),
+  index('idx_articles_category').on(table.category),
+  index('idx_articles_published').on(table.publishedAt),
+  index('idx_articles_status').on(table.status),
+]);
+
+// News sources for AI pipeline
+export const newsSources = pgTable('news_sources', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  name: text('name').notNull(),                              // "r/SteamDeck"
+  type: text('type').notNull(),                              // 'rss', 'reddit', 'twitter', 'steam_api'
+  url: text('url').notNull(),                                // Feed URL or API endpoint
+  isActive: boolean('is_active').default(true),
+  lastChecked: timestamp('last_checked'),
+  checkIntervalMinutes: integer('check_interval_minutes').default(60),
+});
+
+// Raw ingested items (before AI processing)
+export const newsIngested = pgTable('news_ingested', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  sourceId: uuid('source_id').references(() => newsSources.id).notNull(),
+  externalId: text('external_id').notNull(),                 // Reddit post ID, RSS GUID
+  title: text('title').notNull(),
+  url: text('url'),
+  content: text('content'),                                  // Raw scraped text
+  ingestedAt: timestamp('ingested_at').defaultNow().notNull(),
+  processed: boolean('processed').default(false),
+  articleId: uuid('article_id').references(() => articles.id), // Linked after AI processing
+  discarded: boolean('discarded').default(false),            // Not newsworthy
+  discardReason: text('discard_reason'),
+}, (table) => [
+  uniqueIndex('idx_ingested_external').on(table.sourceId, table.externalId),
+]);
+```
+
+### Strony newsowe
+
+```
+src/pages/
+├── news/
+│   ├── index.astro                  # Feed newsów (paginowany, filtry po kategorii/urządzeniu)
+│   ├── [slug].astro                 # Pojedynczy artykuł
+│   └── category/
+│       └── [category].astro         # Newsy per kategoria
+```
+
+**URL**: `/news`, `/news/steam-deck-oled-firmware-3-6-2-improves-fan-curves`
+
+### Strona artykułu (`/news/[slug]`)
+
+**Sekcja 1: Header**
+- Tytuł, lead, data publikacji, autor (lub "AI-assisted"), czas czytania
+- Cover image
+- Tagi: kategoria, urządzenia, gry
+
+**Sekcja 2: Body**
+- Markdown-rendered treść
+- Auto-linked nazwy gier → `/games/[slug]`
+- Auto-linked nazwy urządzeń → `/devices/[slug]`
+- Embedded performance cards tam gdzie relevantne
+- Źródła (lista linków do oryginalnych źródeł)
+
+**Sekcja 3: Related**
+- "Performance data for games mentioned": karty gier z Performance Grid
+- "Related news": 3-5 powiązanych artykułów
+- "Related games": linki do game pages
+
+**Sekcja 4: Comments**
+- Ten sam system komentarzy co na game pages (reuse CommentSection)
+- Scope: `{ type: 'article', id: article.id }` zamiast `{ type: 'game', id: game.id }`
+
+**SEO**: Schema.org `NewsArticle` markup, meta title, OG image
+
+### News Feed (`/news`)
+
+- Reverse chronological feed z paginacją (20/stronę)
+- Filtry: kategoria (dropdown), urządzenie (multi-select), data range
+- Każdy wpis: cover image thumbnail, tytuł, lead, kategoria badge, data, view count
+- Sidebar: "Trending" (most viewed last 7 days), "Popular games this week"
+- RSS feed (`/news/rss.xml`) — ważne dla syndykacji
+
+### Admin — News Dashboard (auth: admin/moderator only)
+
+**URL**: `/admin/news` (nie publiczny)
+
+- Lista drafts (AI-generated, czekających na review)
+- Per draft: preview, edit, approve, reject z powodem
+- "Generate now" button — trigger AI pipeline on demand
+- Stats: published/day, avg edit time, rejection rate
+- Source health: which sources are producing, which are failing
+
+### Meilisearch — News Index
+
+```typescript
+export const NEWS_INDEX_CONFIG = {
+  primaryKey: 'id',
+  searchableAttributes: ['title', 'lead', 'body', 'tags'],
+  filterableAttributes: ['category', 'devices', 'relatedGameSlugs', 'publishedYear'],
+  sortableAttributes: ['publishedAt', 'viewCount'],
+};
+```
+
+### Cron — News Pipeline
+
+```typescript
+// cron/news-pipeline.ts — runs every 60 minutes
+
+async function newsIngestionPipeline() {
+  // 1. Check all active sources for new items
+  const sources = await db.select().from(newsSources).where(eq(isActive, true));
+
+  for (const source of sources) {
+    const newItems = await fetchNewItems(source);  // RSS parser, Reddit API, etc.
+    await db.insert(newsIngested).values(newItems).onConflictDoNothing();
+  }
+
+  // 2. Batch unprocessed items → Claude Haiku
+  const unprocessed = await db.select().from(newsIngested)
+    .where(and(eq(processed, false), eq(discarded, false)))
+    .limit(20);
+
+  if (unprocessed.length === 0) return;
+
+  // 3. AI: deduplicate, classify, draft
+  const aiResult = await claude.messages.create({
+    model: 'claude-haiku-4-5-20251001',
+    messages: [{
+      role: 'user',
+      content: `You are a gaming news editor for a handheld gaming performance database.
+
+Given these raw news items, do the following:
+1. Group duplicates (same story from different sources)
+2. Discard non-newsworthy items (minor bug fixes, irrelevant topics)
+3. For each unique newsworthy item, generate:
+   - title (concise, informative, no clickbait)
+   - lead (2 sentences summarizing the key facts)
+   - body (3-5 paragraphs, factual, mention specific devices/games)
+   - category (one of: device_launch, device_update, os_update, driver_update, game_patch, game_launch, sale_event, performance_analysis, industry, editorial)
+   - devices (array of device slugs this relates to)
+   - relatedGames (array of game names mentioned)
+   - sentiment (positive/neutral/negative)
+   - sourceUrls (array of source URLs used)
+
+Items:
+${JSON.stringify(unprocessed.map(i => ({ title: i.title, content: i.content, url: i.url, source: i.sourceId })))}
+
+Return JSON array of drafted articles.`
+    }],
+  });
+
+  // 4. Save drafts, mark items as processed
+  // 5. Send notification to admin: "X new drafts ready for review"
+}
+```
+
+### Koszt dodatkowy newsów
+
+| Pozycja | Koszt/mies | Notatki |
+|---|---|---|
+| Claude Haiku (150 artykułów/mies) | ~$0.50 | $0.003/artykuł |
+| Claude Sonnet (featured edits) | ~$2 | 20 featured/mies |
+| Reddit API | $0 | Free tier (100 req/min) |
+| **Dodatkowy koszt** | **~$3/mies** | Negligible |
+
+### Harmonogram implementacji newsów
+
+| Tydzień | Zadanie |
+|---|---|
+| 1 | Schema: articles, news_sources, news_ingested. Migracja. Admin UI (basic) |
+| 2 | AI pipeline: source ingestion (RSS, Reddit), Haiku drafting, dedup |
+| 3 | News pages: feed (`/news`), article page (`/news/[slug]`), category filter |
+| 4 | Polish: OG images, RSS feed, auto-linking games/devices, comments integration |
+
+**Total**: 3-4 tygodnie. Uruchamiaj dopiero po >20K monthly visitors.
+
+### Warunek uruchomienia newsów
+
+NIE buduj sekcji newsowej dopóki:
+1. Core product (baza danych, raporty, wyszukiwarka) nie działa stabilnie
+2. Traffic < 20K/mies — nie ma komu czytać
+3. Nie masz 30 min/dzień na review AI drafts
+4. Nie masz minimum 10 skonfigurowanych źródeł RSS/Reddit
+
+### Jak newsy wspierają core product
+
+```
+News article: "Elden Ring Patch 1.15 drops — major performance gains on handhelds"
+                    ↓
+Auto-links:    /games/elden-ring (game page)
+                    ↓
+CTA:           "See updated performance data" → /games/elden-ring/steam-deck-oled
+                    ↓
+Action:        "Your report may be outdated — submit new test" → /report/new
+                    ↓
+SEO:           News page ranks for "elden ring patch 1.15 steam deck"
+               → links to game page → passes authority
+                    ↓
+Retention:     User bookmarks /news, comes back daily
+               → discovers new games in DB → submits more reports
+```
+
+To jest flywheel: **newsy → traffic → raporty → lepsze dane → lepsze SEO → więcej traffic**.
