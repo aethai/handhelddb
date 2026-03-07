@@ -1,0 +1,47 @@
+---
+const currentYear = new Date().getFullYear();
+---
+
+<footer class="border-t border-gray-800 bg-gray-950 py-8 mt-16">
+  <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <div class="grid grid-cols-2 gap-8 md:grid-cols-4">
+      <div>
+        <h3 class="text-sm font-semibold text-white">Database</h3>
+        <ul class="mt-3 space-y-2">
+          <li><a href="/games" class="text-sm text-gray-400 hover:text-white">All Games</a></li>
+          <li><a href="/devices" class="text-sm text-gray-400 hover:text-white">Devices</a></li>
+          <li><a href="/compare" class="text-sm text-gray-400 hover:text-white">Compare</a></li>
+          <li><a href="/discover" class="text-sm text-gray-400 hover:text-white">Discover</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3 class="text-sm font-semibold text-white">Contribute</h3>
+        <ul class="mt-3 space-y-2">
+          <li><a href="/report/new" class="text-sm text-gray-400 hover:text-white">Submit Report</a></li>
+          <li><a href="/auth/login" class="text-sm text-gray-400 hover:text-white">Sign In</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3 class="text-sm font-semibold text-white">Devices</h3>
+        <ul class="mt-3 space-y-2">
+          <li><a href="/devices/steam-deck-oled" class="text-sm text-gray-400 hover:text-white">Steam Deck OLED</a></li>
+          <li><a href="/devices/rog-ally-x" class="text-sm text-gray-400 hover:text-white">ROG Ally X</a></li>
+          <li><a href="/devices/legion-go" class="text-sm text-gray-400 hover:text-white">Legion Go</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3 class="text-sm font-semibold text-white">About</h3>
+        <ul class="mt-3 space-y-2">
+          <li><a href="/about" class="text-sm text-gray-400 hover:text-white">About Us</a></li>
+          <li><a href="/privacy" class="text-sm text-gray-400 hover:text-white">Privacy Policy</a></li>
+          <li><a href="/terms" class="text-sm text-gray-400 hover:text-white">Terms of Service</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="mt-8 border-t border-gray-800 pt-6 text-center">
+      <p class="text-sm text-gray-500">
+        &copy; {currentYear} Handheld GameDB. Not affiliated with Valve, ASUS, or Lenovo.
+      </p>
+    </div>
+  </div>
+</footer>

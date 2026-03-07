@@ -1,0 +1,157 @@
+---
+import BaseLayout from '@layouts/BaseLayout.astro';
+import PerformanceBadge from '@components/astro/PerformanceBadge.astro';
+
+// TODO: Fetch game data from DB by slug
+const { slug } = Astro.params;
+
+// Placeholder data structure showing what the page will look like
+const game = {
+  name: slug?.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ') ?? 'Game',
+  slug,
+  headerImage: null as string | null,
+  description: 'Game description will be loaded from the database.',
+  genres: ['Action', 'RPG'],
+  developers: ['Developer Studio'],
+  releaseDate: '2024-01-01',
+  metacriticScore: null as number | null,
+  protondbTier: 'gold',
+  deckCompatibility: 'verified',
+};
+---
+
+<BaseLayout
+  title={`${game.name} Performance on Handhelds`}
+  description={`Best settings for ${game.name} on Steam Deck, ROG Ally, Legion Go. FPS benchmarks, TDP profiles, and battery life estimates.`}
+>
+  <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Hero Section -->
+    <div class="flex flex-col lg:flex-row gap-8">
+      <!-- Main Content -->
+      <div class="flex-1">
+        <!-- Game Header -->
+        <div class="rounded-xl border border-gray-800 bg-gray-900 overflow-hidden">
+          {game.headerImage ? (
+            <img src={game.headerImage} alt={game.name} class="w-full aspect-[460/215] object-cover" />
+          ) : (
+            <div class="w-full aspect-[460/215] bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center">
+              <span class="text-4xl font-bold text-gray-700">{game.name}</span>
+            </div>
+          )}
+
+          <div class="p-6">
+            <div class="flex items-start justify-between">
+              <div>
+                <h1 class="text-3xl font-bold text-white">{game.name}</h1>
+                <div class="mt-2 flex items-center gap-3 text-sm text-gray-400">
+                  {game.developers.map(dev => <span>{dev}</span>)}
+                  <span class="text-gray-600">|</span>
+                  {game.genres.map(genre => (
+                    <span class="rounded-full bg-gray-800 px-2 py-0.5 text-xs">{genre}</span>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <p class="mt-4 text-gray-400">{game.description}</p>
+          </div>
+        </div>
+
+        <!-- Device Performance Grid (placeholder) -->
+        <div class="mt-6 rounded-xl border border-gray-800 bg-gray-900 p-6">
+          <h2 class="text-xl font-bold text-white mb-4">Performance by Device</h2>
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+              <thead>
+                <tr class="border-b border-gray-800">
+                  <th class="py-3 pr-4 text-left text-gray-400 font-medium">Device</th>
+                  <th class="py-3 px-4 text-center text-gray-400 font-medium">FPS</th>
+                  <th class="py-3 px-4 text-center text-gray-400 font-medium">Preset</th>
+                  <th class="py-3 px-4 text-center text-gray-400 font-medium">TDP</th>
+                  <th class="py-3 px-4 text-center text-gray-400 font-medium">Battery</th>
+                  <th class="py-3 pl-4 text-center text-gray-400 font-medium">Reports</th>
+                </tr>
+              </thead>
+              <tbody class="text-gray-300">
+                <tr class="border-b border-gray-800/50">
+                  <td class="py-3 pr-4 font-medium text-white" colspan="6">
+                    <div class="text-center text-gray-600 py-4">
+                      Connect database to see performance data
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Community Reports (placeholder) -->
+        <div class="mt-6 rounded-xl border border-gray-800 bg-gray-900 p-6">
+          <div class="flex items-center justify-between mb-4">
+            <h2 class="text-xl font-bold text-white">Community Reports</h2>
+            <a
+              href="/report/new"
+              class="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-emerald-500 transition-colors"
+            >
+              <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+              </svg>
+              Submit Report
+            </a>
+          </div>
+          <div class="text-center py-8 text-gray-600">
+            <p>No performance reports yet. Be the first to report!</p>
+          </div>
+        </div>
+
+        <!-- Comments (placeholder for React island) -->
+        <div class="mt-6 rounded-xl border border-gray-800 bg-gray-900 p-6">
+          <h2 class="text-xl font-bold text-white mb-4">Comments</h2>
+          <div class="text-center py-8 text-gray-600">
+            <p>Sign in to leave a comment</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sidebar -->
+      <aside class="w-full lg:w-80 flex-shrink-0 space-y-4">
+        <!-- Quick Verdict (placeholder) -->
+        <div class="rounded-xl border border-gray-800 bg-gray-900 p-5">
+          <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-3">Quick Verdict</h3>
+          <div class="space-y-2 text-sm text-gray-600">
+            <p>Performance data will appear here</p>
+          </div>
+        </div>
+
+        <!-- Metadata -->
+        <div class="rounded-xl border border-gray-800 bg-gray-900 p-5">
+          <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-3">Game Info</h3>
+          <dl class="space-y-3 text-sm">
+            <div class="flex justify-between">
+              <dt class="text-gray-500">Developer</dt>
+              <dd class="text-gray-300">{game.developers[0]}</dd>
+            </div>
+            <div class="flex justify-between">
+              <dt class="text-gray-500">Genres</dt>
+              <dd class="text-gray-300">{game.genres.join(', ')}</dd>
+            </div>
+            {game.metacriticScore && (
+              <div class="flex justify-between">
+                <dt class="text-gray-500">Metacritic</dt>
+                <dd class="text-gray-300">{game.metacriticScore}/100</dd>
+              </div>
+            )}
+            <div class="flex justify-between">
+              <dt class="text-gray-500">ProtonDB</dt>
+              <dd class="text-gray-300 capitalize">{game.protondbTier}</dd>
+            </div>
+            <div class="flex justify-between">
+              <dt class="text-gray-500">Deck Status</dt>
+              <dd class="text-gray-300 capitalize">{game.deckCompatibility}</dd>
+            </div>
+          </dl>
+        </div>
+      </aside>
+    </div>
+  </div>
+</BaseLayout>

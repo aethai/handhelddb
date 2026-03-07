@@ -1,0 +1,155 @@
+---
+import BaseLayout from '@layouts/BaseLayout.astro';
+import DeviceCard from '@components/astro/DeviceCard.astro';
+
+const devices = [
+  {
+    slug: 'steam-deck-oled',
+    name: 'Steam Deck OLED',
+    manufacturer: 'Valve',
+    screenSize: 7.4,
+    batteryWh: 50,
+    chip: 'AMD Van Gogh',
+    msrpUsd: 549,
+  },
+  {
+    slug: 'rog-ally-x',
+    name: 'ASUS ROG Ally X',
+    manufacturer: 'ASUS',
+    screenSize: 7.0,
+    batteryWh: 80,
+    chip: 'Ryzen Z1 Extreme',
+    msrpUsd: 799,
+  },
+  {
+    slug: 'legion-go',
+    name: 'Lenovo Legion Go',
+    manufacturer: 'Lenovo',
+    screenSize: 8.8,
+    batteryWh: 49.2,
+    chip: 'Ryzen Z1 Extreme',
+    msrpUsd: 699,
+  },
+];
+---
+
+<BaseLayout title="Handheld GameDB">
+  <!-- Hero -->
+  <section class="relative overflow-hidden py-20 sm:py-28">
+    <div class="absolute inset-0 bg-gradient-to-b from-emerald-950/20 to-transparent"></div>
+    <div class="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 text-center">
+      <h1 class="text-4xl sm:text-5xl lg:text-6xl font-bold text-white tracking-tight">
+        Find the <span class="text-emerald-400">best settings</span> for<br />
+        every game on your handheld
+      </h1>
+      <p class="mt-6 text-lg text-gray-400 max-w-2xl mx-auto">
+        The universal performance database for Steam Deck, ROG Ally, Legion Go and more.
+        Community-driven data, optimal settings, battery life estimates.
+      </p>
+
+      <!-- Search Bar -->
+      <div class="mt-10 max-w-xl mx-auto">
+        <div class="relative">
+          <svg class="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z" />
+          </svg>
+          <input
+            type="text"
+            placeholder="Search for a game... (e.g. Elden Ring, Cyberpunk 2077)"
+            class="w-full rounded-xl border border-gray-700 bg-gray-900 py-4 pl-12 pr-4 text-white placeholder-gray-500 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 transition-colors"
+          />
+        </div>
+      </div>
+
+      <!-- Quick Stats -->
+      <div class="mt-12 flex justify-center gap-8 sm:gap-16 text-center">
+        <div>
+          <p class="text-2xl sm:text-3xl font-bold text-white">600+</p>
+          <p class="text-sm text-gray-500">Games</p>
+        </div>
+        <div>
+          <p class="text-2xl sm:text-3xl font-bold text-white">3</p>
+          <p class="text-sm text-gray-500">Devices</p>
+        </div>
+        <div>
+          <p class="text-2xl sm:text-3xl font-bold text-white">2,000+</p>
+          <p class="text-sm text-gray-500">Performance Reports</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Supported Devices -->
+  <section class="py-12">
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <h2 class="text-2xl font-bold text-white mb-6">Supported Devices</h2>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {devices.map((device) => (
+          <DeviceCard {...device} />
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- How It Works -->
+  <section class="py-12">
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <h2 class="text-2xl font-bold text-white mb-8 text-center">How It Works</h2>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div class="text-center">
+          <div class="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-emerald-500/20 text-emerald-400">
+            <svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z" />
+            </svg>
+          </div>
+          <h3 class="text-lg font-semibold text-white">1. Find Your Game</h3>
+          <p class="mt-2 text-sm text-gray-400">Search our database of 600+ games with instant results and filters.</p>
+        </div>
+        <div class="text-center">
+          <div class="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-emerald-500/20 text-emerald-400">
+            <svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75" />
+            </svg>
+          </div>
+          <h3 class="text-lg font-semibold text-white">2. Get Optimal Settings</h3>
+          <p class="mt-2 text-sm text-gray-400">See recommended settings for 30, 40, or 60 FPS with battery estimates.</p>
+        </div>
+        <div class="text-center">
+          <div class="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-emerald-500/20 text-emerald-400">
+            <svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M7.5 14.25v2.25m3-4.5v4.5m3-6.75v6.75m3-9v9M6 20.25h12A2.25 2.25 0 0020.25 18V6A2.25 2.25 0 0018 3.75H6A2.25 2.25 0 003.75 6v12A2.25 2.25 0 006 20.25z" />
+            </svg>
+          </div>
+          <h3 class="text-lg font-semibold text-white">3. Share & Compare</h3>
+          <p class="mt-2 text-sm text-gray-400">Compare devices, submit your own reports, and help the community.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="py-12">
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <div class="rounded-2xl border border-gray-800 bg-gray-900 p-8 sm:p-12 text-center">
+        <h2 class="text-2xl font-bold text-white">Have a handheld? Help us build the database.</h2>
+        <p class="mt-3 text-gray-400">
+          Every performance report makes the data better for everyone.
+        </p>
+        <div class="mt-6 flex justify-center gap-4">
+          <a
+            href="/report/new"
+            class="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-6 py-3 text-sm font-medium text-white hover:bg-emerald-500 transition-colors"
+          >
+            Submit a Report
+          </a>
+          <a
+            href="/games"
+            class="inline-flex items-center gap-2 rounded-lg border border-gray-700 px-6 py-3 text-sm font-medium text-gray-300 hover:border-gray-500 hover:text-white transition-colors"
+          >
+            Browse Games
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

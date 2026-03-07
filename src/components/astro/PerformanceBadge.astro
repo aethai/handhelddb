@@ -1,0 +1,28 @@
+---
+interface Props {
+  fps: number;
+  size?: 'sm' | 'md' | 'lg';
+}
+
+const { fps, size = 'md' } = Astro.props;
+
+function getVerdict(fps: number) {
+  if (fps >= 60) return { label: '60fps', icon: '✅', color: 'bg-green-500/20 text-green-400 border-green-500/30' };
+  if (fps >= 40) return { label: '40fps', icon: '⚡', color: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' };
+  if (fps >= 30) return { label: '30fps', icon: '⚠️', color: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30' };
+  return { label: '<30fps', icon: '❌', color: 'bg-red-500/20 text-red-400 border-red-500/30' };
+}
+
+const verdict = getVerdict(fps);
+
+const sizeClasses = {
+  sm: 'px-1.5 py-0.5 text-xs',
+  md: 'px-2 py-1 text-sm',
+  lg: 'px-3 py-1.5 text-base',
+};
+---
+
+<span class={`inline-flex items-center gap-1 rounded-md border font-medium ${verdict.color} ${sizeClasses[size]}`}>
+  <span>{verdict.icon}</span>
+  <span>{verdict.label}</span>
+</span>

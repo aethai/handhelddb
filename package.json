@@ -1,0 +1,52 @@
+{
+  "name": "handhelddb",
+  "type": "module",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "check": "astro check",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:push": "drizzle-kit push",
+    "db:studio": "drizzle-kit studio",
+    "db:seed": "tsx scripts/seed-devices.ts",
+    "lint": "eslint src/",
+    "format": "prettier --write ."
+  },
+  "dependencies": {
+    "@astrojs/check": "^0.9.0",
+    "@astrojs/node": "^9.5.4",
+    "@astrojs/react": "^4.2.0",
+    "@tailwindcss/vite": "^4.2.1",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "astro": "^5.5.0",
+    "dompurify": "^3.2.0",
+    "drizzle-orm": "^0.39.0",
+    "marked": "^15.0.0",
+    "meilisearch": "^0.48.0",
+    "postgres": "^3.4.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "slugify": "^1.6.6",
+    "tailwindcss": "^4.0.0",
+    "zod": "^3.24.0"
+  },
+  "devDependencies": {
+    "@types/dompurify": "^3.2.0",
+    "drizzle-kit": "^0.30.0",
+    "prettier": "^3.4.0",
+    "prettier-plugin-astro": "^0.14.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.0"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild",
+      "sharp"
+    ]
+  }
+}

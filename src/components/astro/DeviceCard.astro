@@ -1,0 +1,63 @@
+---
+interface Props {
+  slug: string;
+  name: string;
+  manufacturer: string;
+  screenSize?: number | null;
+  batteryWh?: number | null;
+  chip?: string | null;
+  image?: string | null;
+  msrpUsd?: number | null;
+  testedGames?: number;
+}
+
+const {
+  slug,
+  name,
+  manufacturer,
+  screenSize,
+  batteryWh,
+  chip,
+  image,
+  msrpUsd,
+  testedGames = 0,
+} = Astro.props;
+---
+
+<a
+  href={`/devices/${slug}`}
+  class="group block rounded-lg border border-gray-800 bg-gray-900 p-5 transition-all hover:border-gray-600 hover:shadow-lg hover:shadow-emerald-500/5"
+>
+  <div class="flex items-start gap-4">
+    <!-- Device Image -->
+    <div class="flex-shrink-0 w-20 h-20 rounded-lg bg-gray-800 flex items-center justify-center overflow-hidden">
+      {image ? (
+        <img src={image} alt={name} class="h-full w-full object-cover" loading="lazy" />
+      ) : (
+        <svg class="h-10 w-10 text-gray-600" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+          <rect x="5" y="3" width="14" height="18" rx="3" />
+          <line x1="9" y1="18" x2="15" y2="18" />
+        </svg>
+      )}
+    </div>
+
+    <!-- Device Info -->
+    <div class="flex-1 min-w-0">
+      <p class="text-xs text-gray-500 uppercase tracking-wider">{manufacturer}</p>
+      <h3 class="font-semibold text-white group-hover:text-emerald-400 transition-colors">
+        {name}
+      </h3>
+
+      <div class="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-400">
+        {chip && <span>{chip}</span>}
+        {screenSize && <span>{screenSize}"</span>}
+        {batteryWh && <span>{batteryWh} Wh</span>}
+        {msrpUsd && <span>${msrpUsd}</span>}
+      </div>
+
+      {testedGames > 0 && (
+        <p class="mt-2 text-xs text-emerald-500">{testedGames} games tested</p>
+      )}
+    </div>
+  </div>
+</a>

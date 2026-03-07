@@ -1,0 +1,30 @@
+# dependencies
+node_modules/
+
+# build
+dist/
+
+# environment
+.env
+.env.local
+.env.production
+
+# editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# astro
+.astro/
+
+# drizzle
+drizzle/meta/
+
+# debug
+npm-debug.log*
+pnpm-debug.log*
