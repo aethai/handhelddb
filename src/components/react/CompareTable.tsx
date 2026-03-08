@@ -254,7 +254,7 @@ function DeviceSelector({
     <div className="relative">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full flex items-center justify-between gap-2 rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white hover:border-gray-600 transition-colors"
+        className="w-full flex items-center justify-between gap-2 rounded-lg border border-[#44403C] bg-[#292524] px-3 py-2 text-sm text-white hover:border-[#57534E] transition-colors"
       >
         <span className="truncate">
           {selected ? selected.name : 'Select device...'}
@@ -271,7 +271,7 @@ function DeviceSelector({
             className="fixed inset-0 z-10"
             onClick={() => setIsOpen(false)}
           />
-          <div className="absolute z-20 mt-1 w-full max-h-64 overflow-y-auto rounded-lg border border-gray-700 bg-gray-800 shadow-xl shadow-black/40">
+          <div className="absolute z-20 mt-1 w-full max-h-64 overflow-y-auto rounded-lg border border-[#44403C] bg-[#292524] shadow-xl shadow-black/40">
             {devices.map((device) => (
               <button
                 key={device.id}
@@ -279,9 +279,9 @@ function DeviceSelector({
                   onChange(device.id);
                   setIsOpen(false);
                 }}
-                className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-700 transition-colors ${
+                className={`w-full text-left px-3 py-2 text-sm hover:bg-[#44403C] transition-colors ${
                   device.id === selectedId
-                    ? 'text-cyan-400 bg-gray-700/50'
+                    ? 'text-[#D4A574] bg-[#44403C]/50'
                     : 'text-gray-300'
                 }`}
               >
@@ -379,7 +379,7 @@ export default function CompareTable({ devices }: CompareTableProps) {
         {selectedIds.length < MAX_COMPARE && (
           <button
             onClick={handleAdd}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-dashed border-gray-700 px-4 py-2 text-sm text-gray-400 hover:border-cyan-500/50 hover:text-cyan-400 transition-colors"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-dashed border-[#44403C] px-4 py-2 text-sm text-gray-400 hover:border-[#D4A574]/50 hover:text-[#D4A574] transition-colors"
           >
             <span className="text-lg leading-none">+</span>
             Add device
@@ -389,11 +389,11 @@ export default function CompareTable({ devices }: CompareTableProps) {
 
       {/* Comparison Table */}
       {selectedDevices.length >= 2 ? (
-        <div className="overflow-x-auto rounded-xl border border-gray-800">
+        <div className="overflow-x-auto rounded-xl border border-[#292524]">
           <table className="w-full min-w-[600px]">
             {/* Device Header Row */}
             <thead>
-              <tr className="border-b border-gray-800 bg-gray-900">
+              <tr className="border-b border-[#292524] bg-[#1C1917]">
                 <th className="p-4 text-left text-sm font-medium text-gray-500 w-40 min-w-[140px]">
                   Spec
                 </th>
@@ -411,7 +411,7 @@ export default function CompareTable({ devices }: CompareTableProps) {
                           loading="lazy"
                         />
                       ) : (
-                        <div className="flex h-20 w-28 items-center justify-center rounded-lg bg-gray-800 text-gray-600">
+                        <div className="flex h-20 w-28 items-center justify-center rounded-lg bg-[#292524] text-gray-600">
                           <svg
                             className="h-8 w-8"
                             fill="none"
@@ -445,10 +445,10 @@ export default function CompareTable({ devices }: CompareTableProps) {
               {specCategories.map((category) => (
                 <>
                   {/* Category Header */}
-                  <tr key={`cat-${category.title}`} className="bg-gray-900/80">
+                  <tr key={`cat-${category.title}`} className="bg-[#1C1917]/80">
                     <td
                       colSpan={selectedDevices.length + 1}
-                      className="px-4 py-3 text-xs font-semibold text-cyan-400 uppercase tracking-wider border-b border-gray-800"
+                      className="px-4 py-3 text-xs font-semibold text-[#D4A574] uppercase tracking-wider border-b border-[#292524]"
                     >
                       {category.title}
                     </td>
@@ -460,7 +460,7 @@ export default function CompareTable({ devices }: CompareTableProps) {
                     return (
                       <tr
                         key={row.key}
-                        className="border-b border-gray-800/50 hover:bg-gray-800/30 transition-colors"
+                        className="border-b border-[#292524]/50 hover:bg-[#292524]/30 transition-colors"
                       >
                         <td className="px-4 py-3 text-sm font-medium text-gray-400">
                           {row.label}
@@ -472,21 +472,21 @@ export default function CompareTable({ devices }: CompareTableProps) {
                               key={device.id}
                               className={`px-4 py-3 text-center text-sm ${
                                 isWinner
-                                  ? 'text-cyan-400 font-semibold'
+                                  ? 'text-[#D4A574] font-semibold'
                                   : 'text-gray-300'
                               }`}
                             >
                               <span
                                 className={
                                   isWinner
-                                    ? 'inline-flex items-center gap-1 rounded-md bg-cyan-500/10 px-2 py-0.5'
+                                    ? 'inline-flex items-center gap-1 rounded-md bg-[#D4A574]/10 px-2 py-0.5'
                                     : ''
                                 }
                               >
                                 {row.format(device)}
                                 {isWinner && (
                                   <svg
-                                    className="h-3.5 w-3.5 text-cyan-500"
+                                    className="h-3.5 w-3.5 text-[#D4A574]"
                                     fill="currentColor"
                                     viewBox="0 0 20 20"
                                   >
@@ -510,7 +510,7 @@ export default function CompareTable({ devices }: CompareTableProps) {
           </table>
         </div>
       ) : (
-        <div className="rounded-xl border border-dashed border-gray-700 bg-gray-900/50 p-12 text-center">
+        <div className="rounded-xl border border-dashed border-[#44403C] bg-[#1C1917]/50 p-12 text-center">
           <svg
             className="mx-auto h-12 w-12 text-gray-600 mb-4"
             fill="none"
@@ -537,10 +537,10 @@ export default function CompareTable({ devices }: CompareTableProps) {
       {selectedDevices.length >= 2 && (
         <div className="mt-4 flex items-center gap-4 text-xs text-gray-500">
           <div className="flex items-center gap-1.5">
-            <span className="inline-flex items-center rounded-md bg-cyan-500/10 px-2 py-0.5 text-cyan-400 font-semibold">
+            <span className="inline-flex items-center rounded-md bg-[#D4A574]/10 px-2 py-0.5 text-[#D4A574] font-semibold">
               Value
               <svg
-                className="ml-1 h-3 w-3 text-cyan-500"
+                className="ml-1 h-3 w-3 text-[#D4A574]"
                 fill="currentColor"
                 viewBox="0 0 20 20"
               >

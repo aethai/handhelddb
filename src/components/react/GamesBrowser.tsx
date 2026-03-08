@@ -28,7 +28,7 @@ interface Props {
 }
 
 const DECK_BADGES: Record<string, { label: string; class: string }> = {
-  verified: { label: 'Verified', class: 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30' },
+  verified: { label: 'Verified', class: 'bg-[#D4A574]/20 text-[#D4A574] border-[#D4A574]/30' },
   playable: { label: 'Playable', class: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30' },
   unsupported: { label: 'Unsupported', class: 'bg-red-500/20 text-red-400 border-red-500/30' },
   unknown: { label: 'Unknown', class: 'bg-gray-500/20 text-gray-400 border-gray-500/30' },
@@ -116,7 +116,7 @@ export default function GamesBrowser({ initialGames, totalGames, allGenres }: Pr
   return (
     <div>
       {/* Search + Controls */}
-      <div className="mb-6 rounded-xl border border-gray-800 bg-gray-900 p-4">
+      <div className="mb-6 rounded-xl border border-[#292524] bg-[#1C1917] p-4">
         <div className="flex gap-3">
           <div className="relative flex-1">
             <svg className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-500" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
@@ -127,13 +127,13 @@ export default function GamesBrowser({ initialGames, totalGames, allGenres }: Pr
               value={query}
               onChange={e => setQuery(e.target.value)}
               placeholder="Search games..."
-              className="w-full rounded-lg border border-gray-700 bg-gray-800 py-2.5 pl-12 pr-4 text-white placeholder-gray-500 focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500"
+              className="w-full rounded-lg border border-[#44403C] bg-[#292524] py-2.5 pl-12 pr-4 text-white placeholder-gray-500 focus:border-[#D4A574] focus:outline-none focus:ring-1 focus:ring-[#D4A574]"
             />
           </div>
           <select
             value={sort}
             onChange={e => setSort(e.target.value)}
-            className="rounded-lg border border-gray-700 bg-gray-800 px-3 py-2.5 text-sm text-gray-300 focus:border-cyan-500 focus:outline-none"
+            className="rounded-lg border border-[#44403C] bg-[#292524] px-3 py-2.5 text-sm text-gray-300 focus:border-[#D4A574] focus:outline-none"
           >
             {SORT_OPTIONS.map(o => (
               <option key={o.value} value={o.value}>{o.label}</option>
@@ -143,8 +143,8 @@ export default function GamesBrowser({ initialGames, totalGames, allGenres }: Pr
             onClick={() => setShowFilters(!showFilters)}
             className={`rounded-lg border px-3 py-2.5 text-sm transition-colors flex items-center gap-1.5 ${
               showFilters || selectedGenres.length > 0 || selectedDeck.length > 0
-                ? 'border-cyan-500 bg-cyan-500/10 text-cyan-400'
-                : 'border-gray-700 bg-gray-800 text-gray-300 hover:border-gray-500'
+                ? 'border-[#D4A574] bg-[#D4A574]/10 text-[#D4A574]'
+                : 'border-[#44403C] bg-[#292524] text-gray-300 hover:border-[#57534E]'
             }`}
           >
             <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
@@ -152,7 +152,7 @@ export default function GamesBrowser({ initialGames, totalGames, allGenres }: Pr
             </svg>
             <span className="hidden sm:inline">Filters</span>
             {(selectedGenres.length + selectedDeck.length) > 0 && (
-              <span className="rounded-full bg-cyan-500 px-1.5 text-[10px] font-bold text-white">
+              <span className="rounded-full bg-[#C9956B] px-1.5 text-[10px] font-bold text-white">
                 {selectedGenres.length + selectedDeck.length}
               </span>
             )}
@@ -161,7 +161,7 @@ export default function GamesBrowser({ initialGames, totalGames, allGenres }: Pr
 
         {/* Filter Panel */}
         {showFilters && (
-          <div className="mt-4 space-y-4 border-t border-gray-800 pt-4">
+          <div className="mt-4 space-y-4 border-t border-[#292524] pt-4">
             {/* Deck Compatibility */}
             <div>
               <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Deck Compatibility</p>
@@ -172,8 +172,8 @@ export default function GamesBrowser({ initialGames, totalGames, allGenres }: Pr
                     onClick={() => toggleDeck(d.value)}
                     className={`rounded-full border px-3 py-1 text-xs transition-colors ${
                       selectedDeck.includes(d.value)
-                        ? 'border-cyan-500 bg-cyan-500/10 text-cyan-400'
-                        : 'border-gray-700 text-gray-400 hover:border-gray-500 hover:text-white'
+                        ? 'border-[#D4A574] bg-[#D4A574]/10 text-[#D4A574]'
+                        : 'border-[#44403C] text-gray-400 hover:border-[#57534E] hover:text-white'
                     }`}
                   >
                     {d.label}
@@ -192,8 +192,8 @@ export default function GamesBrowser({ initialGames, totalGames, allGenres }: Pr
                     onClick={() => toggleGenre(g)}
                     className={`rounded-full border px-3 py-1 text-xs transition-colors ${
                       selectedGenres.includes(g)
-                        ? 'border-cyan-500 bg-cyan-500/10 text-cyan-400'
-                        : 'border-gray-700 text-gray-400 hover:border-gray-500 hover:text-white'
+                        ? 'border-[#D4A574] bg-[#D4A574]/10 text-[#D4A574]'
+                        : 'border-[#44403C] text-gray-400 hover:border-[#57534E] hover:text-white'
                     }`}
                   >
                     {g}
@@ -225,7 +225,7 @@ export default function GamesBrowser({ initialGames, totalGames, allGenres }: Pr
             <a
               key={game.id}
               href={`/games/${game.slug}`}
-              className="group rounded-xl border border-gray-800 bg-gray-900 overflow-hidden hover:border-gray-700 transition-colors"
+              className="group rounded-xl border border-[#292524] bg-[#1C1917] overflow-hidden hover:border-[#44403C] transition-colors"
             >
               {game.header_image ? (
                 <div className="aspect-[460/215] overflow-hidden">
@@ -237,7 +237,7 @@ export default function GamesBrowser({ initialGames, totalGames, allGenres }: Pr
                   />
                 </div>
               ) : (
-                <div className="aspect-[460/215] bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center">
+                <div className="aspect-[460/215] bg-gradient-to-br from-[#292524] to-[#1C1917] flex items-center justify-center">
                   <span className="text-xl font-bold text-gray-700/50 text-center px-4">{game.name}</span>
                 </div>
               )}
@@ -245,7 +245,7 @@ export default function GamesBrowser({ initialGames, totalGames, allGenres }: Pr
                 <h3 className="font-semibold text-white text-sm truncate">{game.name}</h3>
                 <div className="mt-2 flex items-center gap-2 flex-wrap">
                   {game.genres?.slice(0, 2).map(g => (
-                    <span key={g} className="rounded-full bg-gray-800 px-2 py-0.5 text-[10px] text-gray-400">{g}</span>
+                    <span key={g} className="rounded-full bg-[#292524] px-2 py-0.5 text-[10px] text-gray-400">{g}</span>
                   ))}
                   {game.deck_compatibility && DECK_BADGES[game.deck_compatibility] && (
                     <span className={`rounded-full border px-2 py-0.5 text-[10px] font-medium ${DECK_BADGES[game.deck_compatibility].class}`}>
@@ -265,10 +265,10 @@ export default function GamesBrowser({ initialGames, totalGames, allGenres }: Pr
           ))}
         </div>
       ) : (
-        <div className="rounded-xl border border-gray-800 bg-gray-900 p-8 text-center">
+        <div className="rounded-xl border border-[#292524] bg-[#1C1917] p-8 text-center">
           <p className="text-gray-500">No games found matching your criteria.</p>
           {hasFilters && (
-            <button onClick={clearFilters} className="mt-2 text-sm text-cyan-400 hover:text-cyan-300">
+            <button onClick={clearFilters} className="mt-2 text-sm text-[#D4A574] hover:text-[#E8C5A0]">
               Clear filters
             </button>
           )}

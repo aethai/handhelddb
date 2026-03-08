@@ -54,8 +54,8 @@ export default function BadgeGrid({ badges }: Props) {
       {/* Summary */}
       <div className="flex items-center gap-3">
         <div className="flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-cyan-500/15 border border-cyan-500/25">
-            <svg className="h-4 w-4 text-cyan-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#D4A574]/15 border border-[#D4A574]/25">
+            <svg className="h-4 w-4 text-[#D4A574]" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
             </svg>
           </div>
@@ -67,9 +67,9 @@ export default function BadgeGrid({ badges }: Props) {
           </span>
         </div>
         {/* Progress bar */}
-        <div className="flex-1 h-1.5 bg-gray-800 rounded-full overflow-hidden">
+        <div className="flex-1 h-1.5 bg-[#292524] rounded-full overflow-hidden">
           <div
-            className="h-full bg-gradient-to-r from-cyan-500 to-cyan-400 rounded-full transition-all duration-500"
+            className="h-full bg-gradient-to-r from-[#C9956B] to-[#D4A574] rounded-full transition-all duration-500"
             style={{ width: `${badges.length > 0 ? (earnedCount / badges.length) * 100 : 0}%` }}
           />
         </div>
@@ -113,8 +113,8 @@ export default function BadgeGrid({ badges }: Props) {
                     key={badge.name}
                     className={`relative rounded-xl border p-4 text-center transition-all duration-200 cursor-default ${
                       isEarned
-                        ? 'border-cyan-500/30 bg-cyan-500/5 hover:border-cyan-500/50 hover:bg-cyan-500/10'
-                        : 'border-gray-800 bg-gray-900/50 opacity-50 hover:opacity-70'
+                        ? 'border-[#D4A574]/30 bg-[#D4A574]/5 hover:border-[#D4A574]/50 hover:bg-[#D4A574]/10'
+                        : 'border-[#292524] bg-[#1C1917]/50 opacity-50 hover:opacity-70'
                     }`}
                     onMouseEnter={() => setHoveredBadge(badge.name)}
                     onMouseLeave={() => setHoveredBadge(null)}
@@ -140,22 +140,22 @@ export default function BadgeGrid({ badges }: Props) {
 
                     {/* Earned date or description */}
                     {isEarned && earnedDate ? (
-                      <p className="mt-1 text-xs text-cyan-400/70">{earnedDate}</p>
+                      <p className="mt-1 text-xs text-[#D4A574]/70">{earnedDate}</p>
                     ) : (
                       <p className="mt-1 text-xs text-gray-600 line-clamp-2">{badge.description}</p>
                     )}
 
                     {/* Tooltip on hover */}
                     {isHovered && (
-                      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 z-10 w-48 rounded-lg border border-gray-700 bg-gray-800 p-3 shadow-xl pointer-events-none">
+                      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 z-10 w-48 rounded-lg border border-[#44403C] bg-[#292524] p-3 shadow-xl pointer-events-none">
                         <p className="text-sm font-medium text-white">{badge.name}</p>
                         <p className="mt-1 text-xs text-gray-400">{badge.description}</p>
                         {isEarned && earnedDate && (
-                          <p className="mt-1.5 text-xs text-cyan-400">Earned {earnedDate}</p>
+                          <p className="mt-1.5 text-xs text-[#D4A574]">Earned {earnedDate}</p>
                         )}
                         {/* Arrow */}
                         <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-px">
-                          <div className="border-4 border-transparent border-t-gray-700" />
+                          <div className="border-4 border-transparent border-t-[#44403C]" />
                         </div>
                       </div>
                     )}
@@ -169,7 +169,7 @@ export default function BadgeGrid({ badges }: Props) {
 
       {/* Empty state */}
       {badges.length === 0 && (
-        <div className="rounded-xl border border-dashed border-gray-700 bg-gray-900/50 p-8 text-center">
+        <div className="rounded-xl border border-dashed border-[#44403C] bg-[#1C1917]/50 p-8 text-center">
           <div className="text-4xl mb-3">🏅</div>
           <p className="text-gray-400 text-sm">No badges available yet.</p>
           <p className="text-gray-500 text-xs mt-1">Start submitting reports to earn badges!</p>

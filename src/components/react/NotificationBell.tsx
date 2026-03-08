@@ -18,7 +18,7 @@ function typeIcon(type: string): { path: string; color: string } {
     case 'new_report':
       return {
         path: 'M3.75 3v11.25A2.25 2.25 0 006 16.5h2.25M3.75 3h-1.5m1.5 0h16.5m0 0h1.5m-1.5 0v11.25A2.25 2.25 0 0118 16.5h-2.25m-7.5 0h7.5m-7.5 0l-1 3m8.5-3l1 3m0 0l.5 1.5m-.5-1.5h-9.5m0 0l-.5 1.5',
-        color: 'text-cyan-400',
+        color: 'text-[#D4A574]',
       };
     case 'vote_received':
       return {
@@ -184,7 +184,7 @@ export default function NotificationBell() {
       {/* Bell button */}
       <button
         onClick={handleToggle}
-        className="relative inline-flex items-center justify-center rounded-lg border border-gray-700 p-2 text-gray-400 hover:border-gray-500 hover:text-white transition-colors"
+        className="relative inline-flex items-center justify-center rounded-lg border border-[#44403C] p-2 text-gray-400 hover:border-[#57534E] hover:text-white transition-colors"
         aria-label={`Notifications${unreadCount > 0 ? ` (${unreadCount} unread)` : ''}`}
       >
         <svg
@@ -210,14 +210,14 @@ export default function NotificationBell() {
 
       {/* Dropdown */}
       {open && (
-        <div className="absolute right-0 mt-2 w-80 rounded-xl border border-gray-700 bg-gray-900 shadow-2xl z-50 overflow-hidden">
+        <div className="absolute right-0 mt-2 w-80 rounded-xl border border-[#44403C] bg-[#1C1917] shadow-2xl z-50 overflow-hidden">
           {/* Header */}
-          <div className="flex items-center justify-between border-b border-gray-800 px-4 py-3">
+          <div className="flex items-center justify-between border-b border-[#292524] px-4 py-3">
             <h3 className="text-sm font-semibold text-white">Notifications</h3>
             {unreadCount > 0 && (
               <button
                 onClick={handleMarkAllRead}
-                className="text-xs text-cyan-400 hover:text-cyan-300 transition-colors"
+                className="text-xs text-[#D4A574] hover:text-[#E8C5A0] transition-colors"
               >
                 Mark all read
               </button>
@@ -272,8 +272,8 @@ export default function NotificationBell() {
                   <button
                     key={n.id}
                     onClick={() => handleNotificationClick(n)}
-                    className={`flex w-full items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-gray-800/60 ${
-                      !n.is_read ? 'bg-gray-800/30' : ''
+                    className={`flex w-full items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-[#292524]/60 ${
+                      !n.is_read ? 'bg-[#292524]/30' : ''
                     }`}
                   >
                     {/* Icon */}
@@ -315,7 +315,7 @@ export default function NotificationBell() {
                     {/* Unread dot */}
                     {!n.is_read && (
                       <div className="mt-2 flex-shrink-0">
-                        <span className="block h-2 w-2 rounded-full bg-cyan-400" />
+                        <span className="block h-2 w-2 rounded-full bg-[#D4A574]" />
                       </div>
                     )}
                   </button>
@@ -326,10 +326,10 @@ export default function NotificationBell() {
 
           {/* Footer */}
           {notifications.length > 0 && (
-            <div className="border-t border-gray-800 px-4 py-2">
+            <div className="border-t border-[#292524] px-4 py-2">
               <button
                 onClick={handleMarkAllRead}
-                className="w-full rounded-lg py-1.5 text-center text-xs text-gray-400 hover:bg-gray-800 hover:text-gray-200 transition-colors"
+                className="w-full rounded-lg py-1.5 text-center text-xs text-gray-400 hover:bg-[#292524] hover:text-gray-200 transition-colors"
               >
                 Mark all as read
               </button>

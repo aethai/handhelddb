@@ -130,8 +130,8 @@ const { curations, topGenres, devices, deviceReportMap, topRatedAll } = cached;
 const genreColors: Record<string, string> = {
   'Action': 'border-red-500/30 text-red-400 hover:bg-red-500/10',
   'RPG': 'border-purple-500/30 text-purple-400 hover:bg-purple-500/10',
-  'Indie': 'border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/10',
-  'Adventure': 'border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/10',
+  'Indie': 'border-[#D4A574]/30 text-[#D4A574] hover:bg-[#D4A574]/10',
+  'Adventure': 'border-[#D4A574]/30 text-[#D4A574] hover:bg-[#D4A574]/10',
   'Strategy': 'border-blue-500/30 text-blue-400 hover:bg-blue-500/10',
   'Simulation': 'border-green-500/30 text-green-400 hover:bg-green-500/10',
   'Casual': 'border-yellow-500/30 text-yellow-400 hover:bg-yellow-500/10',
@@ -180,7 +180,7 @@ const defaultColor = 'border-gray-500/30 text-gray-400 hover:bg-gray-500/10';
               </h2>
               <p class="mt-0.5 text-sm text-gray-500">{list.subtitle}</p>
             </div>
-            <a href="/games" class="text-sm text-cyan-400 hover:text-cyan-300 transition-colors">
+            <a href="/games" class="text-sm text-[#D4A574] hover:text-[#E8C5A0] transition-colors">
               View all &rarr;
             </a>
           </div>
@@ -201,10 +201,10 @@ const defaultColor = 'border-gray-500/30 text-gray-400 hover:bg-gray-500/10';
           {devices.map((device) => (
             <a
               href={`/devices/${device.slug}`}
-              class="group rounded-xl border border-[#151c2b] bg-[#0f1520] p-6 text-center hover:border-cyan-500/30 transition-colors"
+              class="group rounded-xl border border-[#292524] bg-[#1C1917] p-6 text-center hover:border-[#D4A574]/30 transition-colors"
             >
               <p class="text-xs text-gray-500 uppercase">{device.manufacturer}</p>
-              <p class="text-lg font-bold text-white group-hover:text-cyan-400 transition-colors">
+              <p class="text-lg font-bold text-white group-hover:text-[#D4A574] transition-colors">
                 {device.name}
               </p>
               <p class="mt-2 text-sm text-gray-400">
@@ -226,7 +226,7 @@ const defaultColor = 'border-gray-500/30 text-gray-400 hover:bg-gray-500/10';
             </h2>
             <p class="mt-0.5 text-sm text-gray-500">Latest games added to the database</p>
           </div>
-          <a href="/games" class="text-sm text-cyan-400 hover:text-cyan-300 transition-colors">
+          <a href="/games" class="text-sm text-[#D4A574] hover:text-[#E8C5A0] transition-colors">
             View all &rarr;
           </a>
         </div>

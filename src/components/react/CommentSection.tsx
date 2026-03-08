@@ -204,7 +204,7 @@ export default function CommentSection({ gameId, currentUserId }: Props) {
               <button
                 onClick={() => fetchComments(offset, true)}
                 disabled={loadingMore}
-                className="rounded-lg border border-gray-700 px-5 py-2 text-sm text-gray-300 hover:border-gray-500 hover:text-white transition-colors disabled:opacity-50"
+                className="rounded-lg border border-[#44403C] px-5 py-2 text-sm text-gray-300 hover:border-[#57534E] hover:text-white transition-colors disabled:opacity-50"
               >
                 {loadingMore ? (
                   <span className="flex items-center gap-2">
@@ -357,7 +357,7 @@ function CommentThread({ node, gameId, currentUserId, onReply, onVote, onDelete 
   if (comment.is_deleted) {
     return (
       <div style={{ paddingLeft: indentLevel > 0 ? `${indentLevel * 24}px` : undefined }}>
-        <div className="rounded-lg border border-gray-800/50 bg-gray-900/30 px-4 py-3 my-1">
+        <div className="rounded-lg border border-[#292524]/50 bg-[#1C1917]/30 px-4 py-3 my-1">
           <p className="text-sm text-gray-600 italic">[deleted]</p>
         </div>
         {node.children.length > 0 && (
@@ -383,7 +383,7 @@ function CommentThread({ node, gameId, currentUserId, onReply, onVote, onDelete 
 
   return (
     <div style={{ paddingLeft: indentLevel > 0 ? `${indentLevel * 24}px` : undefined }}>
-      <div className="rounded-lg border border-gray-800 bg-gray-900/50 px-4 py-3 my-1">
+      <div className="rounded-lg border border-[#292524] bg-[#1C1917]/50 px-4 py-3 my-1">
         {/* Header: avatar + name + time */}
         <div className="flex items-center gap-2.5 mb-2">
           {comment.user.avatar_url ? (
@@ -425,7 +425,7 @@ function CommentThread({ node, gameId, currentUserId, onReply, onVote, onDelete 
               disabled={voteLoading}
               className={`p-1 rounded transition-colors ${
                 userVote === true
-                  ? 'text-cyan-400 hover:text-cyan-300'
+                  ? 'text-[#D4A574] hover:text-[#E8C5A0]'
                   : 'text-gray-600 hover:text-gray-400'
               }`}
               title="Upvote"
@@ -436,7 +436,7 @@ function CommentThread({ node, gameId, currentUserId, onReply, onVote, onDelete 
             </button>
             <span
               className={`text-xs font-medium min-w-[1.25rem] text-center ${
-                score > 0 ? 'text-cyan-400' : score < 0 ? 'text-red-400' : 'text-gray-600'
+                score > 0 ? 'text-[#D4A574]' : score < 0 ? 'text-red-400' : 'text-gray-600'
               }`}
             >
               {score}
@@ -487,7 +487,7 @@ function CommentThread({ node, gameId, currentUserId, onReply, onVote, onDelete 
 
         {/* Inline reply form */}
         {showReplyForm && (
-          <div className="mt-3 pt-3 border-t border-gray-800">
+          <div className="mt-3 pt-3 border-t border-[#292524]">
             <CommentForm
               gameId={gameId}
               currentUserId={currentUserId}
@@ -547,11 +547,11 @@ function CommentForm({ gameId, currentUserId, parentId, parentDepth, onSubmit, o
 
   if (!currentUserId) {
     return (
-      <div className="rounded-lg border border-gray-800 bg-gray-900/50 px-4 py-4 text-center">
+      <div className="rounded-lg border border-[#292524] bg-[#1C1917]/50 px-4 py-4 text-center">
         <p className="text-sm text-gray-500 mb-2">Sign in to join the conversation</p>
         <a
           href={'/auth/login?redirect=' + encodeURIComponent(typeof window !== 'undefined' ? window.location.pathname : '/')}
-          className="inline-flex items-center gap-2 rounded-lg bg-cyan-600 px-4 py-2 text-sm font-medium text-white hover:bg-cyan-500 transition-colors"
+          className="inline-flex items-center gap-2 rounded-lg bg-[#C9956B] px-4 py-2 text-sm font-medium text-white hover:bg-[#D4A574] transition-colors"
         >
           Sign in
         </a>
@@ -603,7 +603,7 @@ function CommentForm({ gameId, currentUserId, parentId, parentDepth, onSubmit, o
         maxLength={5000}
         rows={compact ? 2 : 3}
         placeholder={parentId ? 'Write a reply...' : 'Share your thoughts on this game...'}
-        className="w-full rounded-lg border border-gray-700 bg-gray-800 py-2.5 px-4 text-sm text-white placeholder-gray-500 focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500 resize-none"
+        className="w-full rounded-lg border border-[#44403C] bg-[#292524] py-2.5 px-4 text-sm text-white placeholder-gray-500 focus:border-[#D4A574] focus:outline-none focus:ring-1 focus:ring-[#D4A574] resize-none"
       />
       {error && (
         <p className="text-xs text-red-400">{error}</p>
@@ -625,7 +625,7 @@ function CommentForm({ gameId, currentUserId, parentId, parentDepth, onSubmit, o
           <button
             onClick={handleSubmit}
             disabled={!body.trim() || submitting}
-            className="rounded-lg bg-cyan-600 px-4 py-1.5 text-xs font-medium text-white hover:bg-cyan-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5"
+            className="rounded-lg bg-[#C9956B] px-4 py-1.5 text-xs font-medium text-white hover:bg-[#D4A574] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5"
           >
             {submitting && (
               <svg className="h-3 w-3 animate-spin" viewBox="0 0 24 24" fill="none">

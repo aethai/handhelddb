@@ -24,10 +24,10 @@ const {
 
 <a
   href={`/games/${slug}`}
-  class="glow-card group block overflow-hidden rounded-lg border border-[#151c2b] bg-[#0f1520] transition-all hover:border-gray-600"
+  class="luxury-card group block overflow-hidden rounded-lg border border-[#292524] bg-[#1C1917] transition-all hover:border-[#44403C]"
 >
   <!-- Header Image -->
-  <div class="aspect-[460/215] overflow-hidden bg-[#1e2840]">
+  <div class="aspect-[460/215] overflow-hidden bg-[#292524]">
     {headerImage ? (
       <img
         src={headerImage}
@@ -43,11 +43,11 @@ const {
       </div>
     )}
   </div>
-  <div class="h-0.5 bg-gradient-to-r from-cyan-500/0 via-cyan-500/40 to-cyan-500/0"></div>
+  <div class="h-px bg-[#292524]"></div>
 
   <!-- Card Body -->
   <div class="p-3">
-    <h3 class="font-heading font-semibold text-white truncate group-hover:text-cyan-400 transition-colors">
+    <h3 class="font-heading font-semibold text-white truncate group-hover:text-[#D4A574] transition-colors">
       {name}
     </h3>
 

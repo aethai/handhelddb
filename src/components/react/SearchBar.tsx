@@ -31,7 +31,7 @@ interface SearchBarProps {
 const DEBOUNCE_MS = 200;
 
 const deckBadge: Record<string, { label: string; class: string }> = {
-  verified: { label: 'Verified', class: 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30' },
+  verified: { label: 'Verified', class: 'bg-[#D4A574]/20 text-[#D4A574] border-[#D4A574]/30' },
   playable: { label: 'Playable', class: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30' },
   unsupported: { label: 'Unsupported', class: 'bg-red-500/20 text-red-400 border-red-500/30' },
   unknown: { label: 'Unknown', class: 'bg-gray-500/20 text-gray-400 border-gray-500/30' },
@@ -140,7 +140,7 @@ export default function SearchBar({
     <div ref={containerRef} className={`relative ${isHero ? 'w-full' : ''}`}>
       <div className={`relative ${isHero ? 'group' : ''}`}>
         {isHero && (
-          <div className="absolute -inset-0.5 bg-gradient-to-r from-cyan-500/20 to-cyan-500/20 rounded-2xl blur opacity-0 group-focus-within:opacity-100 transition-opacity" />
+          <div className="absolute -inset-0.5 bg-gradient-to-r from-[#D4A574]/20 to-[#DAA520]/20 rounded-2xl blur opacity-0 group-focus-within:opacity-100 transition-opacity" />
         )}
         <div className="relative flex items-center">
           <svg
@@ -168,8 +168,8 @@ export default function SearchBar({
             autoFocus={autoFocus}
             className={
               isHero
-                ? 'w-full rounded-xl border border-gray-700 bg-gray-900/90 py-4 pl-14 pr-32 text-white placeholder-gray-500 focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500 transition-all'
-                : 'w-64 rounded-lg border border-gray-700 bg-gray-900/90 py-1.5 pl-9 pr-16 text-sm text-white placeholder-gray-500 focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500 transition-all'
+                ? 'w-full rounded-xl border border-[#44403C] bg-[#1C1917]/90 py-4 pl-14 pr-32 text-white placeholder-gray-500 focus:border-[#D4A574] focus:outline-none focus:ring-1 focus:ring-[#D4A574] transition-all'
+                : 'w-64 rounded-lg border border-[#44403C] bg-[#1C1917]/90 py-1.5 pl-9 pr-16 text-sm text-white placeholder-gray-500 focus:border-[#D4A574] focus:outline-none focus:ring-1 focus:ring-[#D4A574] transition-all'
             }
           />
 
@@ -185,14 +185,14 @@ export default function SearchBar({
               </svg>
             )}
             <kbd
-              className={`hidden sm:inline-flex items-center rounded-md border border-gray-700 bg-gray-800 px-2 py-0.5 text-xs text-gray-500`}
+              className={`hidden sm:inline-flex items-center rounded-md border border-[#44403C] bg-[#292524] px-2 py-0.5 text-xs text-gray-500`}
             >
               Ctrl+K
             </kbd>
             {isHero && (
               <a
                 href="/games"
-                className="rounded-lg bg-cyan-600 px-4 py-2 text-sm font-medium text-white hover:bg-cyan-500 transition-colors"
+                className="rounded-lg bg-[#C9956B] px-4 py-2 text-sm font-medium text-white hover:bg-[#D4A574] transition-colors"
               >
                 Browse
               </a>
@@ -204,17 +204,17 @@ export default function SearchBar({
       {/* Dropdown */}
       {isOpen && (
         <div
-          className={`absolute z-50 mt-2 w-full rounded-xl border border-gray-700 bg-gray-900 shadow-2xl shadow-black/50 overflow-hidden ${isHero ? '' : 'min-w-80'}`}
+          className={`absolute z-50 mt-2 w-full rounded-xl border border-[#44403C] bg-[#1C1917] shadow-2xl shadow-black/50 overflow-hidden ${isHero ? '' : 'min-w-80'}`}
         >
-          <ul className="max-h-96 overflow-y-auto divide-y divide-gray-800">
+          <ul className="max-h-96 overflow-y-auto divide-y divide-[#292524]">
             {results.map((hit, i) => {
               const badge = deckBadge[hit.deck_compatibility ?? 'unknown'];
               return (
                 <li key={hit.id}>
                   <a
                     href={`/games/${hit.slug}`}
-                    className={`flex items-center gap-3 px-4 py-3 hover:bg-gray-800/80 transition-colors ${
-                      i === selectedIndex ? 'bg-gray-800/80' : ''
+                    className={`flex items-center gap-3 px-4 py-3 hover:bg-[#292524]/80 transition-colors ${
+                      i === selectedIndex ? 'bg-[#292524]/80' : ''
                     }`}
                     onMouseEnter={() => setSelectedIndex(i)}
                   >
@@ -247,7 +247,7 @@ export default function SearchBar({
                       <span
                         className={`flex-shrink-0 text-xs font-bold rounded px-1.5 py-0.5 ${
                           hit.metacritic_score >= 75
-                            ? 'bg-cyan-500/20 text-cyan-400'
+                            ? 'bg-[#D4A574]/20 text-[#D4A574]'
                             : hit.metacritic_score >= 50
                               ? 'bg-yellow-500/20 text-yellow-400'
                               : 'bg-red-500/20 text-red-400'
@@ -261,11 +261,11 @@ export default function SearchBar({
               );
             })}
           </ul>
-          <div className="border-t border-gray-800 px-4 py-2 flex items-center justify-between">
+          <div className="border-t border-[#292524] px-4 py-2 flex items-center justify-between">
             <span className="text-xs text-gray-500">
               {results.length} result{results.length !== 1 ? 's' : ''}
             </span>
-            <a href={`/games?q=${encodeURIComponent(query)}`} className="text-xs text-cyan-400 hover:text-cyan-300">
+            <a href={`/games?q=${encodeURIComponent(query)}`} className="text-xs text-[#D4A574] hover:text-[#E8C5A0]">
               View all results →
             </a>
           </div>

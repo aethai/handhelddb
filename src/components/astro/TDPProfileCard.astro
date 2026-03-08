@@ -24,18 +24,18 @@ const tierConfig = {
   battery_saver: {
     label: 'Battery Saver',
     icon: '🔋',
-    color: 'cyan',
-    border: 'border-cyan-500/30',
-    bg: 'bg-cyan-500/5',
-    accent: 'text-cyan-400',
+    color: 'copper',
+    border: 'border-[#D4A574]/30',
+    bg: 'bg-[#D4A574]/5',
+    accent: 'text-[#D4A574]',
   },
   balanced: {
     label: 'Balanced',
     icon: '⚖️',
-    color: 'cyan',
-    border: 'border-cyan-500/30',
-    bg: 'bg-cyan-500/5',
-    accent: 'text-cyan-400',
+    color: 'copper',
+    border: 'border-[#D4A574]/30',
+    bg: 'bg-[#D4A574]/5',
+    accent: 'text-[#D4A574]',
   },
   performance: {
     label: 'Performance',
@@ -66,7 +66,7 @@ const fanLabels: Record<string, string> = { silent: 'Silent', quiet: 'Quiet', au
       <span class="text-lg">{config.icon}</span>
       <h4 class={`text-sm font-semibold font-heading ${config.accent}`}>{config.label}</h4>
     </div>
-    <span class="rounded-full bg-gray-800 px-2 py-0.5 text-[10px] text-gray-400">
+    <span class="rounded-full bg-[#292524] px-2 py-0.5 text-[10px] text-gray-400">
       {profile.reportCount} report{profile.reportCount !== 1 ? 's' : ''}
     </span>
   </div>
@@ -97,7 +97,7 @@ const fanLabels: Record<string, string> = { silent: 'Silent', quiet: 'Quiet', au
         <span class="text-gray-300 capitalize">{profile.fsrMode ?? 'On'}</span>
       </div>
     )}
-    <div class="border-t border-[#151c2b] my-2"></div>
+    <div class="border-t border-[#292524] my-2"></div>
     <div class="flex justify-between">
       <span class="text-gray-500">Battery</span>
       <span class="text-gray-300 font-mono">{profile.estimatedBatteryHours.toFixed(1)}h</span>

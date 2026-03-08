@@ -51,49 +51,44 @@ const trendingGames = (gamesData ?? []).map(g => ({
 
 <BaseLayout title="Handheld GameDB">
   <!-- HERO -->
-  <section class="relative overflow-hidden pt-16 pb-20 sm:pt-24 sm:pb-28 scan-lines">
-    <div class="absolute inset-0 gradient-mesh"></div>
+  <section class="relative overflow-hidden pt-16 pb-20 sm:pt-24 sm:pb-28">
+    <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_30%_50%,rgba(212,165,116,0.06),transparent_70%)]"></div>
 
-    <div class="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 text-center">
-      <!-- Live badge -->
-      <div class="inline-flex items-center gap-2 rounded-full border border-cyan-500/20 bg-cyan-500/10 px-4 py-1.5 text-sm text-cyan-400 mb-6">
-        <span class="relative flex h-2 w-2">
-          <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-cyan-400 opacity-75"></span>
-          <span class="relative inline-flex h-2 w-2 rounded-full bg-cyan-500"></span>
-        </span>
-        Now live — building the database
+    <div class="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 text-center lg:text-left">
+      <div class="max-w-4xl">
+        <p class="editorial-label mb-4">Performance Database</p>
+
+        <h1 class="text-5xl sm:text-7xl lg:text-8xl font-bold text-stone-50 tracking-tight leading-tight font-heading uppercase">
+          Find the <span class="text-gradient-copper">best settings</span> for<br class="hidden sm:block" />
+          every game on your handheld
+        </h1>
+        <p class="mt-6 max-w-xl text-lg text-stone-400 leading-relaxed">
+          Community-driven performance data for Steam Deck, ROG Ally, Legion Go and more. Optimal settings, FPS benchmarks, battery life &mdash; all in one place.
+        </p>
       </div>
 
-      <h1 class="text-4xl sm:text-5xl lg:text-6xl font-bold text-white tracking-tight leading-tight font-heading uppercase">
-        Find the <span class="bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">best settings</span> for<br class="hidden sm:block" />
-        every game on your handheld
-      </h1>
-      <p class="mt-6 text-lg sm:text-xl text-gray-400 max-w-2xl mx-auto leading-relaxed">
-        Community-driven performance data for Steam Deck, ROG Ally, Legion Go and more. Optimal settings, FPS benchmarks, battery life &mdash; all in one place.
-      </p>
-
       <!-- Search Bar -->
-      <div class="mt-10 max-w-2xl mx-auto">
+      <div class="mt-10 max-w-2xl lg:mx-0 mx-auto">
         <SearchBar client:load variant="hero" placeholder="Search games... (e.g. Elden Ring, Cyberpunk 2077, Stardew Valley)" />
       </div>
 
       <!-- Quick Stats -->
-      <div class="mt-14 grid grid-cols-2 sm:grid-cols-4 gap-4 max-w-2xl mx-auto">
-        <div class="glow-card-subtle rounded-xl border border-[#151c2b] bg-[#0f1520]/50 border-t-2 border-t-cyan-500/30 p-4">
-          <p class="text-2xl sm:text-3xl font-bold text-white font-mono stat-counter">{gameCount ?? 0}</p>
-          <p class="text-sm text-gray-500">Games</p>
+      <div class="mt-14 grid grid-cols-2 sm:grid-cols-4 gap-4 max-w-2xl lg:mx-0 mx-auto">
+        <div class="luxury-card rounded-xl bg-[#1C1917] border border-[#292524] p-4">
+          <p class="text-2xl sm:text-3xl font-bold text-[#DAA520] font-mono">{gameCount ?? 0}</p>
+          <p class="text-sm text-stone-500">Games</p>
         </div>
-        <div class="glow-card-subtle rounded-xl border border-[#151c2b] bg-[#0f1520]/50 border-t-2 border-t-cyan-500/30 p-4">
-          <p class="text-2xl sm:text-3xl font-bold text-white font-mono stat-counter">{deviceCount ?? 0}</p>
-          <p class="text-sm text-gray-500">Devices</p>
+        <div class="luxury-card rounded-xl bg-[#1C1917] border border-[#292524] p-4">
+          <p class="text-2xl sm:text-3xl font-bold text-[#DAA520] font-mono">{deviceCount ?? 0}</p>
+          <p class="text-sm text-stone-500">Devices</p>
         </div>
-        <div class="glow-card-subtle rounded-xl border border-[#151c2b] bg-[#0f1520]/50 border-t-2 border-t-cyan-500/30 p-4">
-          <p class="text-2xl sm:text-3xl font-bold text-white font-mono stat-counter">0</p>
-          <p class="text-sm text-gray-500">Reports</p>
+        <div class="luxury-card rounded-xl bg-[#1C1917] border border-[#292524] p-4">
+          <p class="text-2xl sm:text-3xl font-bold text-[#DAA520] font-mono">0</p>
+          <p class="text-sm text-stone-500">Reports</p>
         </div>
-        <div class="glow-card-subtle rounded-xl border border-[#151c2b] bg-[#0f1520]/50 border-t-2 border-t-cyan-500/30 p-4">
-          <p class="text-2xl sm:text-3xl font-bold text-white font-mono stat-counter">0</p>
-          <p class="text-sm text-gray-500">Testers</p>
+        <div class="luxury-card rounded-xl bg-[#1C1917] border border-[#292524] p-4">
+          <p class="text-2xl sm:text-3xl font-bold text-[#DAA520] font-mono">0</p>
+          <p class="text-sm text-stone-500">Testers</p>
         </div>
       </div>
     </div>
@@ -106,9 +101,9 @@ const trendingGames = (gamesData ?? []).map(g => ({
         <div class="flex items-center justify-between mb-6">
           <div>
             <h2 class="text-2xl font-bold text-white font-heading uppercase tracking-wider">Top Games</h2>
-            <p class="mt-1 text-sm text-gray-500">Highest rated games in the database</p>
+            <p class="mt-1 text-sm text-stone-500">Highest rated games in the database</p>
           </div>
-          <a href="/games" class="text-sm text-cyan-400 hover:text-cyan-300 transition-colors">
+          <a href="/games" class="text-sm text-[#D4A574] hover:text-[#E8C5A0] transition-colors">
             View all &rarr;
           </a>
         </div>
@@ -128,9 +123,9 @@ const trendingGames = (gamesData ?? []).map(g => ({
         <div class="flex items-center justify-between mb-6">
           <div>
             <h2 class="text-2xl font-bold text-white font-heading uppercase tracking-wider">Supported Devices</h2>
-            <p class="mt-1 text-sm text-gray-500">Pick your handheld to see compatible games</p>
+            <p class="mt-1 text-sm text-stone-500">Pick your handheld to see compatible games</p>
           </div>
-          <a href="/devices" class="text-sm text-cyan-400 hover:text-cyan-300 transition-colors">
+          <a href="/devices" class="text-sm text-[#D4A574] hover:text-[#E8C5A0] transition-colors">
             All devices &rarr;
           </a>
         </div>
@@ -149,35 +144,35 @@ const trendingGames = (gamesData ?? []).map(g => ({
       <h2 class="text-2xl font-bold text-white mb-10 text-center font-heading uppercase tracking-wider">How It Works</h2>
       <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
         <div class="relative text-center group">
-          <div class="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 group-hover:bg-cyan-500/20 transition-colors">
+          <div class="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-[#D4A574]/10 border border-[#D4A574]/20 text-[#D4A574] group-hover:bg-[#D4A574]/20 transition-colors">
             <svg class="h-7 w-7" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z" />
             </svg>
           </div>
           <h3 class="text-lg font-semibold text-white font-heading">1. Search Your Game</h3>
-          <p class="mt-2 text-sm text-gray-400 leading-relaxed">
+          <p class="mt-2 text-sm text-stone-400 leading-relaxed">
             Instant search across {gameCount ?? 0}+ games. Filter by device, genre, FPS target, or compatibility.
           </p>
         </div>
         <div class="relative text-center group">
-          <div class="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 group-hover:bg-cyan-500/20 transition-colors">
+          <div class="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-[#D4A574]/10 border border-[#D4A574]/20 text-[#D4A574] group-hover:bg-[#D4A574]/20 transition-colors">
             <svg class="h-7 w-7" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75" />
             </svg>
           </div>
           <h3 class="text-lg font-semibold text-white font-heading">2. Get Best Settings</h3>
-          <p class="mt-2 text-sm text-gray-400 leading-relaxed">
+          <p class="mt-2 text-sm text-stone-400 leading-relaxed">
             3 TDP profiles per game: Battery Saver, Balanced, Performance. With FPS, thermal, and battery data.
           </p>
         </div>
         <div class="relative text-center group">
-          <div class="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 group-hover:bg-cyan-500/20 transition-colors">
+          <div class="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-[#D4A574]/10 border border-[#D4A574]/20 text-[#D4A574] group-hover:bg-[#D4A574]/20 transition-colors">
             <svg class="h-7 w-7" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
             </svg>
           </div>
           <h3 class="text-lg font-semibold text-white font-heading">3. Share Your Results</h3>
-          <p class="mt-2 text-sm text-gray-400 leading-relaxed">
+          <p class="mt-2 text-sm text-stone-400 leading-relaxed">
             Submit performance reports, earn points, climb the leaderboard. Every report helps the community.
           </p>
         </div>
@@ -188,17 +183,17 @@ const trendingGames = (gamesData ?? []).map(g => ({
   <!-- CTA -->
   <section class="py-12 pb-20">
     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-      <div class="gradient-border relative overflow-hidden rounded-2xl border border-[#151c2b] bg-gradient-to-br from-[#0f1520] to-[#0f1520]/50 p-8 sm:p-12">
-        <div class="absolute top-0 right-0 -mt-16 -mr-16 h-64 w-64 rounded-full bg-cyan-500/5 blur-3xl"></div>
+      <div class="surface-card relative overflow-hidden rounded-2xl p-8 sm:p-12">
+        <div class="absolute top-0 right-0 -mt-16 -mr-16 h-64 w-64 rounded-full bg-[#D4A574]/5 blur-3xl"></div>
         <div class="relative text-center">
           <h2 class="text-2xl sm:text-3xl font-bold text-white font-heading">Got a handheld? Your data matters.</h2>
-          <p class="mt-3 text-gray-400 max-w-xl mx-auto">
+          <p class="mt-3 text-stone-400 max-w-xl mx-auto">
             Every performance report helps thousands of gamers optimize their experience. Be one of the first testers.
           </p>
           <div class="mt-8 flex flex-col sm:flex-row justify-center gap-4">
             <a
               href="/report/new"
-              class="inline-flex items-center justify-center gap-2 rounded-xl bg-cyan-600 px-8 py-3.5 text-sm font-semibold text-white hover:bg-cyan-500 transition-colors shadow-lg shadow-cyan-500/20"
+              class="inline-flex items-center justify-center gap-2 rounded-xl bg-[#C9956B] px-8 py-3.5 text-sm font-semibold text-white hover:bg-[#D4A574] transition-colors"
             >
               <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
@@ -207,7 +202,7 @@ const trendingGames = (gamesData ?? []).map(g => ({
             </a>
             <a
               href="/auth/login"
-              class="inline-flex items-center justify-center gap-2 rounded-xl border border-gray-700 px-8 py-3.5 text-sm font-semibold text-gray-300 hover:border-gray-500 hover:text-white transition-colors"
+              class="inline-flex items-center justify-center gap-2 rounded-xl border border-[#44403C] px-8 py-3.5 text-sm font-semibold text-stone-400 hover:border-stone-500 hover:text-white transition-colors"
             >
               Sign in with Steam
             </a>

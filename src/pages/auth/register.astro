@@ -14,11 +14,11 @@ const errorParam = Astro.url.searchParams.get('error');
 <BaseLayout title="Create Account" noindex>
   <section class="flex min-h-[60vh] items-center justify-center px-4 py-16">
     <div class="w-full max-w-md">
-      <div class="gradient-border rounded-2xl border border-gray-800 bg-gray-900/50 p-8">
+      <div class="rounded-2xl border border-[#292524] bg-[#1C1917]/50 p-8">
         <!-- Header -->
         <div class="text-center mb-8">
-          <div class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-cyan-500/10 border border-cyan-500/20">
-            <svg class="h-7 w-7 text-cyan-400" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+          <div class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-[#D4A574]/10 border border-[#D4A574]/20">
+            <svg class="h-7 w-7 text-[#D4A574]" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" d="M18 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0ZM3 19.235v-.11a6.375 6.375 0 0 1 12.75 0v.109A12.318 12.318 0 0 1 9.374 21c-2.331 0-4.512-.645-6.374-1.766Z" />
             </svg>
           </div>
@@ -46,7 +46,7 @@ const errorParam = Astro.url.searchParams.get('error');
               maxlength="50"
               autocomplete="name"
               placeholder="How others will see you"
-              class="w-full rounded-xl border border-gray-700 bg-gray-800/50 px-4 py-3 text-sm text-white placeholder-gray-500 focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500 transition-colors"
+              class="w-full rounded-xl border border-[#44403C] bg-gray-800/50 px-4 py-3 text-sm text-white placeholder-gray-500 focus:border-[#D4A574] focus:outline-none focus:ring-1 focus:ring-[#D4A574] transition-colors"
             />
           </div>
 
@@ -59,7 +59,7 @@ const errorParam = Astro.url.searchParams.get('error');
               required
               autocomplete="email"
               placeholder="you@example.com"
-              class="w-full rounded-xl border border-gray-700 bg-gray-800/50 px-4 py-3 text-sm text-white placeholder-gray-500 focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500 transition-colors"
+              class="w-full rounded-xl border border-[#44403C] bg-gray-800/50 px-4 py-3 text-sm text-white placeholder-gray-500 focus:border-[#D4A574] focus:outline-none focus:ring-1 focus:ring-[#D4A574] transition-colors"
             />
           </div>
 
@@ -74,7 +74,7 @@ const errorParam = Astro.url.searchParams.get('error');
                 minlength="8"
                 autocomplete="new-password"
                 placeholder="Min. 8 characters"
-                class="w-full rounded-xl border border-gray-700 bg-gray-800/50 px-4 py-3 pr-10 text-sm text-white placeholder-gray-500 focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500 transition-colors"
+                class="w-full rounded-xl border border-[#44403C] bg-gray-800/50 px-4 py-3 pr-10 text-sm text-white placeholder-gray-500 focus:border-[#D4A574] focus:outline-none focus:ring-1 focus:ring-[#D4A574] transition-colors"
               />
               <button
                 type="button"
@@ -101,7 +101,7 @@ const errorParam = Astro.url.searchParams.get('error');
               minlength="8"
               autocomplete="new-password"
               placeholder="Repeat your password"
-              class="w-full rounded-xl border border-gray-700 bg-gray-800/50 px-4 py-3 text-sm text-white placeholder-gray-500 focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500 transition-colors"
+              class="w-full rounded-xl border border-[#44403C] bg-gray-800/50 px-4 py-3 text-sm text-white placeholder-gray-500 focus:border-[#D4A574] focus:outline-none focus:ring-1 focus:ring-[#D4A574] transition-colors"
             />
             <p id="password-match" class="mt-1.5 text-xs text-red-400 hidden">Passwords do not match</p>
           </div>
@@ -109,7 +109,7 @@ const errorParam = Astro.url.searchParams.get('error');
           <button
             type="submit"
             id="submit-btn"
-            class="w-full rounded-xl bg-cyan-600 px-4 py-3 text-sm font-semibold text-white hover:bg-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2 focus:ring-offset-gray-900 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            class="w-full rounded-xl bg-[#C9956B] px-4 py-3 text-sm font-semibold text-white hover:bg-[#D4A574] focus:outline-none focus:ring-2 focus:ring-[#D4A574] focus:ring-offset-2 focus:ring-offset-[#1C1917] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Create account
           </button>
@@ -118,7 +118,7 @@ const errorParam = Astro.url.searchParams.get('error');
         <!-- Divider -->
         <div class="relative my-6">
           <div class="absolute inset-0 flex items-center">
-            <div class="w-full border-t border-gray-800"></div>
+            <div class="w-full border-t border-[#292524]"></div>
           </div>
           <div class="relative flex justify-center text-xs">
             <span class="bg-gray-900/50 px-3 text-gray-500">or continue with</span>
@@ -129,7 +129,7 @@ const errorParam = Astro.url.searchParams.get('error');
         <div class="space-y-3">
           <a
             href={`/auth/callback/google?redirect=${encodeURIComponent(redirectTo)}`}
-            class="flex w-full items-center justify-center gap-3 rounded-xl border border-gray-700 bg-gray-800/50 px-4 py-3 text-sm font-medium text-white hover:border-gray-600 hover:bg-gray-800 transition-colors"
+            class="flex w-full items-center justify-center gap-3 rounded-xl border border-[#44403C] bg-gray-800/50 px-4 py-3 text-sm font-medium text-white hover:border-gray-600 hover:bg-gray-800 transition-colors"
           >
             <svg class="h-5 w-5" viewBox="0 0 24 24">
               <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1Z"/>
@@ -144,17 +144,17 @@ const errorParam = Astro.url.searchParams.get('error');
         <!-- Sign in link -->
         <p class="mt-6 text-center text-sm text-gray-500">
           Already have an account?
-          <a href={`/auth/login?redirect=${encodeURIComponent(redirectTo)}`} class="text-cyan-400 hover:text-cyan-300 transition-colors font-medium">
+          <a href={`/auth/login?redirect=${encodeURIComponent(redirectTo)}`} class="text-[#D4A574] hover:text-[#E8C5A0] transition-colors font-medium">
             Sign in
           </a>
         </p>
 
         <!-- Terms -->
-        <div class="mt-4 rounded-xl border border-gray-800 bg-gray-950/50 p-4">
+        <div class="mt-4 rounded-xl border border-[#292524] bg-[#0C0A09]/50 p-4">
           <p class="text-xs text-gray-500 leading-relaxed">
             By creating an account, you agree to our
-            <a href="/terms" class="text-cyan-400 hover:text-cyan-300">Terms of Service</a> and
-            <a href="/privacy" class="text-cyan-400 hover:text-cyan-300">Privacy Policy</a>.
+            <a href="/terms" class="text-[#D4A574] hover:text-[#E8C5A0]">Terms of Service</a> and
+            <a href="/privacy" class="text-[#D4A574] hover:text-[#E8C5A0]">Privacy Policy</a>.
           </p>
         </div>
       </div>
@@ -191,7 +191,7 @@ const errorParam = Astro.url.searchParams.get('error');
     if (/[^A-Za-z0-9]/.test(val)) score++;
 
     const labels = ['Very weak', 'Weak', 'Fair', 'Good', 'Strong'];
-    const colors = ['text-red-400', 'text-orange-400', 'text-yellow-400', 'text-cyan-400', 'text-cyan-300'];
+    const colors = ['text-red-400', 'text-orange-400', 'text-yellow-400', 'text-[#D4A574]', 'text-[#E8C5A0]'];
     const idx = Math.min(score, labels.length) - 1;
     if (idx < 0) { strengthMsg.textContent = ''; return; }
     strengthMsg.textContent = labels[idx];
