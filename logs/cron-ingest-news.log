@@ -1,0 +1,35 @@
+[2026-03-08T12:00:04.434Z] Starting news ingestion...
+Found 7 active source(s).
+
+--- Steam Deck HQ (https://steamdeckhq.com/feed/) ---
+  Fetched 10 item(s) from feed.
+  Result: 10 new, 0 skipped.
+
+--- GamingOnLinux (https://www.gamingonlinux.com/article_rss.php) ---
+  Fetched 50 item(s) from feed.
+  Result: 50 new, 0 skipped.
+
+--- PC Gamer (https://www.pcgamer.com/rss/) ---
+  Fetched 50 item(s) from feed.
+  Result: 50 new, 0 skipped.
+
+--- Eurogamer (https://www.eurogamer.net/feed) ---
+  Fetched 100 item(s) from feed.
+  Result: 100 new, 0 skipped.
+
+--- Rock Paper Shotgun (https://www.rockpapershotgun.com/feed) ---
+  Fetched 100 item(s) from feed.
+  Result: 100 new, 0 skipped.
+
+--- Ars Technica Gaming (https://feeds.arstechnica.com/arstechnica/gaming) ---
+  Fetched 20 item(s) from feed.
+  Result: 20 new, 0 skipped.
+
+--- The Verge Gaming (https://www.theverge.com/rss/games/index.xml) ---
+  Fetched 10 item(s) from feed.
+  Result: 10 new, 0 skipped.
+
+[2026-03-08T12:01:08.815Z] Ingestion complete.
+  Total new: 340
+  Total skipped: 0
+  Total errors: 0

@@ -28,7 +28,7 @@ interface Props {
 }
 
 const DECK_BADGES: Record<string, { label: string; class: string }> = {
-  verified: { label: 'Verified', class: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' },
+  verified: { label: 'Verified', class: 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30' },
   playable: { label: 'Playable', class: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30' },
   unsupported: { label: 'Unsupported', class: 'bg-red-500/20 text-red-400 border-red-500/30' },
   unknown: { label: 'Unknown', class: 'bg-gray-500/20 text-gray-400 border-gray-500/30' },
@@ -127,13 +127,13 @@ export default function GamesBrowser({ initialGames, totalGames, allGenres }: Pr
               value={query}
               onChange={e => setQuery(e.target.value)}
               placeholder="Search games..."
-              className="w-full rounded-lg border border-gray-700 bg-gray-800 py-2.5 pl-12 pr-4 text-white placeholder-gray-500 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+              className="w-full rounded-lg border border-gray-700 bg-gray-800 py-2.5 pl-12 pr-4 text-white placeholder-gray-500 focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500"
             />
           </div>
           <select
             value={sort}
             onChange={e => setSort(e.target.value)}
-            className="rounded-lg border border-gray-700 bg-gray-800 px-3 py-2.5 text-sm text-gray-300 focus:border-emerald-500 focus:outline-none"
+            className="rounded-lg border border-gray-700 bg-gray-800 px-3 py-2.5 text-sm text-gray-300 focus:border-cyan-500 focus:outline-none"
           >
             {SORT_OPTIONS.map(o => (
               <option key={o.value} value={o.value}>{o.label}</option>
@@ -143,7 +143,7 @@ export default function GamesBrowser({ initialGames, totalGames, allGenres }: Pr
             onClick={() => setShowFilters(!showFilters)}
             className={`rounded-lg border px-3 py-2.5 text-sm transition-colors flex items-center gap-1.5 ${
               showFilters || selectedGenres.length > 0 || selectedDeck.length > 0
-                ? 'border-emerald-500 bg-emerald-500/10 text-emerald-400'
+                ? 'border-cyan-500 bg-cyan-500/10 text-cyan-400'
                 : 'border-gray-700 bg-gray-800 text-gray-300 hover:border-gray-500'
             }`}
           >
@@ -152,7 +152,7 @@ export default function GamesBrowser({ initialGames, totalGames, allGenres }: Pr
             </svg>
             <span className="hidden sm:inline">Filters</span>
             {(selectedGenres.length + selectedDeck.length) > 0 && (
-              <span className="rounded-full bg-emerald-500 px-1.5 text-[10px] font-bold text-white">
+              <span className="rounded-full bg-cyan-500 px-1.5 text-[10px] font-bold text-white">
                 {selectedGenres.length + selectedDeck.length}
               </span>
             )}
@@ -172,7 +172,7 @@ export default function GamesBrowser({ initialGames, totalGames, allGenres }: Pr
                     onClick={() => toggleDeck(d.value)}
                     className={`rounded-full border px-3 py-1 text-xs transition-colors ${
                       selectedDeck.includes(d.value)
-                        ? 'border-emerald-500 bg-emerald-500/10 text-emerald-400'
+                        ? 'border-cyan-500 bg-cyan-500/10 text-cyan-400'
                         : 'border-gray-700 text-gray-400 hover:border-gray-500 hover:text-white'
                     }`}
                   >
@@ -192,7 +192,7 @@ export default function GamesBrowser({ initialGames, totalGames, allGenres }: Pr
                     onClick={() => toggleGenre(g)}
                     className={`rounded-full border px-3 py-1 text-xs transition-colors ${
                       selectedGenres.includes(g)
-                        ? 'border-emerald-500 bg-emerald-500/10 text-emerald-400'
+                        ? 'border-cyan-500 bg-cyan-500/10 text-cyan-400'
                         : 'border-gray-700 text-gray-400 hover:border-gray-500 hover:text-white'
                     }`}
                   >
@@ -268,7 +268,7 @@ export default function GamesBrowser({ initialGames, totalGames, allGenres }: Pr
         <div className="rounded-xl border border-gray-800 bg-gray-900 p-8 text-center">
           <p className="text-gray-500">No games found matching your criteria.</p>
           {hasFilters && (
-            <button onClick={clearFilters} className="mt-2 text-sm text-emerald-400 hover:text-emerald-300">
+            <button onClick={clearFilters} className="mt-2 text-sm text-cyan-400 hover:text-cyan-300">
               Clear filters
             </button>
           )}

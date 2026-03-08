@@ -73,15 +73,15 @@ const specs = [
       <span class="text-gray-300">{a.name} vs {b.name}</span>
     </nav>
 
-    <h1 class="text-3xl font-bold text-white mb-2">
-      {a.name} <span class="text-gray-600">vs</span> {b.name}
+    <h1 class="text-3xl font-bold text-white mb-2 font-heading uppercase">
+      {a.name} <span class="text-cyan-400 neon-text mx-3">VS</span> {b.name}
     </h1>
     <p class="text-gray-400 mb-8">Side-by-side performance comparison across {sharedGames.length} shared tested games</p>
 
     <!-- Device selector -->
     <div class="grid grid-cols-2 gap-4 mb-8">
-      <div class="rounded-xl border-2 border-emerald-500/30 bg-gray-900 p-5 text-center">
-        <p class="text-xs text-emerald-400 uppercase tracking-wider">{a.manufacturer}</p>
+      <div class="rounded-xl border-2 border-cyan-500/30 bg-[#0f1520] p-5 text-center">
+        <p class="text-xs text-cyan-400 uppercase tracking-wider">{a.manufacturer}</p>
         <h2 class="text-xl font-bold text-white mt-1">{a.name}</h2>
         <div class="mt-3 flex justify-center gap-4 text-sm text-gray-400">
           <span>{a.tested} games</span>
@@ -89,7 +89,7 @@ const specs = [
           <span>{a.price}</span>
         </div>
       </div>
-      <div class="rounded-xl border-2 border-blue-500/30 bg-gray-900 p-5 text-center">
+      <div class="rounded-xl border-2 border-blue-500/30 bg-[#0f1520] p-5 text-center">
         <p class="text-xs text-blue-400 uppercase tracking-wider">{b.manufacturer}</p>
         <h2 class="text-xl font-bold text-white mt-1">{b.name}</h2>
         <div class="mt-3 flex justify-center gap-4 text-sm text-gray-400">
@@ -101,11 +101,11 @@ const specs = [
     </div>
 
     <!-- Spec Comparison -->
-    <div class="rounded-xl border border-gray-800 bg-gray-900 overflow-hidden mb-8">
-      <div class="px-5 py-4 border-b border-gray-800">
+    <div class="rounded-xl border border-[#151c2b] bg-[#0f1520] overflow-hidden mb-8">
+      <div class="px-5 py-4 border-b border-[#151c2b]">
         <h2 class="text-lg font-bold text-white">Specifications</h2>
       </div>
-      <div class="divide-y divide-gray-800">
+      <div class="divide-y divide-[#151c2b]">
         {specs.map((s) => (
           <div class="grid grid-cols-3 px-5 py-3 text-sm">
             <div class="text-gray-500 font-medium">{s.label}</div>
@@ -118,29 +118,29 @@ const specs = [
 
     <!-- Performance Stats Side-by-Side -->
     <div class="grid grid-cols-2 gap-4 mb-8">
-      <div class="rounded-xl border border-gray-800 bg-gray-900 p-5">
+      <div class="rounded-xl border border-[#151c2b] bg-[#0f1520] p-5">
         <h3 class="text-sm font-semibold text-gray-400 mb-3">Performance Summary</h3>
         <div class="grid grid-cols-2 gap-3">
           <div class="rounded-lg bg-gray-800 p-3 text-center">
-            <p class="text-xl font-bold text-green-400">{a.at60}</p>
+            <p class="text-xl font-bold text-green-400 font-mono">{a.at60}</p>
             <p class="text-xs text-gray-500">60fps games</p>
           </div>
           <div class="rounded-lg bg-gray-800 p-3 text-center">
-            <p class="text-xl font-bold text-emerald-400">{a.at40}</p>
+            <p class="text-xl font-bold text-cyan-400 font-mono">{a.at40}</p>
             <p class="text-xs text-gray-500">40fps games</p>
           </div>
         </div>
         <p class="mt-3 text-sm text-gray-400 text-center">Avg battery: <span class="text-white font-medium">{a.avgBattery}</span></p>
       </div>
-      <div class="rounded-xl border border-gray-800 bg-gray-900 p-5">
+      <div class="rounded-xl border border-[#151c2b] bg-[#0f1520] p-5">
         <h3 class="text-sm font-semibold text-gray-400 mb-3">Performance Summary</h3>
         <div class="grid grid-cols-2 gap-3">
           <div class="rounded-lg bg-gray-800 p-3 text-center">
-            <p class="text-xl font-bold text-green-400">{b.at60}</p>
+            <p class="text-xl font-bold text-green-400 font-mono">{b.at60}</p>
             <p class="text-xs text-gray-500">60fps games</p>
           </div>
           <div class="rounded-lg bg-gray-800 p-3 text-center">
-            <p class="text-xl font-bold text-emerald-400">{b.at40}</p>
+            <p class="text-xl font-bold text-cyan-400 font-mono">{b.at40}</p>
             <p class="text-xs text-gray-500">40fps games</p>
           </div>
         </div>
@@ -149,18 +149,18 @@ const specs = [
     </div>
 
     <!-- Game-by-Game Comparison -->
-    <div class="rounded-xl border border-gray-800 bg-gray-900 overflow-hidden">
-      <div class="px-5 py-4 border-b border-gray-800">
+    <div class="rounded-xl border border-[#151c2b] bg-[#0f1520] overflow-hidden">
+      <div class="px-5 py-4 border-b border-[#151c2b]">
         <h2 class="text-lg font-bold text-white">Game-by-Game Comparison</h2>
         <p class="text-xs text-gray-500 mt-1">Balanced profile, {sharedGames.length} games tested on both devices</p>
       </div>
       <div class="overflow-x-auto">
         <table class="w-full text-sm">
           <thead>
-            <tr class="border-b border-gray-800 text-gray-500">
+            <tr class="border-b border-[#151c2b] text-gray-500">
               <th class="py-3 px-4 text-left font-medium">Game</th>
               <th class="py-3 px-3 text-center font-medium">
-                <span class="text-emerald-400">{a.name.replace('Steam Deck ', 'Deck ')}</span>
+                <span class="text-cyan-400">{a.name.replace('Steam Deck ', 'Deck ')}</span>
               </th>
               <th class="py-3 px-3 text-center font-medium">
                 <span class="text-blue-400">{b.name.replace('ASUS ', '')}</span>
@@ -170,7 +170,7 @@ const specs = [
               <th class="py-3 px-3 text-center font-medium">Battery B</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-gray-800/50">
+          <tbody class="divide-y divide-[#151c2b]/50">
             {sharedGames.map((g) => {
               const diff = g.fpsB - g.fpsA;
               return (
@@ -179,7 +179,7 @@ const specs = [
                   <td class="py-3 px-3 text-center"><PerformanceBadge fps={g.fpsA} size="sm" /></td>
                   <td class="py-3 px-3 text-center"><PerformanceBadge fps={g.fpsB} size="sm" /></td>
                   <td class="py-3 px-3 text-center">
-                    <span class={diff > 0 ? 'text-blue-400' : diff < 0 ? 'text-emerald-400' : 'text-gray-500'}>
+                    <span class={diff > 0 ? 'text-blue-400' : diff < 0 ? 'text-cyan-400' : 'text-gray-500'}>
                       {diff > 0 ? `+${diff}` : diff === 0 ? '=' : diff}
                     </span>
                   </td>
@@ -194,11 +194,11 @@ const specs = [
     </div>
 
     <!-- Verdict -->
-    <div class="mt-8 rounded-xl border border-gray-800 bg-gray-900 p-6">
+    <div class="mt-8 rounded-xl border border-[#151c2b] bg-[#0f1520] p-6">
       <h2 class="text-lg font-bold text-white mb-4">Summary</h2>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
-          <h3 class="font-semibold text-emerald-400 mb-2">{a.name} wins at:</h3>
+          <h3 class="font-semibold text-cyan-400 mb-2">{a.name} wins at:</h3>
           <ul class="space-y-1 text-sm text-gray-400">
             <li>Better battery life in most games</li>
             <li>Lighter weight (640g vs {b.weight})</li>

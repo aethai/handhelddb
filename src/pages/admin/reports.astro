@@ -104,7 +104,7 @@ function formatDate(dateStr: string): string {
 
 function ratingBadgeColor(rating: string): string {
   switch (rating) {
-    case 'excellent': return 'bg-emerald-500/20 text-emerald-400';
+    case 'excellent': return 'bg-cyan-500/20 text-cyan-400';
     case 'good': return 'bg-green-500/20 text-green-400';
     case 'fair': return 'bg-yellow-500/20 text-yellow-400';
     case 'poor': return 'bg-orange-500/20 text-orange-400';
@@ -115,7 +115,7 @@ function ratingBadgeColor(rating: string): string {
 
 function statusBadgeColor(status: string): string {
   switch (status) {
-    case 'approved': return 'bg-emerald-500/20 text-emerald-400';
+    case 'approved': return 'bg-cyan-500/20 text-cyan-400';
     case 'pending': return 'bg-amber-500/20 text-amber-400';
     case 'rejected': return 'bg-red-500/20 text-red-400';
     default: return 'bg-gray-500/20 text-gray-400';
@@ -141,7 +141,7 @@ function statusBadgeColor(status: string): string {
             class:list={[
               'rounded-lg px-3 py-1.5 text-sm font-medium transition-colors',
               !filter
-                ? 'bg-emerald-600/20 text-emerald-400 border border-emerald-500/30'
+                ? 'bg-cyan-600/20 text-cyan-400 border border-cyan-500/30'
                 : 'text-gray-400 hover:text-white border border-gray-700 hover:bg-gray-800',
             ]}
           >
@@ -163,7 +163,7 @@ function statusBadgeColor(status: string): string {
             class:list={[
               'rounded-lg px-3 py-1.5 text-sm font-medium transition-colors',
               filter === 'approved'
-                ? 'bg-emerald-600/20 text-emerald-400 border border-emerald-500/30'
+                ? 'bg-cyan-600/20 text-cyan-400 border border-cyan-500/30'
                 : 'text-gray-400 hover:text-white border border-gray-700 hover:bg-gray-800',
             ]}
           >
@@ -212,7 +212,7 @@ function statusBadgeColor(status: string): string {
                   <div class="flex-1 min-w-0">
                     <!-- Header: Game + Device + Status -->
                     <div class="flex flex-wrap items-center gap-2 mb-1">
-                      <a href={`/games/${report.gameSlug}`} class="text-sm font-medium text-emerald-400 hover:text-emerald-300 transition-colors truncate">
+                      <a href={`/games/${report.gameSlug}`} class="text-sm font-medium text-cyan-400 hover:text-cyan-300 transition-colors truncate">
                         {report.gameName}
                       </a>
                       <span class="text-xs text-gray-600">on</span>
@@ -269,7 +269,7 @@ function statusBadgeColor(status: string): string {
                     {report.moderationStatus === 'pending' && (
                       <>
                         <button
-                          class="admin-report-approve rounded-md border border-emerald-700 px-2.5 py-1 text-xs font-medium text-emerald-400 hover:bg-emerald-900/30 transition-colors"
+                          class="admin-report-approve rounded-md border border-cyan-700 px-2.5 py-1 text-xs font-medium text-cyan-400 hover:bg-cyan-900/30 transition-colors"
                           data-report-id={report.id}
                         >
                           Approve

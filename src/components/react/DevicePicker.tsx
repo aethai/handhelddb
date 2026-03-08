@@ -110,7 +110,7 @@ export default function DevicePicker({ userDeviceIds: initialDeviceIds }: Device
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <svg className="h-6 w-6 animate-spin text-emerald-500" viewBox="0 0 24 24" fill="none">
+        <svg className="h-6 w-6 animate-spin text-cyan-500" viewBox="0 0 24 24" fill="none">
           <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
           <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
         </svg>
@@ -132,7 +132,7 @@ export default function DevicePicker({ userDeviceIds: initialDeviceIds }: Device
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
             placeholder="Filter devices..."
-            className="w-full rounded-lg border border-gray-700 bg-gray-900 py-2 pl-10 pr-4 text-sm text-white placeholder-gray-500 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+            className="w-full rounded-lg border border-gray-700 bg-gray-900 py-2 pl-10 pr-4 text-sm text-white placeholder-gray-500 focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500"
           />
         </div>
       </div>
@@ -173,7 +173,7 @@ export default function DevicePicker({ userDeviceIds: initialDeviceIds }: Device
                 disabled={actionLoading !== null}
                 className={`rounded-lg px-4 py-2 text-sm font-medium text-white transition-colors disabled:opacity-50 ${
                   showConfirm.action === 'add'
-                    ? 'bg-emerald-600 hover:bg-emerald-500'
+                    ? 'bg-cyan-600 hover:bg-cyan-500'
                     : 'bg-red-600 hover:bg-red-500'
                 }`}
               >
@@ -203,14 +203,14 @@ export default function DevicePicker({ userDeviceIds: initialDeviceIds }: Device
               key={device.id}
               className={`relative rounded-lg border p-4 transition-all ${
                 isOwned
-                  ? 'border-emerald-500/40 bg-emerald-500/5'
+                  ? 'border-cyan-500/40 bg-cyan-500/5'
                   : 'border-gray-800 bg-gray-900 hover:border-gray-600'
               }`}
             >
               {/* Owned indicator */}
               {isOwned && (
                 <div className="absolute top-2 right-2">
-                  <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/20 px-2 py-0.5 text-xs font-medium text-emerald-400 border border-emerald-500/30">
+                  <span className="inline-flex items-center gap-1 rounded-full bg-cyan-500/20 px-2 py-0.5 text-xs font-medium text-cyan-400 border border-cyan-500/30">
                     <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                     </svg>
@@ -258,7 +258,7 @@ export default function DevicePicker({ userDeviceIds: initialDeviceIds }: Device
                   <button
                     onClick={() => setShowConfirm({ deviceId: device.id, action: 'add', deviceName: device.name })}
                     disabled={isActioning}
-                    className="w-full rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-1.5 text-xs font-medium text-emerald-400 hover:bg-emerald-500/20 hover:border-emerald-500/50 transition-colors disabled:opacity-50"
+                    className="w-full rounded-lg border border-cyan-500/30 bg-cyan-500/10 px-3 py-1.5 text-xs font-medium text-cyan-400 hover:bg-cyan-500/20 hover:border-cyan-500/50 transition-colors disabled:opacity-50"
                   >
                     Add to Setup
                   </button>

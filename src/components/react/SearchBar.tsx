@@ -31,7 +31,7 @@ interface SearchBarProps {
 const DEBOUNCE_MS = 200;
 
 const deckBadge: Record<string, { label: string; class: string }> = {
-  verified: { label: 'Verified', class: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' },
+  verified: { label: 'Verified', class: 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30' },
   playable: { label: 'Playable', class: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30' },
   unsupported: { label: 'Unsupported', class: 'bg-red-500/20 text-red-400 border-red-500/30' },
   unknown: { label: 'Unknown', class: 'bg-gray-500/20 text-gray-400 border-gray-500/30' },
@@ -140,7 +140,7 @@ export default function SearchBar({
     <div ref={containerRef} className={`relative ${isHero ? 'w-full' : ''}`}>
       <div className={`relative ${isHero ? 'group' : ''}`}>
         {isHero && (
-          <div className="absolute -inset-0.5 bg-gradient-to-r from-emerald-500/20 to-cyan-500/20 rounded-2xl blur opacity-0 group-focus-within:opacity-100 transition-opacity" />
+          <div className="absolute -inset-0.5 bg-gradient-to-r from-cyan-500/20 to-cyan-500/20 rounded-2xl blur opacity-0 group-focus-within:opacity-100 transition-opacity" />
         )}
         <div className="relative flex items-center">
           <svg
@@ -168,8 +168,8 @@ export default function SearchBar({
             autoFocus={autoFocus}
             className={
               isHero
-                ? 'w-full rounded-xl border border-gray-700 bg-gray-900/90 py-4 pl-14 pr-32 text-white placeholder-gray-500 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 transition-all'
-                : 'w-64 rounded-lg border border-gray-700 bg-gray-900/90 py-1.5 pl-9 pr-16 text-sm text-white placeholder-gray-500 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 transition-all'
+                ? 'w-full rounded-xl border border-gray-700 bg-gray-900/90 py-4 pl-14 pr-32 text-white placeholder-gray-500 focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500 transition-all'
+                : 'w-64 rounded-lg border border-gray-700 bg-gray-900/90 py-1.5 pl-9 pr-16 text-sm text-white placeholder-gray-500 focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500 transition-all'
             }
           />
 
@@ -192,7 +192,7 @@ export default function SearchBar({
             {isHero && (
               <a
                 href="/games"
-                className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-500 transition-colors"
+                className="rounded-lg bg-cyan-600 px-4 py-2 text-sm font-medium text-white hover:bg-cyan-500 transition-colors"
               >
                 Browse
               </a>
@@ -247,7 +247,7 @@ export default function SearchBar({
                       <span
                         className={`flex-shrink-0 text-xs font-bold rounded px-1.5 py-0.5 ${
                           hit.metacritic_score >= 75
-                            ? 'bg-emerald-500/20 text-emerald-400'
+                            ? 'bg-cyan-500/20 text-cyan-400'
                             : hit.metacritic_score >= 50
                               ? 'bg-yellow-500/20 text-yellow-400'
                               : 'bg-red-500/20 text-red-400'
@@ -265,7 +265,7 @@ export default function SearchBar({
             <span className="text-xs text-gray-500">
               {results.length} result{results.length !== 1 ? 's' : ''}
             </span>
-            <a href={`/games?q=${encodeURIComponent(query)}`} className="text-xs text-emerald-400 hover:text-emerald-300">
+            <a href={`/games?q=${encodeURIComponent(query)}`} className="text-xs text-cyan-400 hover:text-cyan-300">
               View all results →
             </a>
           </div>

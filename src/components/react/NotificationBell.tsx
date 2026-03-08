@@ -18,7 +18,7 @@ function typeIcon(type: string): { path: string; color: string } {
     case 'new_report':
       return {
         path: 'M3.75 3v11.25A2.25 2.25 0 006 16.5h2.25M3.75 3h-1.5m1.5 0h16.5m0 0h1.5m-1.5 0v11.25A2.25 2.25 0 0118 16.5h-2.25m-7.5 0h7.5m-7.5 0l-1 3m8.5-3l1 3m0 0l.5 1.5m-.5-1.5h-9.5m0 0l-.5 1.5',
-        color: 'text-emerald-400',
+        color: 'text-cyan-400',
       };
     case 'vote_received':
       return {
@@ -217,7 +217,7 @@ export default function NotificationBell() {
             {unreadCount > 0 && (
               <button
                 onClick={handleMarkAllRead}
-                className="text-xs text-emerald-400 hover:text-emerald-300 transition-colors"
+                className="text-xs text-cyan-400 hover:text-cyan-300 transition-colors"
               >
                 Mark all read
               </button>
@@ -315,7 +315,7 @@ export default function NotificationBell() {
                     {/* Unread dot */}
                     {!n.is_read && (
                       <div className="mt-2 flex-shrink-0">
-                        <span className="block h-2 w-2 rounded-full bg-emerald-400" />
+                        <span className="block h-2 w-2 rounded-full bg-cyan-400" />
                       </div>
                     )}
                   </button>

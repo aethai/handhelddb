@@ -30,7 +30,7 @@ export function getVerdictColor(verdict: FPSVerdict): string {
     case 'excellent':
       return 'text-green-500';
     case 'good':
-      return 'text-emerald-400';
+      return 'text-cyan-400';
     case 'fair':
       return 'text-yellow-500';
     case 'poor':
@@ -45,7 +45,7 @@ export function getVerdictBgColor(verdict: FPSVerdict): string {
     case 'excellent':
       return 'bg-green-500/20';
     case 'good':
-      return 'bg-emerald-400/20';
+      return 'bg-cyan-400/20';
     case 'fair':
       return 'bg-yellow-500/20';
     case 'poor':

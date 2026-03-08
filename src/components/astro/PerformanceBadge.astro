@@ -7,10 +7,10 @@ interface Props {
 const { fps, size = 'md' } = Astro.props;
 
 function getVerdict(fps: number) {
-  if (fps >= 60) return { label: '60fps', icon: '✅', color: 'bg-green-500/20 text-green-400 border-green-500/30' };
-  if (fps >= 40) return { label: '40fps', icon: '⚡', color: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' };
-  if (fps >= 30) return { label: '30fps', icon: '⚠️', color: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30' };
-  return { label: '<30fps', icon: '❌', color: 'bg-red-500/20 text-red-400 border-red-500/30' };
+  if (fps >= 60) return { label: '60fps', icon: '✅', color: 'bg-green-500/20 text-green-400 border-green-500/30', glow: 'fps-excellent' };
+  if (fps >= 40) return { label: '40fps', icon: '⚡', color: 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30', glow: 'fps-good' };
+  if (fps >= 30) return { label: '30fps', icon: '⚠️', color: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30', glow: 'fps-fair' };
+  return { label: '<30fps', icon: '❌', color: 'bg-red-500/20 text-red-400 border-red-500/30', glow: 'fps-poor' };
 }
 
 const verdict = getVerdict(fps);
@@ -22,7 +22,7 @@ const sizeClasses = {
 };
 ---
 
-<span class={`inline-flex items-center gap-1 rounded-md border font-medium ${verdict.color} ${sizeClasses[size]}`}>
+<span class={`inline-flex items-center gap-1 rounded-md border font-medium ${verdict.color} ${verdict.glow} ${sizeClasses[size]}`}>
   <span>{verdict.icon}</span>
-  <span>{verdict.label}</span>
+  <span class="font-mono font-bold">{verdict.label}</span>
 </span>

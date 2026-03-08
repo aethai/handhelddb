@@ -425,7 +425,7 @@ function CommentThread({ node, gameId, currentUserId, onReply, onVote, onDelete 
               disabled={voteLoading}
               className={`p-1 rounded transition-colors ${
                 userVote === true
-                  ? 'text-emerald-400 hover:text-emerald-300'
+                  ? 'text-cyan-400 hover:text-cyan-300'
                   : 'text-gray-600 hover:text-gray-400'
               }`}
               title="Upvote"
@@ -436,7 +436,7 @@ function CommentThread({ node, gameId, currentUserId, onReply, onVote, onDelete 
             </button>
             <span
               className={`text-xs font-medium min-w-[1.25rem] text-center ${
-                score > 0 ? 'text-emerald-400' : score < 0 ? 'text-red-400' : 'text-gray-600'
+                score > 0 ? 'text-cyan-400' : score < 0 ? 'text-red-400' : 'text-gray-600'
               }`}
             >
               {score}
@@ -551,7 +551,7 @@ function CommentForm({ gameId, currentUserId, parentId, parentDepth, onSubmit, o
         <p className="text-sm text-gray-500 mb-2">Sign in to join the conversation</p>
         <a
           href={'/auth/login?redirect=' + encodeURIComponent(typeof window !== 'undefined' ? window.location.pathname : '/')}
-          className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-500 transition-colors"
+          className="inline-flex items-center gap-2 rounded-lg bg-cyan-600 px-4 py-2 text-sm font-medium text-white hover:bg-cyan-500 transition-colors"
         >
           Sign in
         </a>
@@ -603,7 +603,7 @@ function CommentForm({ gameId, currentUserId, parentId, parentDepth, onSubmit, o
         maxLength={5000}
         rows={compact ? 2 : 3}
         placeholder={parentId ? 'Write a reply...' : 'Share your thoughts on this game...'}
-        className="w-full rounded-lg border border-gray-700 bg-gray-800 py-2.5 px-4 text-sm text-white placeholder-gray-500 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 resize-none"
+        className="w-full rounded-lg border border-gray-700 bg-gray-800 py-2.5 px-4 text-sm text-white placeholder-gray-500 focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500 resize-none"
       />
       {error && (
         <p className="text-xs text-red-400">{error}</p>
@@ -625,7 +625,7 @@ function CommentForm({ gameId, currentUserId, parentId, parentDepth, onSubmit, o
           <button
             onClick={handleSubmit}
             disabled={!body.trim() || submitting}
-            className="rounded-lg bg-emerald-600 px-4 py-1.5 text-xs font-medium text-white hover:bg-emerald-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5"
+            className="rounded-lg bg-cyan-600 px-4 py-1.5 text-xs font-medium text-white hover:bg-cyan-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5"
           >
             {submitting && (
               <svg className="h-3 w-3 animate-spin" viewBox="0 0 24 24" fill="none">

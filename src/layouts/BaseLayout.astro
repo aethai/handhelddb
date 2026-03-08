@@ -59,6 +59,10 @@ const resolvedCanonical = canonicalUrl ?? new URL(Astro.url.pathname, siteUrl).h
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
 
     <!-- Analytics (Plausible) -->
     {import.meta.env.PUBLIC_PLAUSIBLE_DOMAIN && (
@@ -69,7 +73,7 @@ const resolvedCanonical = canonicalUrl ?? new URL(Astro.url.pathname, siteUrl).h
       />
     )}
   </head>
-  <body class="min-h-screen bg-gray-950 text-gray-100 flex flex-col">
+  <body class="min-h-screen bg-[#0a0e17] text-gray-100 flex flex-col font-[Inter,system-ui,sans-serif]">
     <Header user={Astro.locals.user} />
     <main class="flex-1">
       <slot />

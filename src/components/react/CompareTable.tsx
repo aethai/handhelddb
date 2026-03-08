@@ -281,7 +281,7 @@ function DeviceSelector({
                 }}
                 className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-700 transition-colors ${
                   device.id === selectedId
-                    ? 'text-emerald-400 bg-gray-700/50'
+                    ? 'text-cyan-400 bg-gray-700/50'
                     : 'text-gray-300'
                 }`}
               >
@@ -357,7 +357,7 @@ export default function CompareTable({ devices }: CompareTableProps) {
         <span className="text-gray-300">Compare Devices</span>
       </nav>
 
-      <h1 className="text-3xl font-bold text-white mb-2">Compare Devices</h1>
+      <h1 className="text-3xl font-bold text-white mb-2 font-heading">Compare Devices</h1>
       <p className="text-gray-400 mb-8">
         Select up to {MAX_COMPARE} handheld gaming devices to compare side-by-side
       </p>
@@ -379,7 +379,7 @@ export default function CompareTable({ devices }: CompareTableProps) {
         {selectedIds.length < MAX_COMPARE && (
           <button
             onClick={handleAdd}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-dashed border-gray-700 px-4 py-2 text-sm text-gray-400 hover:border-emerald-500/50 hover:text-emerald-400 transition-colors"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-dashed border-gray-700 px-4 py-2 text-sm text-gray-400 hover:border-cyan-500/50 hover:text-cyan-400 transition-colors"
           >
             <span className="text-lg leading-none">+</span>
             Add device
@@ -448,7 +448,7 @@ export default function CompareTable({ devices }: CompareTableProps) {
                   <tr key={`cat-${category.title}`} className="bg-gray-900/80">
                     <td
                       colSpan={selectedDevices.length + 1}
-                      className="px-4 py-3 text-xs font-semibold text-emerald-400 uppercase tracking-wider border-b border-gray-800"
+                      className="px-4 py-3 text-xs font-semibold text-cyan-400 uppercase tracking-wider border-b border-gray-800"
                     >
                       {category.title}
                     </td>
@@ -472,21 +472,21 @@ export default function CompareTable({ devices }: CompareTableProps) {
                               key={device.id}
                               className={`px-4 py-3 text-center text-sm ${
                                 isWinner
-                                  ? 'text-emerald-400 font-semibold'
+                                  ? 'text-cyan-400 font-semibold'
                                   : 'text-gray-300'
                               }`}
                             >
                               <span
                                 className={
                                   isWinner
-                                    ? 'inline-flex items-center gap-1 rounded-md bg-emerald-500/10 px-2 py-0.5'
+                                    ? 'inline-flex items-center gap-1 rounded-md bg-cyan-500/10 px-2 py-0.5'
                                     : ''
                                 }
                               >
                                 {row.format(device)}
                                 {isWinner && (
                                   <svg
-                                    className="h-3.5 w-3.5 text-emerald-500"
+                                    className="h-3.5 w-3.5 text-cyan-500"
                                     fill="currentColor"
                                     viewBox="0 0 20 20"
                                   >
@@ -537,10 +537,10 @@ export default function CompareTable({ devices }: CompareTableProps) {
       {selectedDevices.length >= 2 && (
         <div className="mt-4 flex items-center gap-4 text-xs text-gray-500">
           <div className="flex items-center gap-1.5">
-            <span className="inline-flex items-center rounded-md bg-emerald-500/10 px-2 py-0.5 text-emerald-400 font-semibold">
+            <span className="inline-flex items-center rounded-md bg-cyan-500/10 px-2 py-0.5 text-cyan-400 font-semibold">
               Value
               <svg
-                className="ml-1 h-3 w-3 text-emerald-500"
+                className="ml-1 h-3 w-3 text-cyan-500"
                 fill="currentColor"
                 viewBox="0 0 20 20"
               >

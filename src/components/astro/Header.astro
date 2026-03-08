@@ -19,12 +19,12 @@ const navLinks = [
 ];
 ---
 
-<header class="sticky top-0 z-50 border-b border-gray-800 bg-gray-950/80 backdrop-blur-md">
+<header class="sticky top-0 z-50 border-b border-[#151c2b] bg-[#0a0e17]/80 backdrop-blur-md">
   <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
     <div class="flex h-16 items-center justify-between">
       <!-- Logo -->
-      <a href="/" class="flex items-center gap-2 text-lg font-bold text-white hover:text-emerald-400 transition-colors">
-        <svg class="h-8 w-8 text-emerald-500" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <a href="/" class="flex items-center gap-2 text-lg font-bold text-white hover:text-cyan-400 transition-colors">
+        <svg class="h-8 w-8 text-cyan-500" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" style="filter: drop-shadow(0 0 6px rgba(6,182,212,0.5))">
           <rect x="4" y="8" width="24" height="16" rx="4" stroke="currentColor" stroke-width="2" />
           <circle cx="11" cy="16" r="2" fill="currentColor" />
           <circle cx="21" cy="14" r="1.5" fill="currentColor" />
@@ -32,7 +32,7 @@ const navLinks = [
           <circle cx="21" cy="18" r="1.5" fill="currentColor" />
           <circle cx="19" cy="16" r="1.5" fill="currentColor" />
         </svg>
-        <span class="hidden sm:inline">Handheld GameDB</span>
+        <span class="hidden sm:inline hover:text-gradient-cyan">Handheld GameDB</span>
       </a>
 
       <!-- Navigation (desktop) -->
@@ -40,7 +40,7 @@ const navLinks = [
         {navLinks.map(({ href, label }) => (
           <a
             href={href}
-            class="text-sm font-medium text-gray-400 hover:text-white transition-colors"
+            class="relative text-sm font-medium text-gray-400 hover:text-white transition-colors after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 after:bg-cyan-400 after:transition-all hover:after:w-full"
           >
             {label}
           </a>
@@ -57,7 +57,7 @@ const navLinks = [
         )}
         <a
           href="/report/new"
-          class="hidden sm:inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-emerald-500 transition-colors"
+          class="hidden sm:inline-flex items-center gap-1.5 rounded-lg bg-cyan-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-cyan-500 transition-colors shadow-lg shadow-cyan-500/20"
         >
           <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
@@ -70,7 +70,7 @@ const navLinks = [
               {avatarUrl ? (
                 <img src={avatarUrl} alt="" class="h-6 w-6 rounded-full" />
               ) : (
-                <div class="h-6 w-6 rounded-full bg-emerald-600 flex items-center justify-center text-xs font-bold text-white">
+                <div class="h-6 w-6 rounded-full bg-cyan-600 flex items-center justify-center text-xs font-bold text-white">
                   {displayName.charAt(0).toUpperCase()}
                 </div>
               )}
@@ -118,11 +118,11 @@ const navLinks = [
 <!-- Mobile menu drawer -->
 <nav
   id="mobile-menu-drawer"
-  class="fixed top-0 right-0 z-[70] h-full w-72 bg-gray-950 border-l border-gray-800 shadow-2xl translate-x-full transition-transform duration-300 ease-in-out"
+  class="fixed top-0 right-0 z-[70] h-full w-72 bg-[#0a0e17] border-l border-[#151c2b] shadow-2xl translate-x-full transition-transform duration-300 ease-in-out"
 >
   <div class="flex h-full flex-col">
     <!-- Drawer header -->
-    <div class="flex items-center justify-between border-b border-gray-800 px-5 py-4">
+    <div class="flex items-center justify-between border-b border-[#151c2b] px-5 py-4">
       <span class="text-sm font-semibold text-white">Menu</span>
       <button
         id="mobile-menu-close"
@@ -150,12 +150,12 @@ const navLinks = [
       </div>
 
       <!-- Divider -->
-      <div class="my-4 border-t border-gray-800"></div>
+      <div class="my-4 border-t border-[#151c2b]"></div>
 
       <!-- Report button -->
       <a
         href="/report/new"
-        class="mobile-menu-link flex items-center gap-2 rounded-lg bg-emerald-600/10 border border-emerald-500/20 px-4 py-3 text-sm font-medium text-emerald-400 hover:bg-emerald-600/20 transition-colors"
+        class="mobile-menu-link flex items-center gap-2 rounded-lg bg-cyan-600/10 border border-cyan-500/20 px-4 py-3 text-sm font-medium text-cyan-400 hover:bg-cyan-600/20 transition-colors"
       >
         <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
@@ -165,14 +165,14 @@ const navLinks = [
     </div>
 
     <!-- Auth section at bottom -->
-    <div class="border-t border-gray-800 px-3 py-4">
+    <div class="border-t border-[#151c2b] px-3 py-4">
       {user ? (
         <div class="space-y-2">
           <div class="flex items-center gap-3 px-4 py-2">
             {avatarUrl ? (
               <img src={avatarUrl} alt="" class="h-8 w-8 rounded-full" />
             ) : (
-              <div class="h-8 w-8 rounded-full bg-emerald-600 flex items-center justify-center text-sm font-bold text-white">
+              <div class="h-8 w-8 rounded-full bg-cyan-600 flex items-center justify-center text-sm font-bold text-white">
                 {displayName.charAt(0).toUpperCase()}
               </div>
             )}

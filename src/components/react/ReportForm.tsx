@@ -144,7 +144,7 @@ export default function ReportForm({ devices, isLoggedIn, preselectedGameId, pre
         </div>
         <h3 className="text-lg font-semibold text-white">Sign in to submit a report</h3>
         <p className="mt-2 text-sm text-gray-400">You need to be signed in to submit performance reports.</p>
-        <a href="/auth/login?redirect=/report/new" className="mt-4 inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-500 transition-colors">
+        <a href="/auth/login?redirect=/report/new" className="mt-4 inline-flex items-center gap-2 rounded-lg bg-cyan-600 px-4 py-2 text-sm font-medium text-white hover:bg-cyan-500 transition-colors">
           Sign in
         </a>
       </div>
@@ -154,8 +154,8 @@ export default function ReportForm({ devices, isLoggedIn, preselectedGameId, pre
   if (submitted) {
     return (
       <div className="text-center py-12">
-        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-500/20">
-          <svg className="h-8 w-8 text-emerald-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-cyan-500/20">
+          <svg className="h-8 w-8 text-cyan-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
           </svg>
         </div>
@@ -165,7 +165,7 @@ export default function ReportForm({ devices, isLoggedIn, preselectedGameId, pre
           <a href={`/games/${data.gameSlug}`} className="rounded-lg bg-gray-800 px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 transition-colors">
             View game
           </a>
-          <button onClick={() => { setSubmitted(null); setStep(1); setData(INITIAL); }} className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-500 transition-colors">
+          <button onClick={() => { setSubmitted(null); setStep(1); setData(INITIAL); }} className="rounded-lg bg-cyan-600 px-4 py-2 text-sm font-medium text-white hover:bg-cyan-500 transition-colors">
             Submit another
           </button>
         </div>
@@ -183,7 +183,7 @@ export default function ReportForm({ devices, isLoggedIn, preselectedGameId, pre
               key={label}
               onClick={() => i + 1 < step && setStep(i + 1)}
               className={`text-xs font-medium transition-colors ${
-                i + 1 === step ? 'text-emerald-400' : i + 1 < step ? 'text-gray-400 cursor-pointer hover:text-white' : 'text-gray-600'
+                i + 1 === step ? 'text-cyan-400' : i + 1 < step ? 'text-gray-400 cursor-pointer hover:text-white' : 'text-gray-600'
               }`}
             >
               {label}
@@ -191,7 +191,7 @@ export default function ReportForm({ devices, isLoggedIn, preselectedGameId, pre
           ))}
         </div>
         <div className="h-1 rounded-full bg-gray-800">
-          <div className="h-full rounded-full bg-emerald-500 transition-all duration-300" style={{ width: `${(step / 4) * 100}%` }} />
+          <div className="h-full rounded-full bg-cyan-500 transition-all duration-300" style={{ width: `${(step / 4) * 100}%` }} />
         </div>
       </div>
 
@@ -220,7 +220,7 @@ export default function ReportForm({ devices, isLoggedIn, preselectedGameId, pre
           <button
             onClick={() => setStep(s => s + 1)}
             disabled={!canAdvance()}
-            className="rounded-lg bg-emerald-600 px-6 py-2 text-sm font-medium text-white hover:bg-emerald-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="rounded-lg bg-cyan-600 px-6 py-2 text-sm font-medium text-white hover:bg-cyan-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Continue
           </button>
@@ -228,7 +228,7 @@ export default function ReportForm({ devices, isLoggedIn, preselectedGameId, pre
           <button
             onClick={handleSubmit}
             disabled={submitting || !canAdvance()}
-            className="rounded-lg bg-emerald-600 px-6 py-2 text-sm font-medium text-white hover:bg-emerald-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            className="rounded-lg bg-cyan-600 px-6 py-2 text-sm font-medium text-white hover:bg-cyan-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
           >
             {submitting && (
               <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
@@ -271,7 +271,7 @@ function Step1({ data, update, devices }: { data: ReportData; update: (p: Partia
       <div>
         <label className="block text-sm font-medium text-gray-300 mb-2">Game *</label>
         {data.gameId ? (
-          <div className="flex items-center gap-3 rounded-lg border border-emerald-500/30 bg-emerald-500/5 p-3">
+          <div className="flex items-center gap-3 rounded-lg border border-cyan-500/30 bg-cyan-500/5 p-3">
             <span className="text-sm text-white font-medium flex-1">{data.gameName}</span>
             <button onClick={() => update({ gameId: '', gameName: '', gameSlug: '' })} className="text-xs text-gray-400 hover:text-white">
               Change
@@ -284,7 +284,7 @@ function Step1({ data, update, devices }: { data: ReportData; update: (p: Partia
               value={query}
               onChange={e => setQuery(e.target.value)}
               placeholder="Search for a game..."
-              className="w-full rounded-lg border border-gray-700 bg-gray-800 py-2.5 px-4 text-sm text-white placeholder-gray-500 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+              className="w-full rounded-lg border border-gray-700 bg-gray-800 py-2.5 px-4 text-sm text-white placeholder-gray-500 focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500"
               autoFocus
             />
             {results.length > 0 && (
@@ -324,7 +324,7 @@ function Step1({ data, update, devices }: { data: ReportData; update: (p: Partia
               onClick={() => update({ deviceId: d.id, deviceName: d.name })}
               className={`rounded-lg border px-3 py-2.5 text-sm text-left transition-colors ${
                 data.deviceId === d.id
-                  ? 'border-emerald-500 bg-emerald-500/10 text-emerald-400'
+                  ? 'border-cyan-500 bg-cyan-500/10 text-cyan-400'
                   : 'border-gray-700 bg-gray-800 text-gray-300 hover:border-gray-500'
               }`}
             >
@@ -369,12 +369,12 @@ function Step2({ data, update }: { data: ReportData; update: (p: Partial<ReportD
       <div className="flex items-center gap-3">
         <label className="flex items-center gap-2 cursor-pointer">
           <input type="checkbox" checked={data.fsrEnabled} onChange={e => update({ fsrEnabled: e.target.checked })}
-            className="rounded border-gray-600 bg-gray-800 text-emerald-500 focus:ring-emerald-500 focus:ring-offset-0" />
+            className="rounded border-gray-600 bg-gray-800 text-cyan-500 focus:ring-cyan-500 focus:ring-offset-0" />
           <span className="text-sm text-gray-300">FSR/DLSS/XeSS enabled</span>
         </label>
         {data.fsrEnabled && (
           <select value={data.fsrMode} onChange={e => update({ fsrMode: e.target.value })}
-            className="rounded-lg border border-gray-700 bg-gray-800 px-3 py-1.5 text-sm text-gray-300 focus:border-emerald-500 focus:outline-none">
+            className="rounded-lg border border-gray-700 bg-gray-800 px-3 py-1.5 text-sm text-gray-300 focus:border-cyan-500 focus:outline-none">
             <option value="">Mode...</option>
             <option value="quality">Quality</option>
             <option value="balanced">Balanced</option>
@@ -399,7 +399,7 @@ function Step2({ data, update }: { data: ReportData; update: (p: Partial<ReportD
 
 function Step3({ data, update }: { data: ReportData; update: (p: Partial<ReportData>) => void }) {
   const ratings = [
-    { value: 'excellent', label: 'Excellent', desc: 'Runs perfectly, no issues', color: 'emerald' },
+    { value: 'excellent', label: 'Excellent', desc: 'Runs perfectly, no issues', color: 'cyan' },
     { value: 'good', label: 'Good', desc: 'Minor issues, very playable', color: 'green' },
     { value: 'fair', label: 'Fair', desc: 'Playable with some compromises', color: 'yellow' },
     { value: 'poor', label: 'Poor', desc: 'Barely playable, major issues', color: 'orange' },
@@ -407,7 +407,7 @@ function Step3({ data, update }: { data: ReportData; update: (p: Partial<ReportD
   ];
 
   const ratingColors: Record<string, string> = {
-    emerald: 'border-emerald-500 bg-emerald-500/10 text-emerald-400',
+    cyan: 'border-cyan-500 bg-cyan-500/10 text-cyan-400',
     green: 'border-green-500 bg-green-500/10 text-green-400',
     yellow: 'border-yellow-500 bg-yellow-500/10 text-yellow-400',
     orange: 'border-orange-500 bg-orange-500/10 text-orange-400',
@@ -459,7 +459,7 @@ function Step3({ data, update }: { data: ReportData; update: (p: Partial<ReportD
 
 function Step4({ data, update }: { data: ReportData; update: (p: Partial<ReportData>) => void }) {
   const ratingEmoji: Record<string, string> = {
-    excellent: 'text-emerald-400', good: 'text-green-400', fair: 'text-yellow-400',
+    excellent: 'text-cyan-400', good: 'text-green-400', fair: 'text-yellow-400',
     poor: 'text-orange-400', unplayable: 'text-red-400',
   };
 
@@ -518,7 +518,7 @@ function Step4({ data, update }: { data: ReportData; update: (p: Partial<ReportD
           maxLength={2000}
           rows={4}
           placeholder="Any tips, issues, or observations about playing this game on this device..."
-          className="w-full rounded-lg border border-gray-700 bg-gray-800 py-2.5 px-4 text-sm text-white placeholder-gray-500 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 resize-none"
+          className="w-full rounded-lg border border-gray-700 bg-gray-800 py-2.5 px-4 text-sm text-white placeholder-gray-500 focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500 resize-none"
         />
         <p className="mt-1 text-xs text-gray-600">{data.notes.length}/2000</p>
       </div>
@@ -545,7 +545,7 @@ function Field({ label, value, onChange, type = 'text', placeholder }: {
         onChange={e => onChange(e.target.value)}
         placeholder={placeholder}
         step={type === 'number' ? 'any' : undefined}
-        className="w-full rounded-lg border border-gray-700 bg-gray-800 py-2 px-3 text-sm text-white placeholder-gray-500 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+        className="w-full rounded-lg border border-gray-700 bg-gray-800 py-2 px-3 text-sm text-white placeholder-gray-500 focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500"
       />
     </div>
   );
@@ -560,7 +560,7 @@ function Select({ label, value, onChange, options }: {
       <select
         value={value}
         onChange={e => onChange(e.target.value)}
-        className="w-full rounded-lg border border-gray-700 bg-gray-800 py-2 px-3 text-sm text-gray-300 focus:border-emerald-500 focus:outline-none"
+        className="w-full rounded-lg border border-gray-700 bg-gray-800 py-2 px-3 text-sm text-gray-300 focus:border-cyan-500 focus:outline-none"
       >
         {options.map(([val, lbl]) => (
           <option key={val} value={val}>{lbl}</option>

@@ -140,12 +140,12 @@ export default function SteamImport({ currentUserId: _userId }: Props) {
                   onKeyDown={handleKeyDown}
                   disabled={phase === 'loading'}
                   placeholder="steamcommunity.com/id/yourname or 76561198..."
-                  className="flex-1 rounded-lg border border-gray-700 bg-gray-800/80 px-3 py-2 text-sm text-white placeholder-gray-600 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 transition-colors disabled:opacity-50"
+                  className="flex-1 rounded-lg border border-gray-700 bg-gray-800/80 px-3 py-2 text-sm text-white placeholder-gray-600 focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500 transition-colors disabled:opacity-50"
                 />
                 <button
                   onClick={handleImport}
                   disabled={phase === 'loading' || !input.trim()}
-                  className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:ring-offset-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="inline-flex items-center gap-2 rounded-lg bg-cyan-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2 focus:ring-offset-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {phase === 'loading' ? (
                     <>
@@ -180,7 +180,7 @@ export default function SteamImport({ currentUserId: _userId }: Props) {
             {/* Loading progress message */}
             {phase === 'loading' && (
               <div className="flex items-center gap-2 rounded-lg border border-gray-700/50 bg-gray-800/40 px-3 py-2.5">
-                <div className="h-2 w-2 animate-pulse rounded-full bg-emerald-400" />
+                <div className="h-2 w-2 animate-pulse rounded-full bg-cyan-400" />
                 <span className="text-xs text-gray-400">
                   Fetching your Steam library and matching against our database...
                 </span>
@@ -216,7 +216,7 @@ export default function SteamImport({ currentUserId: _userId }: Props) {
                 href="https://help.steampowered.com/en/faqs/view/588C-C67D-0251-C276"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-emerald-500/70 hover:text-emerald-400 transition-colors"
+                className="text-cyan-500/70 hover:text-cyan-400 transition-colors"
               >
                 How to change privacy settings
               </a>
@@ -231,7 +231,7 @@ export default function SteamImport({ currentUserId: _userId }: Props) {
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-2">
                 <svg
-                  className="h-5 w-5 text-emerald-400"
+                  className="h-5 w-5 text-cyan-400"
                   fill="none"
                   stroke="currentColor"
                   strokeWidth="2"
@@ -253,7 +253,7 @@ export default function SteamImport({ currentUserId: _userId }: Props) {
                 <p className="text-[11px] text-gray-500">Games Owned</p>
               </div>
               <div className="rounded-lg bg-gray-800/60 p-3 text-center">
-                <p className="text-lg font-bold text-emerald-400">{result.matched}</p>
+                <p className="text-lg font-bold text-cyan-400">{result.matched}</p>
                 <p className="text-[11px] text-gray-500">Matched</p>
               </div>
               <div className="rounded-lg bg-gray-800/60 p-3 text-center">

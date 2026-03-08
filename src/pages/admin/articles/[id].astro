@@ -72,7 +72,7 @@ const devicesStr = Array.isArray(article.devices) ? article.devices.join(', ') :
                 name="title"
                 required
                 value={article.title}
-                class="w-full rounded-lg border border-gray-700 bg-gray-900 px-4 py-2.5 text-sm text-white placeholder-gray-500 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 focus:outline-none"
+                class="w-full rounded-lg border border-gray-700 bg-gray-900 px-4 py-2.5 text-sm text-white placeholder-gray-500 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 focus:outline-none"
               />
             </div>
             <div>
@@ -83,7 +83,7 @@ const devicesStr = Array.isArray(article.devices) ? article.devices.join(', ') :
                 name="slug"
                 value={article.slug}
                 data-manual="true"
-                class="w-full rounded-lg border border-gray-700 bg-gray-900 px-4 py-2.5 text-sm text-white placeholder-gray-500 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 focus:outline-none"
+                class="w-full rounded-lg border border-gray-700 bg-gray-900 px-4 py-2.5 text-sm text-white placeholder-gray-500 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 focus:outline-none"
               />
             </div>
           </div>
@@ -96,7 +96,7 @@ const devicesStr = Array.isArray(article.devices) ? article.devices.join(', ') :
                 id="category"
                 name="category"
                 required
-                class="w-full rounded-lg border border-gray-700 bg-gray-900 px-4 py-2.5 text-sm text-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 focus:outline-none"
+                class="w-full rounded-lg border border-gray-700 bg-gray-900 px-4 py-2.5 text-sm text-white focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 focus:outline-none"
               >
                 {categories.map(cat => (
                   <option value={cat} selected={article.category === cat}>{categoryLabel(cat)}</option>
@@ -108,7 +108,7 @@ const devicesStr = Array.isArray(article.devices) ? article.devices.join(', ') :
               <select
                 id="status"
                 name="status"
-                class="w-full rounded-lg border border-gray-700 bg-gray-900 px-4 py-2.5 text-sm text-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 focus:outline-none"
+                class="w-full rounded-lg border border-gray-700 bg-gray-900 px-4 py-2.5 text-sm text-white focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 focus:outline-none"
               >
                 {statuses.map(s => (
                   <option value={s} selected={article.status === s}>{s.replace('_', ' ').replace(/\b\w/g, c => c.toUpperCase())}</option>
@@ -125,7 +125,7 @@ const devicesStr = Array.isArray(article.devices) ? article.devices.join(', ') :
               name="lead"
               required
               rows="3"
-              class="w-full rounded-lg border border-gray-700 bg-gray-900 px-4 py-2.5 text-sm text-white placeholder-gray-500 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 focus:outline-none resize-y"
+              class="w-full rounded-lg border border-gray-700 bg-gray-900 px-4 py-2.5 text-sm text-white placeholder-gray-500 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 focus:outline-none resize-y"
             >{article.lead}</textarea>
           </div>
 
@@ -137,7 +137,7 @@ const devicesStr = Array.isArray(article.devices) ? article.devices.join(', ') :
               name="body"
               required
               rows="16"
-              class="w-full rounded-lg border border-gray-700 bg-gray-900 px-4 py-2.5 text-sm text-white font-mono placeholder-gray-500 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 focus:outline-none resize-y"
+              class="w-full rounded-lg border border-gray-700 bg-gray-900 px-4 py-2.5 text-sm text-white font-mono placeholder-gray-500 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 focus:outline-none resize-y"
             >{article.body}</textarea>
           </div>
 
@@ -149,7 +149,7 @@ const devicesStr = Array.isArray(article.devices) ? article.devices.join(', ') :
               id="cover_image"
               name="cover_image"
               value={article.cover_image ?? ''}
-              class="w-full rounded-lg border border-gray-700 bg-gray-900 px-4 py-2.5 text-sm text-white placeholder-gray-500 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 focus:outline-none"
+              class="w-full rounded-lg border border-gray-700 bg-gray-900 px-4 py-2.5 text-sm text-white placeholder-gray-500 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 focus:outline-none"
               placeholder="https://example.com/image.jpg"
             />
             {article.cover_image && (
@@ -166,7 +166,7 @@ const devicesStr = Array.isArray(article.devices) ? article.devices.join(', ') :
                 id="tags"
                 name="tags"
                 value={tagsStr}
-                class="w-full rounded-lg border border-gray-700 bg-gray-900 px-4 py-2.5 text-sm text-white placeholder-gray-500 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 focus:outline-none"
+                class="w-full rounded-lg border border-gray-700 bg-gray-900 px-4 py-2.5 text-sm text-white placeholder-gray-500 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 focus:outline-none"
                 placeholder="steam-deck, performance, update"
               />
             </div>
@@ -177,7 +177,7 @@ const devicesStr = Array.isArray(article.devices) ? article.devices.join(', ') :
                 id="devices"
                 name="devices"
                 value={devicesStr}
-                class="w-full rounded-lg border border-gray-700 bg-gray-900 px-4 py-2.5 text-sm text-white placeholder-gray-500 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 focus:outline-none"
+                class="w-full rounded-lg border border-gray-700 bg-gray-900 px-4 py-2.5 text-sm text-white placeholder-gray-500 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 focus:outline-none"
                 placeholder="steam-deck-oled, rog-ally-x"
               />
             </div>
@@ -193,7 +193,7 @@ const devicesStr = Array.isArray(article.devices) ? article.devices.join(', ') :
                 id="meta_title"
                 name="meta_title"
                 value={article.meta_title ?? ''}
-                class="w-full rounded-lg border border-gray-700 bg-gray-900 px-4 py-2.5 text-sm text-white placeholder-gray-500 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 focus:outline-none"
+                class="w-full rounded-lg border border-gray-700 bg-gray-900 px-4 py-2.5 text-sm text-white placeholder-gray-500 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 focus:outline-none"
               />
             </div>
             <div>
@@ -202,7 +202,7 @@ const devicesStr = Array.isArray(article.devices) ? article.devices.join(', ') :
                 id="meta_description"
                 name="meta_description"
                 rows="2"
-                class="w-full rounded-lg border border-gray-700 bg-gray-900 px-4 py-2.5 text-sm text-white placeholder-gray-500 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 focus:outline-none resize-y"
+                class="w-full rounded-lg border border-gray-700 bg-gray-900 px-4 py-2.5 text-sm text-white placeholder-gray-500 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 focus:outline-none resize-y"
               >{article.meta_description ?? ''}</textarea>
             </div>
           </div>
@@ -243,7 +243,7 @@ const devicesStr = Array.isArray(article.devices) ? article.devices.join(', ') :
               <button
                 type="button"
                 id="btn-publish"
-                class="rounded-lg bg-emerald-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-emerald-500 transition-colors"
+                class="rounded-lg bg-cyan-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-cyan-500 transition-colors"
               >
                 Save &amp; Publish
               </button>
@@ -329,7 +329,7 @@ const devicesStr = Array.isArray(article.devices) ? article.devices.join(', ') :
       }
 
       saveStatus.textContent = 'Saving...';
-      saveStatus.classList.remove('hidden', 'text-red-400', 'text-emerald-400');
+      saveStatus.classList.remove('hidden', 'text-red-400', 'text-cyan-400');
 
       try {
         const res = await fetch('/api/admin/articles', {
@@ -347,7 +347,7 @@ const devicesStr = Array.isArray(article.devices) ? article.devices.join(', ') :
         }
 
         saveStatus.textContent = 'Saved successfully!';
-        saveStatus.classList.add('text-emerald-400');
+        saveStatus.classList.add('text-cyan-400');
         setTimeout(() => saveStatus.classList.add('hidden'), 3000);
       } catch {
         saveStatus.textContent = 'Network error';
