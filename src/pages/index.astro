@@ -2,53 +2,51 @@
 import BaseLayout from '@layouts/BaseLayout.astro';
 import GameCard from '@components/astro/GameCard.astro';
 import DeviceCard from '@components/astro/DeviceCard.astro';
+import SearchBar from '@components/react/SearchBar';
+import { supabaseAdmin } from '@lib/db/client';
 
-// ─── Mock data for visual mockup ───
-const devices = [
-  { slug: 'steam-deck-oled', name: 'Steam Deck OLED', manufacturer: 'Valve', screenSize: 7.4, batteryWh: 50, chip: 'AMD Van Gogh', msrpUsd: 549, testedGames: 487 },
-  { slug: 'rog-ally-x', name: 'ASUS ROG Ally X', manufacturer: 'ASUS', screenSize: 7.0, batteryWh: 80, chip: 'Ryzen Z1 Extreme', msrpUsd: 799, testedGames: 312 },
-  { slug: 'legion-go', name: 'Lenovo Legion Go', manufacturer: 'Lenovo', screenSize: 8.8, batteryWh: 49.2, chip: 'Ryzen Z1 Extreme', msrpUsd: 699, testedGames: 198 },
-];
+// ─── Fetch real data from Supabase ───
+const { data: devicesData } = await supabaseAdmin
+  .from('devices')
+  .select('slug, name, manufacturer, screen_size, battery_wh, chip, image, msrp_usd, is_active')
+  .eq('is_active', true)
+  .order('name');
 
-const trendingGames = [
-  { slug: 'elden-ring', name: 'Elden Ring', genres: ['Action', 'RPG'], bestFps: 42, reportCount: 187 },
-  { slug: 'cyberpunk-2077', name: 'Cyberpunk 2077', genres: ['RPG', 'Shooter'], bestFps: 35, reportCount: 156 },
-  { slug: 'baldurs-gate-3', name: "Baldur's Gate 3", genres: ['RPG', 'Strategy'], bestFps: 38, reportCount: 142 },
-  { slug: 'hades-ii', name: 'Hades II', genres: ['Roguelike', 'Action'], bestFps: 60, reportCount: 98 },
-  { slug: 'god-of-war-ragnarok', name: 'God of War Ragnarok', genres: ['Action', 'Adventure'], bestFps: 34, reportCount: 89 },
-  { slug: 'palworld', name: 'Palworld', genres: ['Survival', 'Crafting'], bestFps: 40, reportCount: 76 },
-  { slug: 'stardew-valley', name: 'Stardew Valley', genres: ['Simulation', 'RPG'], bestFps: 60, reportCount: 64 },
-  { slug: 'helldivers-2', name: 'Helldivers 2', genres: ['Shooter', 'Co-op'], bestFps: 32, reportCount: 118 },
-];
+const { data: gamesData } = await supabaseAdmin
+  .from('games')
+  .select('slug, name, header_image, genres, deck_compatibility')
+  .not('header_image', 'is', null)
+  .order('metacritic_score', { ascending: false, nullsFirst: false })
+  .limit(8);
 
-const recentReports = [
-  { game: 'Elden Ring', device: 'Steam Deck OLED', user: 'DeckMaster42', fps: 45, preset: 'Medium', tdp: '12W', rating: 'good', time: '2h ago' },
-  { game: 'Cyberpunk 2077', device: 'ROG Ally X', user: 'AllyPro', fps: 52, preset: 'Medium', tdp: '20W', rating: 'good', time: '3h ago' },
-  { game: 'Hades II', device: 'Steam Deck OLED', user: 'IndieFan', fps: 60, preset: 'High', tdp: '10W', rating: 'excellent', time: '4h ago' },
-  { game: 'God of War Ragnarok', device: 'Legion Go', user: 'LegionTester', fps: 38, preset: 'Low', tdp: '25W', rating: 'fair', time: '5h ago' },
-  { game: "Baldur's Gate 3", device: 'ROG Ally X', user: 'RPGHunter', fps: 48, preset: 'Medium', tdp: '17W', rating: 'good', time: '6h ago' },
-];
+const { count: gameCount } = await supabaseAdmin
+  .from('games')
+  .select('*', { count: 'exact', head: true });
 
-const topContributors = [
-  { name: 'DeckMaster42', reports: 312, level: 'Elite', avatar: 'DM' },
-  { name: 'AllyPro', reports: 245, level: 'Expert', avatar: 'AP' },
-  { name: 'HandheldHero', reports: 198, level: 'Expert', avatar: 'HH' },
-  { name: 'LegionTester', reports: 156, level: 'Veteran', avatar: 'LT' },
-  { name: 'IndieFan', reports: 134, level: 'Veteran', avatar: 'IF' },
-];
+const { count: deviceCount } = await supabaseAdmin
+  .from('devices')
+  .select('*', { count: 'exact', head: true });
 
-const ratingColors: Record<string, string> = {
-  excellent: 'bg-green-500/20 text-green-400 border-green-500/30',
-  good: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30',
-  fair: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30',
-  poor: 'bg-orange-500/20 text-orange-400 border-orange-500/30',
-};
+const devices = (devicesData ?? []).map(d => ({
+  slug: d.slug,
+  name: d.name,
+  manufacturer: d.manufacturer,
+  screenSize: d.screen_size,
+  batteryWh: d.battery_wh,
+  chip: d.chip,
+  image: d.image,
+  msrpUsd: d.msrp_usd,
+}));
 
-const levelColors: Record<string, string> = {
-  Elite: 'text-purple-400',
-  Expert: 'text-amber-400',
-  Veteran: 'text-blue-400',
-};
+const trendingGames = (gamesData ?? []).map(g => ({
+  slug: g.slug,
+  name: g.name,
+  headerImage: g.header_image,
+  genres: (g.genres as string[]) ?? [],
+  deckCompatibility: g.deck_compatibility,
+  bestFps: null as number | null,
+  reportCount: 0,
+}));
 ---
 
 <BaseLayout title="Handheld GameDB">
@@ -64,7 +62,7 @@ const levelColors: Record<string, string> = {
           <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
           <span class="relative inline-flex h-2 w-2 rounded-full bg-emerald-500"></span>
         </span>
-        2,847 reports this week
+        Now live — building the database
       </div>
 
       <h1 class="text-4xl sm:text-5xl lg:text-6xl font-bold text-white tracking-tight leading-tight">
@@ -72,178 +70,79 @@ const levelColors: Record<string, string> = {
         every game on your handheld
       </h1>
       <p class="mt-6 text-lg sm:text-xl text-gray-400 max-w-2xl mx-auto leading-relaxed">
-        Community-driven performance data for Steam Deck, ROG Ally, Legion Go. Optimal settings, FPS benchmarks, battery life &mdash; all in one place.
+        Community-driven performance data for Steam Deck, ROG Ally, Legion Go and more. Optimal settings, FPS benchmarks, battery life &mdash; all in one place.
       </p>
 
       <!-- Search Bar -->
       <div class="mt-10 max-w-2xl mx-auto">
-        <div class="relative group">
-          <div class="absolute -inset-0.5 bg-gradient-to-r from-emerald-500/20 to-cyan-500/20 rounded-2xl blur opacity-0 group-focus-within:opacity-100 transition-opacity"></div>
-          <div class="relative flex items-center">
-            <svg class="absolute left-5 h-5 w-5 text-gray-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z" />
-            </svg>
-            <input
-              type="text"
-              placeholder="Search games... (e.g. Elden Ring, Cyberpunk 2077, Stardew Valley)"
-              class="w-full rounded-xl border border-gray-700 bg-gray-900/90 py-4 pl-14 pr-32 text-white placeholder-gray-500 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 transition-all"
-            />
-            <div class="absolute right-3 flex items-center gap-2">
-              <kbd class="hidden sm:inline-flex items-center rounded-md border border-gray-700 bg-gray-800 px-2 py-0.5 text-xs text-gray-500">Ctrl+K</kbd>
-              <button class="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-500 transition-colors">Search</button>
-            </div>
-          </div>
-        </div>
-        <div class="mt-3 flex flex-wrap justify-center gap-2 text-xs text-gray-500">
-          <span>Popular:</span>
-          <a href="/games/elden-ring" class="text-gray-400 hover:text-emerald-400 transition-colors">Elden Ring</a>
-          <span class="text-gray-700">&bull;</span>
-          <a href="/games/cyberpunk-2077" class="text-gray-400 hover:text-emerald-400 transition-colors">Cyberpunk 2077</a>
-          <span class="text-gray-700">&bull;</span>
-          <a href="/games/baldurs-gate-3" class="text-gray-400 hover:text-emerald-400 transition-colors">Baldur's Gate 3</a>
-          <span class="text-gray-700">&bull;</span>
-          <a href="/games/hades-ii" class="text-gray-400 hover:text-emerald-400 transition-colors">Hades II</a>
-        </div>
+        <SearchBar client:load variant="hero" placeholder="Search games... (e.g. Elden Ring, Cyberpunk 2077, Stardew Valley)" />
       </div>
 
       <!-- Quick Stats -->
       <div class="mt-14 grid grid-cols-2 sm:grid-cols-4 gap-4 max-w-2xl mx-auto">
         <div class="rounded-xl border border-gray-800 bg-gray-900/50 p-4">
-          <p class="text-2xl sm:text-3xl font-bold text-white">1,247</p>
+          <p class="text-2xl sm:text-3xl font-bold text-white">{gameCount ?? 0}</p>
           <p class="text-sm text-gray-500">Games</p>
         </div>
         <div class="rounded-xl border border-gray-800 bg-gray-900/50 p-4">
-          <p class="text-2xl sm:text-3xl font-bold text-white">3</p>
+          <p class="text-2xl sm:text-3xl font-bold text-white">{deviceCount ?? 0}</p>
           <p class="text-sm text-gray-500">Devices</p>
         </div>
         <div class="rounded-xl border border-gray-800 bg-gray-900/50 p-4">
-          <p class="text-2xl sm:text-3xl font-bold text-white">18.4K</p>
+          <p class="text-2xl sm:text-3xl font-bold text-white">0</p>
           <p class="text-sm text-gray-500">Reports</p>
         </div>
         <div class="rounded-xl border border-gray-800 bg-gray-900/50 p-4">
-          <p class="text-2xl sm:text-3xl font-bold text-white">2,156</p>
+          <p class="text-2xl sm:text-3xl font-bold text-white">0</p>
           <p class="text-sm text-gray-500">Testers</p>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- TRENDING GAMES -->
-  <section class="py-12">
-    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-      <div class="flex items-center justify-between mb-6">
-        <div>
-          <h2 class="text-2xl font-bold text-white">Trending Games</h2>
-          <p class="mt-1 text-sm text-gray-500">Most reported this week</p>
+  <!-- TOP GAMES -->
+  {trendingGames.length > 0 && (
+    <section class="py-12">
+      <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div class="flex items-center justify-between mb-6">
+          <div>
+            <h2 class="text-2xl font-bold text-white">Top Games</h2>
+            <p class="mt-1 text-sm text-gray-500">Highest rated games in the database</p>
+          </div>
+          <a href="/games" class="text-sm text-emerald-400 hover:text-emerald-300 transition-colors">
+            View all &rarr;
+          </a>
         </div>
-        <a href="/games" class="text-sm text-emerald-400 hover:text-emerald-300 transition-colors">
-          View all &rarr;
-        </a>
-      </div>
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {trendingGames.map((game) => (
-          <GameCard {...game} />
-        ))}
-      </div>
-    </div>
-  </section>
-
-  <!-- RECENT ACTIVITY + TOP CONTRIBUTORS -->
-  <section class="py-12">
-    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <!-- Recent Reports -->
-        <div class="lg:col-span-2">
-          <div class="flex items-center justify-between mb-4">
-            <h2 class="text-xl font-bold text-white">Recent Reports</h2>
-            <span class="relative flex h-2 w-2">
-              <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
-              <span class="relative inline-flex h-2 w-2 rounded-full bg-emerald-500"></span>
-            </span>
-          </div>
-          <div class="rounded-xl border border-gray-800 bg-gray-900 overflow-hidden">
-            <div class="divide-y divide-gray-800">
-              {recentReports.map((r) => (
-                <div class="flex items-center gap-4 px-5 py-4 hover:bg-gray-800/50 transition-colors">
-                  <div class="flex-1 min-w-0">
-                    <div class="flex items-center gap-2">
-                      <span class="font-medium text-white truncate">{r.game}</span>
-                      <span class={`inline-flex items-center rounded-md border px-1.5 py-0.5 text-xs font-medium ${ratingColors[r.rating]}`}>
-                        {r.fps} fps
-                      </span>
-                    </div>
-                    <div class="mt-0.5 flex items-center gap-2 text-xs text-gray-500">
-                      <span>{r.device}</span>
-                      <span class="text-gray-700">&bull;</span>
-                      <span>{r.preset}</span>
-                      <span class="text-gray-700">&bull;</span>
-                      <span>{r.tdp}</span>
-                    </div>
-                  </div>
-                  <div class="flex-shrink-0 text-right">
-                    <p class="text-xs text-gray-500">{r.user}</p>
-                    <p class="text-xs text-gray-600">{r.time}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-            <div class="border-t border-gray-800 px-5 py-3 text-center">
-              <a href="/games" class="text-sm text-emerald-400 hover:text-emerald-300 transition-colors">
-                View all reports &rarr;
-              </a>
-            </div>
-          </div>
-        </div>
-
-        <!-- Top Contributors -->
-        <div>
-          <h2 class="text-xl font-bold text-white mb-4">Top Contributors</h2>
-          <div class="rounded-xl border border-gray-800 bg-gray-900 overflow-hidden">
-            <div class="divide-y divide-gray-800">
-              {topContributors.map((c, i) => (
-                <div class="flex items-center gap-3 px-5 py-3.5">
-                  <span class="text-sm font-bold text-gray-600 w-5">{i + 1}</span>
-                  <div class="flex h-8 w-8 items-center justify-center rounded-full bg-gray-800 text-xs font-bold text-gray-400">
-                    {c.avatar}
-                  </div>
-                  <div class="flex-1 min-w-0">
-                    <p class="text-sm font-medium text-white truncate">{c.name}</p>
-                    <p class="text-xs text-gray-500">{c.reports} reports</p>
-                  </div>
-                  <span class={`text-xs font-medium ${levelColors[c.level]}`}>{c.level}</span>
-                </div>
-              ))}
-            </div>
-            <div class="border-t border-gray-800 px-5 py-3 text-center">
-              <a href="/leaderboard" class="text-sm text-emerald-400 hover:text-emerald-300 transition-colors">
-                Full leaderboard &rarr;
-              </a>
-            </div>
-          </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {trendingGames.map((game) => (
+            <GameCard {...game} />
+          ))}
         </div>
       </div>
-    </div>
-  </section>
+    </section>
+  )}
 
   <!-- SUPPORTED DEVICES -->
-  <section class="py-12">
-    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-      <div class="flex items-center justify-between mb-6">
-        <div>
-          <h2 class="text-2xl font-bold text-white">Supported Devices</h2>
-          <p class="mt-1 text-sm text-gray-500">Pick your handheld to see compatible games</p>
+  {devices.length > 0 && (
+    <section class="py-12">
+      <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div class="flex items-center justify-between mb-6">
+          <div>
+            <h2 class="text-2xl font-bold text-white">Supported Devices</h2>
+            <p class="mt-1 text-sm text-gray-500">Pick your handheld to see compatible games</p>
+          </div>
+          <a href="/devices" class="text-sm text-emerald-400 hover:text-emerald-300 transition-colors">
+            All devices &rarr;
+          </a>
         </div>
-        <a href="/compare/steam-deck-oled/rog-ally-x" class="text-sm text-emerald-400 hover:text-emerald-300 transition-colors">
-          Compare &rarr;
-        </a>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {devices.map((device) => (
+            <DeviceCard {...device} />
+          ))}
+        </div>
       </div>
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {devices.map((device) => (
-          <DeviceCard {...device} />
-        ))}
-      </div>
-    </div>
-  </section>
+    </section>
+  )}
 
   <!-- HOW IT WORKS -->
   <section class="py-16">
@@ -258,7 +157,7 @@ const levelColors: Record<string, string> = {
           </div>
           <h3 class="text-lg font-semibold text-white">1. Search Your Game</h3>
           <p class="mt-2 text-sm text-gray-400 leading-relaxed">
-            Instant search across 1,200+ games. Filter by device, genre, FPS target, or compatibility.
+            Instant search across {gameCount ?? 0}+ games. Filter by device, genre, FPS target, or compatibility.
           </p>
         </div>
         <div class="relative text-center group">
@@ -295,7 +194,7 @@ const levelColors: Record<string, string> = {
         <div class="relative text-center">
           <h2 class="text-2xl sm:text-3xl font-bold text-white">Got a handheld? Your data matters.</h2>
           <p class="mt-3 text-gray-400 max-w-xl mx-auto">
-            Every performance report helps thousands of gamers optimize their experience. Join 2,156 testers.
+            Every performance report helps thousands of gamers optimize their experience. Be one of the first testers.
           </p>
           <div class="mt-8 flex flex-col sm:flex-row justify-center gap-4">
             <a

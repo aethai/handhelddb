@@ -1,0 +1,114 @@
+---
+interface TDPProfile {
+  tdpWatts: number;
+  fpsAvg: number;
+  resolution: string;
+  preset: string;
+  fsrEnabled: boolean;
+  fsrMode?: string;
+  estimatedBatteryHours: number;
+  thermal: string;
+  fanNoise: string;
+  reportCount: number;
+  confidence: string;
+}
+
+interface Props {
+  profile: TDPProfile;
+  tier: 'battery_saver' | 'balanced' | 'performance';
+}
+
+const { profile, tier } = Astro.props;
+
+const tierConfig = {
+  battery_saver: {
+    label: 'Battery Saver',
+    icon: '🔋',
+    color: 'emerald',
+    border: 'border-emerald-500/30',
+    bg: 'bg-emerald-500/5',
+    accent: 'text-emerald-400',
+  },
+  balanced: {
+    label: 'Balanced',
+    icon: '⚖️',
+    color: 'cyan',
+    border: 'border-cyan-500/30',
+    bg: 'bg-cyan-500/5',
+    accent: 'text-cyan-400',
+  },
+  performance: {
+    label: 'Performance',
+    icon: '🚀',
+    color: 'orange',
+    border: 'border-orange-500/30',
+    bg: 'bg-orange-500/5',
+    accent: 'text-orange-400',
+  },
+};
+
+const config = tierConfig[tier];
+
+function fpsColor(fps: number): string {
+  if (fps >= 60) return 'text-green-400';
+  if (fps >= 40) return 'text-yellow-400';
+  if (fps >= 30) return 'text-orange-400';
+  return 'text-red-400';
+}
+
+const thermalLabels: Record<string, string> = { cool: 'Cool', warm: 'Warm', hot: 'Hot' };
+const fanLabels: Record<string, string> = { silent: 'Silent', quiet: 'Quiet', audible: 'Audible', loud: 'Loud' };
+---
+
+<div class={`rounded-xl border ${config.border} ${config.bg} p-5`}>
+  <div class="flex items-center justify-between mb-4">
+    <div class="flex items-center gap-2">
+      <span class="text-lg">{config.icon}</span>
+      <h4 class={`text-sm font-semibold ${config.accent}`}>{config.label}</h4>
+    </div>
+    <span class="rounded-full bg-gray-800 px-2 py-0.5 text-[10px] text-gray-400">
+      {profile.reportCount} report{profile.reportCount !== 1 ? 's' : ''}
+    </span>
+  </div>
+
+  <!-- Big FPS number -->
+  <div class="text-center mb-4">
+    <p class={`text-4xl font-bold ${fpsColor(profile.fpsAvg)}`}>{Math.round(profile.fpsAvg)}</p>
+    <p class="text-xs text-gray-500 mt-1">avg FPS</p>
+  </div>
+
+  <!-- Settings grid -->
+  <div class="space-y-2 text-sm">
+    <div class="flex justify-between">
+      <span class="text-gray-500">TDP</span>
+      <span class="text-white font-medium">{profile.tdpWatts}W</span>
+    </div>
+    <div class="flex justify-between">
+      <span class="text-gray-500">Resolution</span>
+      <span class="text-gray-300">{profile.resolution}</span>
+    </div>
+    <div class="flex justify-between">
+      <span class="text-gray-500">Preset</span>
+      <span class="text-gray-300 capitalize">{profile.preset.replace('_', ' ')}</span>
+    </div>
+    {profile.fsrEnabled && (
+      <div class="flex justify-between">
+        <span class="text-gray-500">FSR/DLSS</span>
+        <span class="text-gray-300 capitalize">{profile.fsrMode ?? 'On'}</span>
+      </div>
+    )}
+    <div class="border-t border-gray-800 my-2"></div>
+    <div class="flex justify-between">
+      <span class="text-gray-500">Battery</span>
+      <span class="text-gray-300">{profile.estimatedBatteryHours.toFixed(1)}h</span>
+    </div>
+    <div class="flex justify-between">
+      <span class="text-gray-500">Thermal</span>
+      <span class="text-gray-300">{thermalLabels[profile.thermal] ?? profile.thermal}</span>
+    </div>
+    <div class="flex justify-between">
+      <span class="text-gray-500">Fan</span>
+      <span class="text-gray-300">{fanLabels[profile.fanNoise] ?? profile.fanNoise}</span>
+    </div>
+  </div>
+</div>

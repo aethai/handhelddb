@@ -1,87 +1,182 @@
 ---
 import BaseLayout from '@layouts/BaseLayout.astro';
 import GameCard from '@components/astro/GameCard.astro';
+import { supabaseAdmin } from '@lib/db/client';
 
-// ─── Mock data for discover page ───
+// ─── Fetch real data from Supabase ───
+
+// 1. Top-rated games (by metacritic_score)
+const { data: topRated } = await supabaseAdmin
+  .from('games')
+  .select('slug, name, header_image, genres, deck_compatibility, metacritic_score')
+  .not('metacritic_score', 'is', null)
+  .order('metacritic_score', { ascending: false })
+  .limit(8);
+
+// 2. Steam Deck Verified games
+const { data: deckVerified } = await supabaseAdmin
+  .from('games')
+  .select('slug, name, header_image, genres, deck_compatibility, metacritic_score')
+  .eq('deck_compatibility', 'verified')
+  .order('metacritic_score', { ascending: false })
+  .limit(4);
+
+// 3. Free to Play games
+const { data: freeGames } = await supabaseAdmin
+  .from('games')
+  .select('slug, name, header_image, genres, deck_compatibility, metacritic_score')
+  .eq('is_free_to_play', true)
+  .order('metacritic_score', { ascending: false })
+  .limit(4);
+
+// 4. RPG games
+const { data: rpgGames } = await supabaseAdmin
+  .from('games')
+  .select('slug, name, header_image, genres, deck_compatibility, metacritic_score')
+  .contains('genres', ['RPG'])
+  .order('metacritic_score', { ascending: false })
+  .limit(4);
+
+// 5. Action games
+const { data: actionGames } = await supabaseAdmin
+  .from('games')
+  .select('slug, name, header_image, genres, deck_compatibility, metacritic_score')
+  .contains('genres', ['Action'])
+  .order('metacritic_score', { ascending: false })
+  .limit(4);
+
+// 6. Indie gems (Indie genre, good metacritic)
+const { data: indieGames } = await supabaseAdmin
+  .from('games')
+  .select('slug, name, header_image, genres, deck_compatibility, metacritic_score')
+  .contains('genres', ['Indie'])
+  .not('metacritic_score', 'is', null)
+  .order('metacritic_score', { ascending: false })
+  .limit(4);
+
+// Genre counts
+const { data: allGamesGenres } = await supabaseAdmin
+  .from('games')
+  .select('genres');
+const genreCountMap = new Map<string, number>();
+(allGamesGenres ?? []).forEach(g => {
+  ((g.genres as string[]) ?? []).forEach(genre => {
+    genreCountMap.set(genre, (genreCountMap.get(genre) ?? 0) + 1);
+  });
+});
+
+// Sort genres by count descending, take top 12
+const topGenres = [...genreCountMap.entries()]
+  .sort((a, b) => b[1] - a[1])
+  .slice(0, 12);
+
+// Genre color mapping
+const genreColors: Record<string, string> = {
+  'Action': 'border-red-500/30 text-red-400 hover:bg-red-500/10',
+  'RPG': 'border-purple-500/30 text-purple-400 hover:bg-purple-500/10',
+  'Indie': 'border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10',
+  'Adventure': 'border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/10',
+  'Strategy': 'border-blue-500/30 text-blue-400 hover:bg-blue-500/10',
+  'Simulation': 'border-green-500/30 text-green-400 hover:bg-green-500/10',
+  'Casual': 'border-yellow-500/30 text-yellow-400 hover:bg-yellow-500/10',
+  'Puzzle': 'border-pink-500/30 text-pink-400 hover:bg-pink-500/10',
+  'Shooter': 'border-orange-500/30 text-orange-400 hover:bg-orange-500/10',
+  'Platformer': 'border-teal-500/30 text-teal-400 hover:bg-teal-500/10',
+  'Horror': 'border-gray-500/30 text-gray-400 hover:bg-gray-500/10',
+  'Racing': 'border-amber-500/30 text-amber-400 hover:bg-amber-500/10',
+};
+const defaultColor = 'border-gray-500/30 text-gray-400 hover:bg-gray-500/10';
+
+// Devices for quick filters
+const { data: devices } = await supabaseAdmin
+  .from('devices')
+  .select('slug, name, manufacturer, id')
+  .order('name')
+  .limit(6);
+
+// Report counts per device
+const { data: reportCounts } = await supabaseAdmin
+  .from('performance_reports')
+  .select('device_id');
+const deviceReportMap = new Map<string, number>();
+(reportCounts ?? []).forEach(r => {
+  deviceReportMap.set(r.device_id, (deviceReportMap.get(r.device_id) ?? 0) + 1);
+});
+
+// Build curated lists from real data
+type GameRow = { slug: string; name: string; header_image: string | null; genres: string[] | null; deck_compatibility: string | null; metacritic_score: number | null };
+const mapGame = (g: GameRow) => ({
+  slug: g.slug,
+  name: g.name,
+  headerImage: g.header_image,
+  genres: (g.genres as string[]) ?? [],
+  deckCompatibility: g.deck_compatibility,
+});
+
 const curations = [
   {
-    title: 'Best on Steam Deck OLED',
-    subtitle: '60fps verified games with great battery life',
-    games: [
-      { slug: 'hades-ii', name: 'Hades II', genres: ['Roguelike'], bestFps: 60, reportCount: 98 },
-      { slug: 'stardew-valley', name: 'Stardew Valley', genres: ['Simulation'], bestFps: 60, reportCount: 64 },
-      { slug: 'vampire-survivors', name: 'Vampire Survivors', genres: ['Roguelike'], bestFps: 60, reportCount: 55 },
-      { slug: 'hollow-knight-silksong', name: 'Hollow Knight: Silksong', genres: ['Metroidvania'], bestFps: 60, reportCount: 28 },
-    ],
+    title: 'Highest Rated',
+    subtitle: 'Top metacritic scores in our database',
+    emoji: '🏆',
+    games: (topRated ?? []).slice(0, 4).map(mapGame),
   },
-  {
-    title: 'AAA Games That Run Well',
-    subtitle: 'Big titles at 40fps+ on most handhelds',
-    games: [
-      { slug: 'elden-ring', name: 'Elden Ring', genres: ['Action', 'RPG'], bestFps: 42, reportCount: 187 },
-      { slug: 'baldurs-gate-3', name: "Baldur's Gate 3", genres: ['RPG'], bestFps: 38, reportCount: 142 },
-      { slug: 'god-of-war-ragnarok', name: 'God of War Ragnarok', genres: ['Action'], bestFps: 34, reportCount: 89 },
-      { slug: 'cyberpunk-2077', name: 'Cyberpunk 2077', genres: ['RPG'], bestFps: 35, reportCount: 156 },
-    ],
-  },
-  {
-    title: 'Battery Life Champions',
-    subtitle: 'Games you can play for 4+ hours on a single charge',
-    games: [
-      { slug: 'stardew-valley', name: 'Stardew Valley', genres: ['Simulation'], bestFps: 60, reportCount: 64 },
-      { slug: 'slay-the-spire-2', name: 'Slay the Spire 2', genres: ['Card Game'], bestFps: 60, reportCount: 31 },
-      { slug: 'into-the-breach', name: 'Into the Breach', genres: ['Strategy'], bestFps: 60, reportCount: 22 },
-      { slug: 'celeste', name: 'Celeste', genres: ['Platformer'], bestFps: 60, reportCount: 42 },
-    ],
-  },
-  {
-    title: 'Couch Co-op Favorites',
-    subtitle: 'Best shared-screen multiplayer on handhelds',
-    games: [
-      { slug: 'it-takes-two', name: 'It Takes Two', genres: ['Co-op', 'Adventure'], bestFps: 40, reportCount: 45 },
-      { slug: 'overcooked-2', name: 'Overcooked! 2', genres: ['Party', 'Co-op'], bestFps: 60, reportCount: 33 },
-      { slug: 'cuphead', name: 'Cuphead', genres: ['Action', 'Co-op'], bestFps: 60, reportCount: 51 },
-      { slug: 'portal-2', name: 'Portal 2', genres: ['Puzzle', 'Co-op'], bestFps: 60, reportCount: 38 },
-    ],
-  },
-];
-
-const genreTags = [
-  { name: 'Action', count: 342, color: 'border-red-500/30 text-red-400 hover:bg-red-500/10' },
-  { name: 'RPG', count: 178, color: 'border-purple-500/30 text-purple-400 hover:bg-purple-500/10' },
-  { name: 'Roguelike', count: 96, color: 'border-amber-500/30 text-amber-400 hover:bg-amber-500/10' },
-  { name: 'Strategy', count: 87, color: 'border-blue-500/30 text-blue-400 hover:bg-blue-500/10' },
-  { name: 'Simulation', count: 72, color: 'border-green-500/30 text-green-400 hover:bg-green-500/10' },
-  { name: 'Platformer', count: 65, color: 'border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/10' },
-  { name: 'Shooter', count: 145, color: 'border-orange-500/30 text-orange-400 hover:bg-orange-500/10' },
-  { name: 'Puzzle', count: 54, color: 'border-pink-500/30 text-pink-400 hover:bg-pink-500/10' },
-  { name: 'Horror', count: 38, color: 'border-gray-500/30 text-gray-400 hover:bg-gray-500/10' },
-  { name: 'Indie', count: 234, color: 'border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10' },
-];
+  ...(deckVerified && deckVerified.length > 0 ? [{
+    title: 'Steam Deck Verified',
+    subtitle: 'Officially verified for Steam Deck',
+    emoji: '✅',
+    games: deckVerified.map(mapGame),
+  }] : []),
+  ...(freeGames && freeGames.length > 0 ? [{
+    title: 'Free to Play',
+    subtitle: 'Great handheld games that cost nothing',
+    emoji: '🎮',
+    games: freeGames.map(mapGame),
+  }] : []),
+  ...(rpgGames && rpgGames.length > 0 ? [{
+    title: 'Best RPGs',
+    subtitle: 'Role-playing adventures for handheld gaming',
+    emoji: '⚔️',
+    games: rpgGames.map(mapGame),
+  }] : []),
+  ...(actionGames && actionGames.length > 0 ? [{
+    title: 'Top Action Games',
+    subtitle: 'Fast-paced games that shine on handhelds',
+    emoji: '💥',
+    games: actionGames.map(mapGame),
+  }] : []),
+  ...(indieGames && indieGames.length > 0 ? [{
+    title: 'Indie Gems',
+    subtitle: 'Hidden indie favorites with great handheld performance',
+    emoji: '💎',
+    games: indieGames.map(mapGame),
+  }] : []),
+].filter(c => c.games.length > 0);
 ---
 
-<BaseLayout title="Discover Games" description="Curated game lists for handheld gaming. Find the best games for Steam Deck, ROG Ally, and Legion Go by genre, performance tier, and playstyle.">
+<BaseLayout title="What Should I Play?" description="Discover the best handheld games. Curated lists for Steam Deck, ROG Ally, and Legion Go — browse by genre, rating, and device compatibility.">
   <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
     <div class="mb-10">
-      <h1 class="text-3xl font-bold text-white">Discover</h1>
-      <p class="mt-2 text-gray-400">Curated game lists for handheld gamers</p>
+      <h1 class="text-3xl font-bold text-white">What Should I Play?</h1>
+      <p class="mt-2 text-gray-400">Discover games perfect for handheld gaming</p>
     </div>
 
     <!-- Genre Tags Cloud -->
-    <div class="mb-10">
-      <h2 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">Browse by Genre</h2>
-      <div class="flex flex-wrap gap-2">
-        {genreTags.map((tag) => (
-          <a
-            href={`/games?genre=${tag.name.toLowerCase()}`}
-            class={`rounded-full border px-4 py-2 text-sm font-medium transition-colors ${tag.color}`}
-          >
-            {tag.name}
-            <span class="ml-1.5 text-xs opacity-60">{tag.count}</span>
-          </a>
-        ))}
+    {topGenres.length > 0 && (
+      <div class="mb-10">
+        <h2 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">Browse by Genre</h2>
+        <div class="flex flex-wrap gap-2">
+          {topGenres.map(([genre, count]) => (
+            <a
+              href={`/games?genre=${encodeURIComponent(genre)}`}
+              class={`rounded-full border px-4 py-2 text-sm font-medium transition-colors ${genreColors[genre] ?? defaultColor}`}
+            >
+              {genre}
+              <span class="ml-1.5 text-xs opacity-60">{count}</span>
+            </a>
+          ))}
+        </div>
       </div>
-    </div>
+    )}
 
     <!-- Curated Lists -->
     <div class="space-y-12">
@@ -89,7 +184,9 @@ const genreTags = [
         <section>
           <div class="flex items-end justify-between mb-5">
             <div>
-              <h2 class="text-xl font-bold text-white">{list.title}</h2>
+              <h2 class="text-xl font-bold text-white">
+                <span class="mr-2">{list.emoji}</span>{list.title}
+              </h2>
               <p class="mt-0.5 text-sm text-gray-500">{list.subtitle}</p>
             </div>
             <a href="/games" class="text-sm text-emerald-400 hover:text-emerald-300 transition-colors">
@@ -106,25 +203,48 @@ const genreTags = [
     </div>
 
     <!-- Quick Device Filters -->
-    <div class="mt-16 mb-8">
-      <h2 class="text-xl font-bold text-white mb-6 text-center">Find games for your device</h2>
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <a href="/devices/steam-deck-oled" class="group rounded-xl border border-gray-800 bg-gray-900 p-6 text-center hover:border-emerald-500/30 transition-colors">
-          <p class="text-xs text-gray-500 uppercase">Valve</p>
-          <p class="text-lg font-bold text-white group-hover:text-emerald-400 transition-colors">Steam Deck OLED</p>
-          <p class="mt-2 text-sm text-gray-400">487 games tested</p>
-        </a>
-        <a href="/devices/rog-ally-x" class="group rounded-xl border border-gray-800 bg-gray-900 p-6 text-center hover:border-emerald-500/30 transition-colors">
-          <p class="text-xs text-gray-500 uppercase">ASUS</p>
-          <p class="text-lg font-bold text-white group-hover:text-emerald-400 transition-colors">ROG Ally X</p>
-          <p class="mt-2 text-sm text-gray-400">312 games tested</p>
-        </a>
-        <a href="/devices/legion-go" class="group rounded-xl border border-gray-800 bg-gray-900 p-6 text-center hover:border-emerald-500/30 transition-colors">
-          <p class="text-xs text-gray-500 uppercase">Lenovo</p>
-          <p class="text-lg font-bold text-white group-hover:text-emerald-400 transition-colors">Legion Go</p>
-          <p class="mt-2 text-sm text-gray-400">198 games tested</p>
-        </a>
+    {devices && devices.length > 0 && (
+      <div class="mt-16 mb-8">
+        <h2 class="text-xl font-bold text-white mb-6 text-center">Find games for your device</h2>
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+          {devices.map((device) => (
+            <a
+              href={`/devices/${device.slug}`}
+              class="group rounded-xl border border-gray-800 bg-gray-900 p-6 text-center hover:border-emerald-500/30 transition-colors"
+            >
+              <p class="text-xs text-gray-500 uppercase">{device.manufacturer}</p>
+              <p class="text-lg font-bold text-white group-hover:text-emerald-400 transition-colors">
+                {device.name}
+              </p>
+              <p class="mt-2 text-sm text-gray-400">
+                {deviceReportMap.get(device.id) ?? 0} reports
+              </p>
+            </a>
+          ))}
+        </div>
       </div>
-    </div>
+    )}
+
+    <!-- Recently Added -->
+    {(topRated ?? []).length > 4 && (
+      <div class="mt-16">
+        <div class="flex items-end justify-between mb-5">
+          <div>
+            <h2 class="text-xl font-bold text-white">
+              <span class="mr-2">🆕</span>Recently Added
+            </h2>
+            <p class="mt-0.5 text-sm text-gray-500">Latest games added to the database</p>
+          </div>
+          <a href="/games" class="text-sm text-emerald-400 hover:text-emerald-300 transition-colors">
+            View all &rarr;
+          </a>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {(topRated ?? []).slice(4, 8).map((g) => (
+            <GameCard {...mapGame(g)} />
+          ))}
+        </div>
+      </div>
+    )}
   </div>
 </BaseLayout>

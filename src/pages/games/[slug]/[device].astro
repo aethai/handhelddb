@@ -1,0 +1,417 @@
+---
+import BaseLayout from '@layouts/BaseLayout.astro';
+import TDPProfileCard from '@components/astro/TDPProfileCard.astro';
+import VoteButtons from '@components/react/VoteButtons';
+import { supabaseAdmin } from '@lib/db/client';
+
+const { slug, device: deviceSlug } = Astro.params;
+const user = Astro.locals.user;
+
+// Fetch game, device, and consensus in parallel
+const [gameRes, deviceRes] = await Promise.all([
+  supabaseAdmin.from('games').select('*').eq('slug', slug).single(),
+  supabaseAdmin.from('devices').select('*').eq('slug', deviceSlug).single(),
+]);
+
+const game = gameRes.data;
+const device = deviceRes.data;
+
+if (!game || !device) {
+  return Astro.redirect(game ? `/games/${slug}` : '/games');
+}
+
+// Fetch reports and consensus in parallel
+const [reportsRes, consensusRes, devicesRes] = await Promise.all([
+  supabaseAdmin
+    .from('performance_reports')
+    .select('*, user:users(display_name, avatar_url, username)')
+    .eq('game_id', game.id)
+    .eq('device_id', device.id)
+    .eq('moderation_status', 'approved')
+    .order('created_at', { ascending: false })
+    .limit(20),
+  supabaseAdmin
+    .from('consensus_ratings')
+    .select('*')
+    .eq('game_id', game.id)
+    .eq('device_id', device.id)
+    .single(),
+  supabaseAdmin
+    .from('devices')
+    .select('slug, name')
+    .eq('is_active', true)
+    .neq('slug', deviceSlug)
+    .order('name')
+    .limit(6),
+]);
+
+const reportList = reportsRes.data ?? [];
+const consensus = consensusRes.data;
+const allDevices = devicesRes.data ?? [];
+const hasReports = reportList.length > 0;
+
+// Fetch user's votes on these reports
+let userVotes = new Map<string, boolean>();
+if (user && hasReports) {
+  const reportIds = reportList.map(r => r.id);
+  const { data: votes } = await supabaseAdmin
+    .from('report_votes')
+    .select('report_id, is_upvote')
+    .eq('user_id', user.id)
+    .in('report_id', reportIds);
+  (votes ?? []).forEach(v => userVotes.set(v.report_id, v.is_upvote));
+}
+
+// Calculate averages from reports
+let avgFps: number | null = null;
+let avgBattery: number | null = null;
+let avgTdp: number | null = null;
+if (hasReports) {
+  const fpsValues = reportList.filter(r => r.fps_avg).map(r => r.fps_avg);
+  const batteryValues = reportList.filter(r => r.battery_life_hours).map(r => r.battery_life_hours);
+  const tdpValues = reportList.filter(r => r.tdp_limit_watts).map(r => r.tdp_limit_watts);
+  avgFps = fpsValues.length > 0 ? Math.round(fpsValues.reduce((a: number, b: number) => a + b, 0) / fpsValues.length) : null;
+  avgBattery = batteryValues.length > 0 ? Math.round(batteryValues.reduce((a: number, b: number) => a + b, 0) / batteryValues.length * 10) / 10 : null;
+  avgTdp = tdpValues.length > 0 ? Math.round(tdpValues.reduce((a: number, b: number) => a + b, 0) / tdpValues.length * 10) / 10 : null;
+}
+
+// TDP Profiles from consensus
+const batterySaver = consensus?.battery_saver_profile as any;
+const balanced = consensus?.balanced_profile as any;
+const performance = consensus?.performance_profile as any;
+const hasTDPProfiles = batterySaver || balanced || performance;
+
+const deckStatusColors: Record<string, { label: string; class: string }> = {
+  verified: { label: 'Verified', class: 'bg-green-500/20 text-green-400 border-green-500/30' },
+  playable: { label: 'Playable', class: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30' },
+  unsupported: { label: 'Unsupported', class: 'bg-red-500/20 text-red-400 border-red-500/30' },
+  unknown: { label: 'Unknown', class: 'bg-gray-500/20 text-gray-400 border-gray-500/30' },
+};
+
+const deckInfo = deckStatusColors[game.deck_compatibility ?? 'unknown'] ?? deckStatusColors.unknown;
+const genres = (game.genres as string[]) ?? [];
+
+const ratingEmoji: Record<string, { icon: string; label: string; class: string }> = {
+  excellent: { icon: '🟢', label: 'Excellent', class: 'text-emerald-400' },
+  good: { icon: '🟡', label: 'Good', class: 'text-green-400' },
+  fair: { icon: '🟠', label: 'Fair', class: 'text-yellow-400' },
+  poor: { icon: '🔴', label: 'Poor', class: 'text-orange-400' },
+  unplayable: { icon: '⛔', label: 'Unplayable', class: 'text-red-400' },
+};
+
+function fpsColor(fps: number): string {
+  if (fps >= 60) return 'text-green-400';
+  if (fps >= 40) return 'text-yellow-400';
+  if (fps >= 30) return 'text-orange-400';
+  return 'text-red-400';
+}
+
+function formatBattery(hours: number): string {
+  const h = Math.floor(hours);
+  const m = Math.round((hours - h) * 60);
+  return h > 0 ? `${h}h ${m}m` : `${m}m`;
+}
+---
+
+<BaseLayout
+  title={`${game.name} on ${device.name}`}
+  description={`Performance data for ${game.name} on ${device.name}. FPS benchmarks, TDP profiles, battery life, and optimal settings.`}
+  ogImage={game.header_image}
+>
+  <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Breadcrumb -->
+    <nav class="mb-4 text-sm text-gray-500">
+      <a href="/" class="hover:text-white transition-colors">Home</a>
+      <span class="mx-2">/</span>
+      <a href="/games" class="hover:text-white transition-colors">Games</a>
+      <span class="mx-2">/</span>
+      <a href={`/games/${slug}`} class="hover:text-white transition-colors">{game.name}</a>
+      <span class="mx-2">/</span>
+      <span class="text-gray-300">{device.name}</span>
+    </nav>
+
+    <div class="flex flex-col lg:flex-row gap-8">
+      <!-- MAIN CONTENT -->
+      <div class="flex-1 min-w-0">
+        <!-- Header Card -->
+        <div class="rounded-xl border border-gray-800 bg-gray-900 overflow-hidden">
+          {game.header_image && (
+            <div class="w-full h-48 overflow-hidden relative">
+              <img src={game.header_image} alt={game.name} class="w-full h-full object-cover opacity-60" />
+              <div class="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/60 to-transparent"></div>
+              <div class="absolute bottom-4 left-6 right-6">
+                <h1 class="text-2xl sm:text-3xl font-bold text-white">{game.name}</h1>
+                <p class="mt-1 text-emerald-400 font-medium">on {device.name}</p>
+              </div>
+            </div>
+          )}
+          {!game.header_image && (
+            <div class="p-6">
+              <h1 class="text-2xl sm:text-3xl font-bold text-white">{game.name}</h1>
+              <p class="mt-1 text-emerald-400 font-medium">on {device.name}</p>
+            </div>
+          )}
+        </div>
+
+        <!-- Quick Stats -->
+        {hasReports && (
+          <div class="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-3">
+            {avgFps != null && (
+              <div class="rounded-xl border border-gray-800 bg-gray-900 p-4 text-center">
+                <p class={`text-2xl font-bold ${fpsColor(avgFps)}`}>{avgFps}</p>
+                <p class="text-xs text-gray-500 mt-1">Avg FPS</p>
+              </div>
+            )}
+            {avgTdp != null && (
+              <div class="rounded-xl border border-gray-800 bg-gray-900 p-4 text-center">
+                <p class="text-2xl font-bold text-cyan-400">{avgTdp}W</p>
+                <p class="text-xs text-gray-500 mt-1">Avg TDP</p>
+              </div>
+            )}
+            {avgBattery != null && (
+              <div class="rounded-xl border border-gray-800 bg-gray-900 p-4 text-center">
+                <p class="text-2xl font-bold text-purple-400">{formatBattery(avgBattery)}</p>
+                <p class="text-xs text-gray-500 mt-1">Avg Battery</p>
+              </div>
+            )}
+            <div class="rounded-xl border border-gray-800 bg-gray-900 p-4 text-center">
+              <p class="text-2xl font-bold text-white">{reportList.length}</p>
+              <p class="text-xs text-gray-500 mt-1">Reports</p>
+            </div>
+          </div>
+        )}
+
+        <!-- TDP Profile Cards -->
+        {hasTDPProfiles && (
+          <div class="mt-6">
+            <h2 class="text-xl font-bold text-white mb-4">Recommended Settings</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              {batterySaver && <TDPProfileCard profile={batterySaver} tier="battery_saver" />}
+              {balanced && <TDPProfileCard profile={balanced} tier="balanced" />}
+              {performance && <TDPProfileCard profile={performance} tier="performance" />}
+            </div>
+          </div>
+        )}
+
+        <!-- Battery Estimator -->
+        {device.battery_wh && avgTdp && (
+          <div class="mt-6 rounded-xl border border-gray-800 bg-gray-900 p-5">
+            <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-3">Battery Estimate</h3>
+            <div class="flex items-center gap-6">
+              <div class="flex-1">
+                <div class="flex items-center justify-between text-sm mb-1">
+                  <span class="text-gray-400">With this game at {avgTdp}W</span>
+                  <span class="text-white font-medium">{formatBattery(device.battery_wh / avgTdp)}</span>
+                </div>
+                <div class="h-2 rounded-full bg-gray-800 overflow-hidden">
+                  <div
+                    class="h-full rounded-full bg-gradient-to-r from-emerald-500 to-yellow-500"
+                    style={`width: ${Math.min(100, (device.battery_wh / avgTdp / 5) * 100)}%`}
+                  ></div>
+                </div>
+                <p class="text-xs text-gray-600 mt-1">{device.battery_wh} Wh battery / {avgTdp}W average draw</p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        <!-- Performance Reports -->
+        <div class="mt-6 space-y-4">
+          <div class="flex items-center justify-between">
+            <h2 class="text-xl font-bold text-white">Performance Reports</h2>
+            <a
+              href={`/report/new?game=${game.id}&gameName=${encodeURIComponent(game.name)}&device=${device.id}`}
+              class="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-emerald-500 transition-colors"
+            >
+              <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" /></svg>
+              Add Report
+            </a>
+          </div>
+
+          {!hasReports ? (
+            <div class="rounded-xl border border-gray-800 bg-gray-900 p-8 text-center">
+              <div class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-gray-800">
+                <svg class="h-8 w-8 text-gray-600" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3v11.25A2.25 2.25 0 006 16.5h2.25M3.75 3h-1.5m1.5 0h16.5m0 0h1.5m-1.5 0v11.25A2.25 2.25 0 0118 16.5h-2.25m-7.5 0h7.5m-7.5 0l-1 3m8.5-3l1 3m0 0l.5 1.5m-.5-1.5h-9.5m0 0l-.5 1.5" />
+                </svg>
+              </div>
+              <h3 class="text-lg font-semibold text-white">No reports for {device.name} yet</h3>
+              <p class="mt-2 text-sm text-gray-400">Be the first to report how {game.name} runs on {device.name}!</p>
+              <a
+                href={`/report/new?game=${game.id}&gameName=${encodeURIComponent(game.name)}&device=${device.id}`}
+                class="mt-4 inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-500 transition-colors"
+              >
+                <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" /></svg>
+                Submit First Report
+              </a>
+            </div>
+          ) : (
+            <div class="space-y-3">
+              {reportList.map((report) => {
+                const rating = ratingEmoji[report.overall_rating] ?? ratingEmoji.fair;
+                return (
+                  <div class="rounded-xl border border-gray-800 bg-gray-900 p-5">
+                    <div class="flex items-start justify-between gap-4">
+                      <div class="flex items-center gap-3">
+                        {report.user?.avatar_url ? (
+                          <img src={report.user.avatar_url} alt="" class="h-8 w-8 rounded-full" />
+                        ) : (
+                          <div class="h-8 w-8 rounded-full bg-emerald-600 flex items-center justify-center text-xs font-bold text-white">
+                            {(report.user?.display_name ?? 'A').charAt(0).toUpperCase()}
+                          </div>
+                        )}
+                        <div>
+                          <p class="text-sm font-medium text-white">{report.user?.display_name ?? 'Anonymous'}</p>
+                          <div class="flex items-center gap-2">
+                            <p class="text-xs text-gray-500">{new Date(report.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</p>
+                            <span class={`text-xs font-medium ${rating.class}`}>{rating.icon} {rating.label}</span>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="flex items-center gap-3">
+                        {report.fps_avg && (
+                          <span class={`text-lg font-bold ${fpsColor(report.fps_avg)}`}>{report.fps_avg} FPS</span>
+                        )}
+                        <VoteButtons
+                          client:visible
+                          reportId={report.id}
+                          initialUpvotes={report.upvotes ?? 0}
+                          initialDownvotes={report.downvotes ?? 0}
+                          userVote={userVotes.get(report.id) ?? null}
+                          isLoggedIn={!!user}
+                        />
+                      </div>
+                    </div>
+
+                    <div class="mt-3 grid grid-cols-2 sm:grid-cols-4 gap-3">
+                      {report.resolution && (
+                        <div>
+                          <p class="text-xs text-gray-500">Resolution</p>
+                          <p class="text-sm text-gray-300">{report.resolution}</p>
+                        </div>
+                      )}
+                      {report.preset && (
+                        <div>
+                          <p class="text-xs text-gray-500">Preset</p>
+                          <p class="text-sm text-gray-300 capitalize">{report.preset.replace('_', ' ')}</p>
+                        </div>
+                      )}
+                      {report.tdp_limit_watts && (
+                        <div>
+                          <p class="text-xs text-gray-500">TDP</p>
+                          <p class="text-sm text-gray-300">{report.tdp_limit_watts}W</p>
+                        </div>
+                      )}
+                      {report.battery_life_hours && (
+                        <div>
+                          <p class="text-xs text-gray-500">Battery</p>
+                          <p class="text-sm text-gray-300">{formatBattery(report.battery_life_hours)}</p>
+                        </div>
+                      )}
+                      {report.thermal && (
+                        <div>
+                          <p class="text-xs text-gray-500">Thermal</p>
+                          <p class="text-sm text-gray-300 capitalize">{report.thermal}</p>
+                        </div>
+                      )}
+                      {report.fan_noise && (
+                        <div>
+                          <p class="text-xs text-gray-500">Fan</p>
+                          <p class="text-sm text-gray-300 capitalize">{report.fan_noise}</p>
+                        </div>
+                      )}
+                      {report.fsr_enabled && (
+                        <div>
+                          <p class="text-xs text-gray-500">FSR/DLSS</p>
+                          <p class="text-sm text-gray-300 capitalize">{report.fsr_mode ?? 'Enabled'}</p>
+                        </div>
+                      )}
+                      {report.fps_stability && (
+                        <div>
+                          <p class="text-xs text-gray-500">Stability</p>
+                          <p class="text-sm text-gray-300 capitalize">{report.fps_stability.replace('_', ' ')}</p>
+                        </div>
+                      )}
+                    </div>
+
+                    {report.notes && (
+                      <p class="mt-3 text-sm text-gray-400 leading-relaxed">{report.notes}</p>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </div>
+
+      <!-- SIDEBAR -->
+      <aside class="w-full lg:w-72 flex-shrink-0 space-y-4">
+        <!-- Device Quick Specs -->
+        <div class="rounded-xl border border-gray-800 bg-gray-900 p-5">
+          <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">{device.name}</h3>
+          {device.image && (
+            <div class="mb-3 rounded-lg overflow-hidden bg-gray-800">
+              <img src={device.image} alt={device.name} class="w-full h-auto" />
+            </div>
+          )}
+          <dl class="space-y-2 text-sm">
+            {device.chip && (
+              <div class="flex justify-between"><dt class="text-gray-500">Chip</dt><dd class="text-gray-300">{device.chip}</dd></div>
+            )}
+            {device.screen_size && (
+              <div class="flex justify-between"><dt class="text-gray-500">Screen</dt><dd class="text-gray-300">{device.screen_size}"</dd></div>
+            )}
+            {device.battery_wh && (
+              <div class="flex justify-between"><dt class="text-gray-500">Battery</dt><dd class="text-gray-300">{device.battery_wh} Wh</dd></div>
+            )}
+            {device.tdp_min != null && device.tdp_max != null && (
+              <div class="flex justify-between"><dt class="text-gray-500">TDP Range</dt><dd class="text-gray-300">{device.tdp_min}-{device.tdp_max}W</dd></div>
+            )}
+          </dl>
+          <a href={`/devices/${deviceSlug}`} class="mt-3 block text-center text-xs text-emerald-400 hover:text-emerald-300">
+            Full specs →
+          </a>
+        </div>
+
+        <!-- Game Info -->
+        <div class="rounded-xl border border-gray-800 bg-gray-900 p-5">
+          <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Game Info</h3>
+          <dl class="space-y-2 text-sm">
+            {genres.length > 0 && (
+              <div class="flex justify-between"><dt class="text-gray-500">Genres</dt><dd class="text-gray-300 text-right">{genres.slice(0, 3).join(', ')}</dd></div>
+            )}
+            <div class="flex justify-between items-center">
+              <dt class="text-gray-500">Deck Status</dt>
+              <dd class={`rounded-md px-2 py-0.5 text-xs font-medium ${deckInfo.class}`}>{deckInfo.label}</dd>
+            </div>
+            {game.metacritic_score && (
+              <div class="flex justify-between items-center">
+                <dt class="text-gray-500">Metacritic</dt>
+                <dd class={`text-sm font-bold ${game.metacritic_score >= 75 ? 'text-green-400' : game.metacritic_score >= 50 ? 'text-yellow-400' : 'text-red-400'}`}>{game.metacritic_score}</dd>
+              </div>
+            )}
+          </dl>
+          <a href={`/games/${slug}`} class="mt-3 block text-center text-xs text-emerald-400 hover:text-emerald-300">
+            All devices →
+          </a>
+        </div>
+
+        <!-- Other Devices -->
+        {allDevices.length > 0 && (
+          <div class="rounded-xl border border-gray-800 bg-gray-900 p-5">
+            <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Other Devices</h3>
+            <div class="space-y-1.5">
+              {allDevices.map(d => (
+                <a href={`/games/${slug}/${d.slug}`} class="flex items-center justify-between rounded-lg bg-gray-800 px-3 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white transition-colors">
+                  <span>{d.name}</span>
+                  <svg class="h-4 w-4 text-gray-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
+                </a>
+              ))}
+            </div>
+          </div>
+        )}
+      </aside>
+    </div>
+  </div>
+</BaseLayout>

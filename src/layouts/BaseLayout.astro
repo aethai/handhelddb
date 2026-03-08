@@ -61,7 +61,7 @@ const resolvedCanonical = canonicalUrl ?? new URL(Astro.url.pathname, siteUrl).h
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   </head>
   <body class="min-h-screen bg-gray-950 text-gray-100 flex flex-col">
-    <Header />
+    <Header user={Astro.locals.user} />
     <main class="flex-1">
       <slot />
     </main>

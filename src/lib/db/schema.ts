@@ -2,6 +2,7 @@ import {
   pgTable,
   text,
   integer,
+  smallint,
   real,
   boolean,
   timestamp,
@@ -148,11 +149,18 @@ export const games = pgTable(
     // Performance classification
     performanceTier: text('performance_tier'),
 
+    // Anti-cheat
+    anticheatEngine: text('anticheat_engine'), // "EAC", "BattlEye", "Vanguard", null
+
+    // Cached stats (denormalized)
+    cachedStats: jsonb('cached_stats').$type<Record<string, unknown>>().default({}),
+
     // Sync tracking
     steamBuildId: text('steam_build_id'),
     lastSteamSync: timestamp('last_steam_sync'),
     lastIgdbSync: timestamp('last_igdb_sync'),
     lastProtondbSync: timestamp('last_protondb_sync'),
+    lastMajorUpdate: timestamp('last_major_update'),
 
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at').defaultNow().notNull(),
@@ -198,8 +206,13 @@ export const devices = pgTable('devices', {
   // Media
   image: text('image'),
 
+  // Classification
+  chipsetGeneration: text('chipset_generation'), // "RDNA 2", "RDNA 3.5"
+  formFactor: text('form_factor'), // "clamshell", "slab", "slider"
+
   releaseDate: timestamp('release_date'),
   isActive: boolean('is_active').default(true),
+  discontinued: boolean('discontinued').default(false),
 
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
@@ -342,6 +355,11 @@ export const performanceReports = pgTable(
     isFlagged: boolean('is_flagged').default(false),
     isStale: boolean('is_stale').default(false),
     staleReason: text('stale_reason'),
+
+    // Moderation
+    moderationStatus: text('moderation_status').default('approved'),
+    source: text('source').default('manual'), // "manual", "decky_plugin", "desktop_app"
+    crashCount: smallint('crash_count').default(0),
 
     // Source tracking
     importSource: text('import_source'),
@@ -582,5 +600,156 @@ export const userBadges = pgTable(
   },
   (table) => [
     uniqueIndex('idx_user_badge').on(table.userId, table.badgeId),
+  ],
+);
+
+// ============ GAME VERSIONS ============
+
+export const gameVersions = pgTable(
+  'game_versions',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    gameId: uuid('game_id')
+      .references(() => games.id, { onDelete: 'cascade' })
+      .notNull(),
+    versionString: text('version_string').notNull(),
+    steamBuildId: text('steam_build_id'),
+    detectedAt: timestamp('detected_at').defaultNow().notNull(),
+    releaseNotesUrl: text('release_notes_url'),
+    isMajor: boolean('is_major').default(false),
+    performanceImpact: integer('performance_impact'), // -2..+2
+  },
+  (table) => [
+    index('idx_game_versions_game').on(table.gameId),
+    uniqueIndex('idx_game_versions_unique').on(
+      table.gameId,
+      table.steamBuildId,
+    ),
+  ],
+);
+
+// ============ DEVICE OS VERSIONS ============
+
+export const deviceOsVersions = pgTable(
+  'device_os_versions',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    deviceId: uuid('device_id')
+      .references(() => devices.id)
+      .notNull(),
+    osName: text('os_name').notNull(),
+    osVersion: text('os_version').notNull(),
+    driverVersion: text('driver_version'),
+    detectedAt: timestamp('detected_at').defaultNow(),
+    notes: text('notes'),
+  },
+  (table) => [
+    uniqueIndex('idx_device_os_unique').on(
+      table.deviceId,
+      table.osVersion,
+      table.driverVersion,
+    ),
+  ],
+);
+
+// ============ SETTINGS PRESETS ============
+
+export const settingsPresets = pgTable('settings_presets', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  gameId: uuid('game_id')
+    .references(() => games.id)
+    .notNull(),
+  deviceId: uuid('device_id').references(() => devices.id),
+  name: text('name').notNull(),
+  settings: jsonb('settings').notNull(),
+  source: text('source'),
+  usageCount: integer('usage_count').default(0),
+  createdBy: uuid('created_by').references(() => users.id),
+  createdAt: timestamp('created_at').defaultNow(),
+});
+
+// ============ NEWS & ARTICLES ============
+
+export const newsCategoryEnum = pgEnum('news_category', [
+  'device_launch',
+  'device_update',
+  'os_update',
+  'driver_update',
+  'game_patch',
+  'game_launch',
+  'sale_event',
+  'performance_analysis',
+  'industry',
+  'editorial',
+]);
+
+export const newsStatusEnum = pgEnum('news_status', [
+  'draft',
+  'in_review',
+  'published',
+  'archived',
+]);
+
+export const articles = pgTable(
+  'articles',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    slug: varchar('slug', { length: 300 }).notNull().unique(),
+    title: text('title').notNull(),
+    lead: text('lead').notNull(),
+    body: text('body').notNull(),
+    bodyHtml: text('body_html').notNull(),
+    coverImage: text('cover_image'),
+    category: newsCategoryEnum('category').notNull(),
+    tags: jsonb('tags').$type<string[]>().default([]),
+    devices: jsonb('devices').$type<string[]>().default([]),
+    authorId: uuid('author_id').references(() => users.id),
+    relatedGameIds: jsonb('related_game_ids').$type<string[]>().default([]),
+    status: newsStatusEnum('status').default('draft'),
+    publishedAt: timestamp('published_at'),
+    aiGenerated: boolean('ai_generated').default(false),
+    aiModel: text('ai_model'),
+    sourceUrls: jsonb('source_urls').$type<string[]>().default([]),
+    metaTitle: text('meta_title'),
+    metaDescription: text('meta_description'),
+    viewCount: integer('view_count').default(0),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  },
+  (table) => [
+    index('idx_articles_slug').on(table.slug),
+    index('idx_articles_published').on(table.publishedAt),
+    index('idx_articles_status').on(table.status),
+  ],
+);
+
+export const newsSources = pgTable('news_sources', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  name: text('name').notNull(),
+  type: text('type').notNull(),
+  url: text('url').notNull(),
+  isActive: boolean('is_active').default(true),
+  lastChecked: timestamp('last_checked'),
+  checkIntervalMinutes: integer('check_interval_minutes').default(60),
+});
+
+export const newsIngested = pgTable(
+  'news_ingested',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    sourceId: uuid('source_id')
+      .references(() => newsSources.id)
+      .notNull(),
+    externalId: text('external_id').notNull(),
+    title: text('title').notNull(),
+    url: text('url'),
+    content: text('content'),
+    ingestedAt: timestamp('ingested_at').defaultNow().notNull(),
+    processed: boolean('processed').default(false),
+    articleId: uuid('article_id').references(() => articles.id),
+    discarded: boolean('discarded').default(false),
+  },
+  (table) => [
+    uniqueIndex('idx_ingested_external').on(table.sourceId, table.externalId),
   ],
 );

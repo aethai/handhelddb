@@ -1,5 +1,22 @@
 ---
 import BaseLayout from '@layouts/BaseLayout.astro';
+import ReportForm from '@components/react/ReportForm';
+import { supabaseAdmin } from '@lib/db/client';
+
+// Fetch devices for the form
+const { data: devicesData } = await supabaseAdmin
+  .from('devices')
+  .select('id, name, slug, manufacturer')
+  .eq('is_active', true)
+  .order('name');
+
+const devices = devicesData ?? [];
+const isLoggedIn = !!Astro.locals.user;
+
+// Pre-fill from query params (when coming from a game page)
+const gameId = Astro.url.searchParams.get('game') ?? undefined;
+const gameName = Astro.url.searchParams.get('gameName') ?? undefined;
+const deviceId = Astro.url.searchParams.get('device') ?? undefined;
 ---
 
 <BaseLayout title="Submit Performance Report" noindex={true}>
@@ -9,12 +26,15 @@ import BaseLayout from '@layouts/BaseLayout.astro';
       Share your game performance data to help the community find optimal settings.
     </p>
 
-    <!-- React ReportForm island will be mounted here -->
     <div class="mt-8 rounded-xl border border-gray-800 bg-gray-900 p-6">
-      <div id="report-form-root" class="text-center py-12 text-gray-600">
-        <p>Report form loading...</p>
-        <p class="mt-2 text-sm">Sign in to submit a performance report.</p>
-      </div>
+      <ReportForm
+        client:load
+        devices={devices}
+        isLoggedIn={isLoggedIn}
+        preselectedGameId={gameId}
+        preselectedGameName={gameName}
+        preselectedDeviceId={deviceId}
+      />
     </div>
   </div>
 </BaseLayout>

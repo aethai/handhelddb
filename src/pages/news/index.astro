@@ -1,0 +1,122 @@
+---
+import BaseLayout from '@layouts/BaseLayout.astro';
+import { supabaseAdmin } from '@lib/db/client';
+
+const page = Math.max(1, Number(Astro.url.searchParams.get('page')) || 1);
+const perPage = 12;
+const offset = (page - 1) * perPage;
+
+const { data: articles, count } = await supabaseAdmin
+  .from('articles')
+  .select('slug, title, lead, cover_image, category, tags, published_at, view_count', { count: 'exact' })
+  .eq('status', 'published')
+  .not('published_at', 'is', null)
+  .order('published_at', { ascending: false })
+  .range(offset, offset + perPage - 1);
+
+const totalPages = Math.ceil((count ?? 0) / perPage);
+
+const categoryColors: Record<string, string> = {
+  device_launch: 'bg-blue-500/20 text-blue-400',
+  device_update: 'bg-cyan-500/20 text-cyan-400',
+  os_update: 'bg-purple-500/20 text-purple-400',
+  driver_update: 'bg-indigo-500/20 text-indigo-400',
+  game_patch: 'bg-orange-500/20 text-orange-400',
+  game_launch: 'bg-green-500/20 text-green-400',
+  sale_event: 'bg-yellow-500/20 text-yellow-400',
+  performance_analysis: 'bg-emerald-500/20 text-emerald-400',
+  industry: 'bg-gray-500/20 text-gray-400',
+  editorial: 'bg-pink-500/20 text-pink-400',
+};
+
+const categoryLabels: Record<string, string> = {
+  device_launch: 'Device Launch',
+  device_update: 'Device Update',
+  os_update: 'OS Update',
+  driver_update: 'Driver Update',
+  game_patch: 'Game Patch',
+  game_launch: 'Game Launch',
+  sale_event: 'Sale',
+  performance_analysis: 'Analysis',
+  industry: 'Industry',
+  editorial: 'Editorial',
+};
+
+function formatDate(d: string): string {
+  return new Date(d).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+}
+---
+
+<BaseLayout title="News" description="Handheld gaming news, device launches, firmware updates, and performance analyses.">
+  <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
+    <div class="mb-8">
+      <h1 class="text-3xl font-bold text-white">News</h1>
+      <p class="mt-1 text-gray-400">Handheld gaming news, firmware updates, and performance analyses</p>
+    </div>
+
+    {(articles && articles.length > 0) ? (
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {articles.map((article, i) => (
+          <a
+            href={`/news/${article.slug}`}
+            class={`group rounded-xl border border-gray-800 bg-gray-900 overflow-hidden hover:border-gray-700 transition-colors ${i === 0 ? 'md:col-span-2 lg:col-span-2' : ''}`}
+          >
+            {article.cover_image ? (
+              <div class={`overflow-hidden ${i === 0 ? 'aspect-[2/1]' : 'aspect-[16/9]'}`}>
+                <img
+                  src={article.cover_image}
+                  alt={article.title}
+                  class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  loading={i < 3 ? 'eager' : 'lazy'}
+                />
+              </div>
+            ) : (
+              <div class={`bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center ${i === 0 ? 'aspect-[2/1]' : 'aspect-[16/9]'}`}>
+                <span class="text-2xl font-bold text-gray-700/30 text-center px-6">{article.title}</span>
+              </div>
+            )}
+            <div class="p-5">
+              <div class="flex items-center gap-2 mb-2">
+                <span class={`rounded-full px-2 py-0.5 text-[10px] font-medium ${categoryColors[article.category] ?? 'bg-gray-500/20 text-gray-400'}`}>
+                  {categoryLabels[article.category] ?? article.category}
+                </span>
+                <span class="text-xs text-gray-500">{formatDate(article.published_at!)}</span>
+              </div>
+              <h2 class={`font-bold text-white group-hover:text-emerald-400 transition-colors ${i === 0 ? 'text-xl' : 'text-base'}`}>
+                {article.title}
+              </h2>
+              <p class="mt-2 text-sm text-gray-400 line-clamp-2">{article.lead}</p>
+            </div>
+          </a>
+        ))}
+      </div>
+    ) : (
+      <div class="rounded-xl border border-gray-800 bg-gray-900 p-12 text-center">
+        <div class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-gray-800">
+          <svg class="h-8 w-8 text-gray-600" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 7.5h1.5m-1.5 3h1.5m-7.5 3h7.5m-7.5 3h7.5m3-9h3.375c.621 0 1.125.504 1.125 1.125V18a2.25 2.25 0 01-2.25 2.25M16.5 7.5V18a2.25 2.25 0 002.25 2.25M16.5 7.5V4.875c0-.621-.504-1.125-1.125-1.125H4.125C3.504 3.75 3 4.254 3 4.875V18a2.25 2.25 0 002.25 2.25h13.5M6 7.5h3v3H6v-3z" />
+          </svg>
+        </div>
+        <h3 class="text-lg font-semibold text-white">Coming soon</h3>
+        <p class="mt-2 text-sm text-gray-400">We're working on our first articles. Check back soon!</p>
+      </div>
+    )}
+
+    <!-- Pagination -->
+    {totalPages > 1 && (
+      <nav class="mt-8 flex items-center justify-center gap-2">
+        {page > 1 && (
+          <a href={`/news?page=${page - 1}`} class="rounded-lg border border-gray-700 bg-gray-800 px-4 py-2 text-sm text-gray-300 hover:border-emerald-500 hover:text-white transition-colors">
+            Previous
+          </a>
+        )}
+        <span class="text-sm text-gray-500">Page {page} of {totalPages}</span>
+        {page < totalPages && (
+          <a href={`/news?page=${page + 1}`} class="rounded-lg border border-gray-700 bg-gray-800 px-4 py-2 text-sm text-gray-300 hover:border-emerald-500 hover:text-white transition-colors">
+            Next
+          </a>
+        )}
+      </nav>
+    )}
+  </div>
+</BaseLayout>

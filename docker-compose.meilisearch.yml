@@ -1,0 +1,17 @@
+services:
+  meilisearch:
+    image: getmeili/meilisearch:latest
+    container_name: handhelddb-meilisearch
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:7700:7700"
+    volumes:
+      - meilisearch_data:/meili_data
+    environment:
+      MEILI_MASTER_KEY: "handhelddb-meili-key-2026"
+      MEILI_MAX_INDEXING_MEMORY: "256MB"
+      MEILI_ENV: "production"
+
+volumes:
+  meilisearch_data:
+    driver: local

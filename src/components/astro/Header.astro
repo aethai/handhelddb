@@ -1,9 +1,20 @@
 ---
+import SearchBar from '@components/react/SearchBar';
+
+interface Props {
+  user?: { email?: string; user_metadata?: Record<string, unknown> } | null;
+}
+
+const { user } = Astro.props;
+const avatarUrl = user?.user_metadata?.avatar_url as string | undefined;
+const displayName = (user?.user_metadata?.full_name as string) ?? user?.email?.split('@')[0] ?? 'User';
+
 const navLinks = [
   { href: '/games', label: 'Games' },
   { href: '/devices', label: 'Devices' },
-  { href: '/compare', label: 'Compare' },
   { href: '/discover', label: 'Discover' },
+  { href: '/news', label: 'News' },
+  { href: '/compare', label: 'Compare' },
 ];
 ---
 
@@ -37,15 +48,9 @@ const navLinks = [
 
       <!-- Search + Auth -->
       <div class="flex items-center gap-3">
-        <a
-          href="/games"
-          class="text-gray-400 hover:text-white transition-colors"
-          aria-label="Search games"
-        >
-          <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z" />
-          </svg>
-        </a>
+        <div class="hidden md:block">
+          <SearchBar client:load variant="header" placeholder="Search games..." />
+        </div>
         <a
           href="/report/new"
           class="hidden sm:inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-emerald-500 transition-colors"
@@ -55,12 +60,33 @@ const navLinks = [
           </svg>
           Report
         </a>
-        <a
-          href="/auth/login"
-          class="rounded-lg border border-gray-700 px-3 py-1.5 text-sm font-medium text-gray-300 hover:border-gray-500 hover:text-white transition-colors"
-        >
-          Sign in
-        </a>
+        {user ? (
+          <div class="relative group">
+            <button class="flex items-center gap-2 rounded-lg border border-gray-700 px-2 py-1 hover:border-gray-500 transition-colors">
+              {avatarUrl ? (
+                <img src={avatarUrl} alt="" class="h-6 w-6 rounded-full" />
+              ) : (
+                <div class="h-6 w-6 rounded-full bg-emerald-600 flex items-center justify-center text-xs font-bold text-white">
+                  {displayName.charAt(0).toUpperCase()}
+                </div>
+              )}
+              <span class="hidden sm:inline text-sm text-gray-300">{displayName}</span>
+            </button>
+            <div class="absolute right-0 mt-2 w-48 rounded-xl border border-gray-700 bg-gray-900 shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50">
+              <div class="p-2 space-y-1">
+                <a href="/profile" class="block rounded-lg px-3 py-2 text-sm text-gray-300 hover:bg-gray-800 hover:text-white">Profile</a>
+                <a href="/auth/logout" class="block rounded-lg px-3 py-2 text-sm text-red-400 hover:bg-gray-800 hover:text-red-300">Sign out</a>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <a
+            href="/auth/login"
+            class="rounded-lg border border-gray-700 px-3 py-1.5 text-sm font-medium text-gray-300 hover:border-gray-500 hover:text-white transition-colors"
+          >
+            Sign in
+          </a>
+        )}
       </div>
     </div>
   </div>

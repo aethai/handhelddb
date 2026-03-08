@@ -1,0 +1,156 @@
+---
+import BaseLayout from '@layouts/BaseLayout.astro';
+import { supabaseAdmin } from '@lib/db/client';
+
+const { slug } = Astro.params;
+
+const { data: article, error } = await supabaseAdmin
+  .from('articles')
+  .select('*')
+  .eq('slug', slug)
+  .eq('status', 'published')
+  .single();
+
+if (error || !article) {
+  return Astro.redirect('/news');
+}
+
+// Increment view count (fire and forget)
+supabaseAdmin
+  .from('articles')
+  .update({ view_count: (article.view_count ?? 0) + 1 })
+  .eq('id', article.id)
+  .then(() => {});
+
+const tags = (article.tags as string[]) ?? [];
+const devices = (article.devices as string[]) ?? [];
+
+const categoryLabels: Record<string, string> = {
+  device_launch: 'Device Launch', device_update: 'Device Update',
+  os_update: 'OS Update', driver_update: 'Driver Update',
+  game_patch: 'Game Patch', game_launch: 'Game Launch',
+  sale_event: 'Sale', performance_analysis: 'Analysis',
+  industry: 'Industry', editorial: 'Editorial',
+};
+
+const categoryColors: Record<string, string> = {
+  device_launch: 'bg-blue-500/20 text-blue-400',
+  device_update: 'bg-cyan-500/20 text-cyan-400',
+  os_update: 'bg-purple-500/20 text-purple-400',
+  driver_update: 'bg-indigo-500/20 text-indigo-400',
+  game_patch: 'bg-orange-500/20 text-orange-400',
+  game_launch: 'bg-green-500/20 text-green-400',
+  sale_event: 'bg-yellow-500/20 text-yellow-400',
+  performance_analysis: 'bg-emerald-500/20 text-emerald-400',
+  industry: 'bg-gray-500/20 text-gray-400',
+  editorial: 'bg-pink-500/20 text-pink-400',
+};
+
+const publishedDate = article.published_at
+  ? new Date(article.published_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+  : null;
+
+// Fetch recent articles for sidebar
+const { data: recentArticles } = await supabaseAdmin
+  .from('articles')
+  .select('slug, title, published_at, category')
+  .eq('status', 'published')
+  .neq('slug', slug)
+  .not('published_at', 'is', null)
+  .order('published_at', { ascending: false })
+  .limit(5);
+---
+
+<BaseLayout
+  title={article.meta_title ?? article.title}
+  description={article.meta_description ?? article.lead}
+  ogImage={article.cover_image}
+>
+  <article class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Breadcrumb -->
+    <nav class="mb-4 text-sm text-gray-500">
+      <a href="/" class="hover:text-white transition-colors">Home</a>
+      <span class="mx-2">/</span>
+      <a href="/news" class="hover:text-white transition-colors">News</a>
+      <span class="mx-2">/</span>
+      <span class="text-gray-300">{article.title}</span>
+    </nav>
+
+    <div class="flex flex-col lg:flex-row gap-8">
+      <!-- Main Content -->
+      <div class="flex-1 min-w-0">
+        <!-- Header -->
+        <header class="mb-8">
+          <div class="flex items-center gap-3 mb-4">
+            <span class={`rounded-full px-2.5 py-0.5 text-xs font-medium ${categoryColors[article.category] ?? 'bg-gray-500/20 text-gray-400'}`}>
+              {categoryLabels[article.category] ?? article.category}
+            </span>
+            {publishedDate && <span class="text-sm text-gray-500">{publishedDate}</span>}
+            {article.ai_generated && (
+              <span class="rounded-full bg-purple-500/20 text-purple-400 px-2 py-0.5 text-[10px] font-medium">AI Assisted</span>
+            )}
+          </div>
+          <h1 class="text-3xl sm:text-4xl font-bold text-white leading-tight">{article.title}</h1>
+          <p class="mt-4 text-lg text-gray-400 leading-relaxed">{article.lead}</p>
+        </header>
+
+        <!-- Cover Image -->
+        {article.cover_image && (
+          <div class="mb-8 rounded-xl overflow-hidden">
+            <img src={article.cover_image} alt={article.title} class="w-full h-auto" />
+          </div>
+        )}
+
+        <!-- Body -->
+        <div
+          class="prose prose-invert prose-emerald max-w-none prose-headings:text-white prose-p:text-gray-300 prose-a:text-emerald-400 prose-strong:text-white prose-code:text-emerald-300 prose-code:bg-gray-800 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-pre:bg-gray-900 prose-pre:border prose-pre:border-gray-800 prose-img:rounded-xl"
+          set:html={article.body_html}
+        />
+
+        <!-- Tags -->
+        {tags.length > 0 && (
+          <div class="mt-8 pt-6 border-t border-gray-800">
+            <div class="flex flex-wrap gap-2">
+              {tags.map(tag => (
+                <span class="rounded-full border border-gray-700 px-3 py-1 text-xs text-gray-400">{tag}</span>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+
+      <!-- Sidebar -->
+      <aside class="w-full lg:w-72 flex-shrink-0 space-y-6">
+        {(recentArticles && recentArticles.length > 0) && (
+          <div class="rounded-xl border border-gray-800 bg-gray-900 p-5">
+            <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Recent News</h3>
+            <div class="space-y-3">
+              {recentArticles.map(a => (
+                <a href={`/news/${a.slug}`} class="block group">
+                  <p class="text-sm text-gray-300 group-hover:text-white transition-colors line-clamp-2">{a.title}</p>
+                  <p class="text-xs text-gray-500 mt-1">
+                    {new Date(a.published_at!).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                  </p>
+                </a>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <!-- Related Devices -->
+        {devices.length > 0 && (
+          <div class="rounded-xl border border-gray-800 bg-gray-900 p-5">
+            <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Related Devices</h3>
+            <div class="space-y-1.5">
+              {devices.map(d => (
+                <a href={`/devices/${d}`} class="block rounded-lg bg-gray-800 px-3 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white transition-colors">
+                  {d}
+                </a>
+              ))}
+            </div>
+          </div>
+        )}
+      </aside>
+    </div>
+  </article>
+</BaseLayout>
