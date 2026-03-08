@@ -5,7 +5,7 @@ export const GET: APIRoute = async () => {
   const baseUrl = (import.meta.env.PUBLIC_SITE_URL ?? 'https://handhelddb.com').replace(/\/+$/, '');
 
   // Fetch all data in parallel
-  const [gamesResult, devicesResult, articlesResult] = await Promise.all([
+  const [gamesResult, devicesResult, articlesResult, consensusResult] = await Promise.all([
     supabaseAdmin
       .from('games')
       .select('slug, updated_at')
@@ -20,11 +20,16 @@ export const GET: APIRoute = async () => {
       .select('slug, updated_at, published_at')
       .eq('status', 'published')
       .order('published_at', { ascending: false }),
+    supabaseAdmin
+      .from('consensus_ratings')
+      .select('game_id, device_id, games(slug), devices(slug)')
+      .limit(50000),
   ]);
 
   const games = gamesResult.data ?? [];
   const devices = devicesResult.data ?? [];
   const articles = articlesResult.data ?? [];
+  const consensusCombos = consensusResult.data ?? [];
 
   const today = new Date().toISOString().split('T')[0];
 
@@ -88,6 +93,19 @@ export const GET: APIRoute = async () => {
     <lastmod>${lastmod}</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
+  </url>`);
+  }
+
+  // Game × Device pages (only combos with actual consensus data)
+  for (const combo of consensusCombos) {
+    const gameSlug = (combo.games as any)?.slug;
+    const deviceSlug = (combo.devices as any)?.slug;
+    if (!gameSlug || !deviceSlug) continue;
+    urlEntries.push(`  <url>
+    <loc>${baseUrl}/games/${gameSlug}/${deviceSlug}</loc>
+    <lastmod>${today}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
   </url>`);
   }
 

@@ -1,0 +1,248 @@
+---
+import BaseLayout from '@layouts/BaseLayout.astro';
+import BadgeGrid from '@components/react/BadgeGrid';
+import { supabaseAdmin } from '@lib/db/client';
+
+const { userId } = Astro.params;
+
+// ─── Fetch user profile ───
+const { data: profile } = await supabaseAdmin
+  .from('users')
+  .select('id, username, display_name, avatar_url, points, level, is_verified_tester, is_banned, created_at')
+  .eq('id', userId)
+  .single();
+
+if (!profile || profile.is_banned) {
+  return Astro.redirect('/404');
+}
+
+// ─── Parallel data fetching ───
+const [
+  { count: reportCount },
+  { data: userDevicesRaw },
+  { data: recentReportsRaw },
+  { data: userBadgesRaw },
+  { data: allBadgesRaw },
+  { data: followedGamesRaw },
+] = await Promise.all([
+  supabaseAdmin
+    .from('performance_reports')
+    .select('*', { count: 'exact', head: true })
+    .eq('user_id', userId),
+  supabaseAdmin
+    .from('user_devices')
+    .select('devices(name, slug, manufacturer, chip)')
+    .eq('user_id', userId),
+  supabaseAdmin
+    .from('performance_reports')
+    .select('id, overall_rating, fps_avg, created_at, games(slug, name, header_image), devices(name)')
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false })
+    .limit(10),
+  supabaseAdmin
+    .from('user_badges')
+    .select('earned_at, badges(*)')
+    .eq('user_id', userId),
+  supabaseAdmin
+    .from('badges')
+    .select('*'),
+  supabaseAdmin
+    .from('game_follows')
+    .select('games(slug, name, capsule_image, header_image)')
+    .eq('user_id', userId)
+    .limit(8),
+]);
+
+const userDevices = (userDevicesRaw ?? []).map((ud: any) => ud.devices);
+
+const recentReports = (recentReportsRaw ?? []).map((r: any) => ({
+  id: r.id,
+  overallRating: r.overall_rating,
+  fpsAvg: r.fps_avg,
+  createdAt: r.created_at,
+  gameSlug: r.games?.slug,
+  gameName: r.games?.name ?? 'Unknown Game',
+  gameImage: r.games?.header_image,
+  deviceName: r.devices?.name ?? 'Unknown Device',
+}));
+
+const earnedMap = new Map(
+  (userBadgesRaw ?? []).map((ub: any) => [ub.badges?.id, ub.earned_at])
+);
+
+const badgesForGrid = (allBadgesRaw ?? [])
+  .filter((b: any) => earnedMap.has(b.id))
+  .map((b: any) => ({
+    name: b.name,
+    description: b.description,
+    icon: b.icon,
+    category: b.category,
+    earnedAt: earnedMap.get(b.id) ?? null,
+  }));
+
+const followedGames = (followedGamesRaw ?? []).map((f: any) => ({
+  slug: f.games?.slug,
+  name: f.games?.name ?? 'Unknown',
+  image: f.games?.capsule_image ?? f.games?.header_image,
+}));
+
+const displayName = profile.display_name ?? profile.username ?? 'User';
+const memberSince = new Date(profile.created_at).toLocaleDateString('en-US', {
+  year: 'numeric', month: 'long', day: 'numeric',
+});
+const totalReports = reportCount ?? 0;
+
+const ratingColors: Record<string, string> = {
+  excellent: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30',
+  good: 'bg-green-500/20 text-green-400 border-green-500/30',
+  fair: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30',
+  poor: 'bg-orange-500/20 text-orange-400 border-orange-500/30',
+  unplayable: 'bg-red-500/20 text-red-400 border-red-500/30',
+};
+---
+
+<BaseLayout
+  title={`${displayName}'s Profile`}
+  description={`${displayName}'s handheld gaming profile — ${totalReports} performance reports submitted.`}
+>
+  <div class="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+
+    <!-- Profile Header -->
+    <section class="rounded-2xl border border-gray-800 bg-gray-900 p-6 sm:p-8">
+      <div class="flex flex-col sm:flex-row items-center sm:items-start gap-6">
+        <div class="flex-shrink-0">
+          {profile.avatar_url ? (
+            <img src={profile.avatar_url} alt={displayName} class="h-24 w-24 rounded-2xl border-2 border-gray-700 object-cover" />
+          ) : (
+            <div class="h-24 w-24 rounded-2xl border-2 border-gray-700 bg-emerald-600 flex items-center justify-center text-3xl font-bold text-white">
+              {displayName.charAt(0).toUpperCase()}
+            </div>
+          )}
+        </div>
+
+        <div class="flex-1 text-center sm:text-left">
+          <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+            <h1 class="text-2xl font-bold text-white">{displayName}</h1>
+            {profile.username && <span class="text-sm text-gray-500">@{profile.username}</span>}
+            <span class="inline-flex items-center gap-1 rounded-full bg-emerald-500/15 border border-emerald-500/25 px-2.5 py-0.5 text-xs font-semibold text-emerald-400">
+              Level {profile.level ?? 1}
+            </span>
+            {profile.is_verified_tester && (
+              <span class="inline-flex items-center gap-1 rounded-full bg-blue-500/15 border border-blue-500/25 px-2.5 py-0.5 text-xs font-semibold text-blue-400">
+                Verified Tester
+              </span>
+            )}
+          </div>
+          <p class="mt-2 text-sm text-gray-400">Member since {memberSince}</p>
+
+          <div class="mt-4 flex flex-wrap justify-center sm:justify-start gap-6">
+            <div>
+              <p class="text-xl font-bold text-white">{totalReports}</p>
+              <p class="text-xs text-gray-500">Reports</p>
+            </div>
+            <div>
+              <p class="text-xl font-bold text-white">{userDevices.length}</p>
+              <p class="text-xs text-gray-500">Devices</p>
+            </div>
+            <div>
+              <p class="text-xl font-bold text-white">{profile.points ?? 0}</p>
+              <p class="text-xs text-gray-500">Points</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Devices -->
+    {userDevices.length > 0 && (
+      <section class="mt-8">
+        <h2 class="text-xl font-bold text-white mb-4">Devices</h2>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          {userDevices.map((d: any) => (
+            <a href={`/devices/${d.slug}`} class="rounded-lg border border-gray-800 bg-gray-900 p-4 hover:border-gray-600 transition-all group">
+              <p class="text-xs text-gray-500 uppercase tracking-wider">{d.manufacturer}</p>
+              <h3 class="font-semibold text-white text-sm group-hover:text-emerald-400 transition-colors">{d.name}</h3>
+              {d.chip && <p class="text-xs text-gray-500 mt-1">{d.chip}</p>}
+            </a>
+          ))}
+        </div>
+      </section>
+    )}
+
+    <!-- Badges -->
+    {badgesForGrid.length > 0 && (
+      <section class="mt-8">
+        <h2 class="text-xl font-bold text-white mb-4">Badges</h2>
+        <div class="rounded-xl border border-gray-800 bg-gray-900 p-6">
+          <BadgeGrid client:visible badges={badgesForGrid} />
+        </div>
+      </section>
+    )}
+
+    <!-- Recent Reports -->
+    {recentReports.length > 0 && (
+      <section class="mt-8">
+        <h2 class="text-xl font-bold text-white mb-4">Recent Reports</h2>
+        <div class="space-y-3">
+          {recentReports.map((report: any) => {
+            const ratingClass = ratingColors[report.overallRating] ?? ratingColors.fair;
+            const date = new Date(report.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+            return (
+              <a
+                href={report.gameSlug ? `/games/${report.gameSlug}` : '#'}
+                class="flex items-center gap-4 rounded-lg border border-gray-800 bg-gray-900 p-4 hover:border-gray-600 transition-all group"
+              >
+                <div class="flex-shrink-0 w-16 h-10 rounded bg-gray-800 overflow-hidden">
+                  {report.gameImage ? (
+                    <img src={report.gameImage} alt="" class="h-full w-full object-cover" loading="lazy" />
+                  ) : (
+                    <div class="h-full w-full flex items-center justify-center">
+                      <svg class="h-5 w-5 text-gray-600" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                      </svg>
+                    </div>
+                  )}
+                </div>
+                <div class="flex-1 min-w-0">
+                  <h4 class="text-sm font-medium text-white group-hover:text-emerald-400 transition-colors truncate">{report.gameName}</h4>
+                  <p class="text-xs text-gray-500 mt-0.5">{report.deviceName} &middot; {report.fpsAvg ? `${report.fpsAvg} FPS` : 'No FPS data'}</p>
+                </div>
+                <span class={`flex-shrink-0 inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium capitalize ${ratingClass}`}>
+                  {report.overallRating}
+                </span>
+                <span class="flex-shrink-0 text-xs text-gray-500 hidden sm:block">{date}</span>
+              </a>
+            );
+          })}
+        </div>
+      </section>
+    )}
+
+    <!-- Followed Games -->
+    {followedGames.length > 0 && (
+      <section class="mt-8 mb-12">
+        <h2 class="text-xl font-bold text-white mb-4">Following</h2>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          {followedGames.map(game => (
+            <a href={game.slug ? `/games/${game.slug}` : '#'} class="group rounded-lg border border-gray-800 bg-gray-900 overflow-hidden hover:border-gray-600 transition-all">
+              <div class="aspect-[460/215] bg-gray-800 overflow-hidden">
+                {game.image ? (
+                  <img src={game.image} alt={game.name} class="h-full w-full object-cover group-hover:scale-105 transition-transform duration-300" loading="lazy" />
+                ) : (
+                  <div class="h-full w-full flex items-center justify-center">
+                    <svg class="h-8 w-8 text-gray-600" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                    </svg>
+                  </div>
+                )}
+              </div>
+              <div class="p-2.5">
+                <p class="text-xs font-medium text-white truncate group-hover:text-emerald-400 transition-colors">{game.name}</p>
+              </div>
+            </a>
+          ))}
+        </div>
+      </section>
+    )}
+  </div>
+</BaseLayout>

@@ -1,6 +1,9 @@
 import type { APIRoute } from 'astro';
 import { createClient } from '@supabase/supabase-js';
 import { setAuthCookies, ensureUserProfile } from '@lib/auth/supabase';
+import { createLogger } from '@lib/logger';
+
+const logger = createLogger('auth:register');
 
 const supabaseUrl = import.meta.env.SUPABASE_URL ?? process.env.SUPABASE_URL;
 const supabaseServiceKey = import.meta.env.SUPABASE_SERVICE_KEY ?? process.env.SUPABASE_SERVICE_KEY;
@@ -57,7 +60,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
       if (createError.message.includes('already been registered') || createError.message.includes('already exists')) {
         return json({}, { error: 'An account with this email already exists. Try signing in instead.' }, 409);
       }
-      console.error('Registration error:', createError.message);
+      logger.error('Registration failed', { error: createError.message });
       return json({}, { error: 'Registration failed. Please try again.' }, 500);
     }
 
@@ -88,7 +91,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 
     return json({}, { success: true });
   } catch (err) {
-    console.error('Registration error:', err);
+    logger.error('Registration failed', { error: String(err) });
     return json({}, { error: 'Something went wrong. Please try again.' }, 500);
   }
 };

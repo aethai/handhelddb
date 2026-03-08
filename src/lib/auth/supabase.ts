@@ -1,5 +1,8 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import type { AstroCookies } from 'astro';
+import { createLogger } from '@lib/logger';
+
+const logger = createLogger('auth:supabase');
 
 const supabaseUrl = import.meta.env.SUPABASE_URL ?? process.env.SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.SUPABASE_ANON_KEY ?? process.env.SUPABASE_ANON_KEY;
@@ -156,7 +159,7 @@ export async function ensureUserProfile(authUser: {
   const { data: newUser, error } = await admin.from('users').insert(profile).select().single();
 
   if (error) {
-    console.error('Failed to create user profile:', error);
+    logger.error('Failed to create user profile', { error: String(error) });
     return null;
   }
 

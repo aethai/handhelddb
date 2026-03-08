@@ -53,9 +53,6 @@ const resolvedCanonical = canonicalUrl ?? new URL(Astro.url.pathname, siteUrl).h
     <meta name="twitter:description" content={description} />
     <meta name="twitter:image" content={resolvedOgImage} />
 
-    <!-- Preload critical assets -->
-    <link rel="preload" href="/_astro/client.Dc9Vh3na.js" as="script" crossorigin />
-
     <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 

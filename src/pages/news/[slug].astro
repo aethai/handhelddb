@@ -59,6 +59,44 @@ const { data: recentArticles } = await supabaseAdmin
   .not('published_at', 'is', null)
   .order('published_at', { ascending: false })
   .limit(5);
+
+// Fetch related articles (same category, then backfill with shared tags)
+const { data: sameCategoryArticles } = await supabaseAdmin
+  .from('articles')
+  .select('slug, title, published_at, category')
+  .eq('status', 'published')
+  .eq('category', article.category)
+  .neq('slug', slug)
+  .not('published_at', 'is', null)
+  .order('published_at', { ascending: false })
+  .limit(3);
+
+let relatedArticles = sameCategoryArticles ?? [];
+
+// Backfill with tag-matched articles if fewer than 3
+if (relatedArticles.length < 3 && tags.length > 0) {
+  const existingSlugs = new Set([slug, ...relatedArticles.map(a => a.slug)]);
+  const { data: tagArticles } = await supabaseAdmin
+    .from('articles')
+    .select('slug, title, published_at, category, tags')
+    .eq('status', 'published')
+    .neq('slug', slug)
+    .not('published_at', 'is', null)
+    .order('published_at', { ascending: false })
+    .limit(20);
+
+  if (tagArticles) {
+    for (const a of tagArticles) {
+      if (relatedArticles.length >= 3) break;
+      if (existingSlugs.has(a.slug)) continue;
+      const aTags = (a.tags as string[]) ?? [];
+      if (aTags.some(t => tags.includes(t))) {
+        relatedArticles.push(a);
+        existingSlugs.add(a.slug);
+      }
+    }
+  }
+}
 ---
 
 <BaseLayout
@@ -117,6 +155,15 @@ const { data: recentArticles } = await supabaseAdmin
             </div>
           </div>
         )}
+
+        <div class="mt-8 pt-6 border-t border-gray-800">
+          <a href="/news" class="inline-flex items-center gap-2 text-sm text-gray-400 hover:text-emerald-400 transition-colors">
+            <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+            </svg>
+            Back to News
+          </a>
+        </div>
       </div>
 
       <!-- Sidebar -->
@@ -127,6 +174,28 @@ const { data: recentArticles } = await supabaseAdmin
             <div class="space-y-3">
               {recentArticles.map(a => (
                 <a href={`/news/${a.slug}`} class="block group">
+                  <p class="text-sm text-gray-300 group-hover:text-white transition-colors line-clamp-2">{a.title}</p>
+                  <p class="text-xs text-gray-500 mt-1">
+                    {new Date(a.published_at!).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                  </p>
+                </a>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <!-- Related Articles -->
+        {relatedArticles.length > 0 && (
+          <div class="rounded-xl border border-gray-800 bg-gray-900 p-5">
+            <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Related Articles</h3>
+            <div class="space-y-3">
+              {relatedArticles.map(a => (
+                <a href={`/news/${a.slug}`} class="block group">
+                  <div class="flex items-center gap-2 mb-1">
+                    <span class={`rounded-full px-2 py-0.5 text-[10px] font-medium ${categoryColors[a.category] ?? 'bg-gray-500/20 text-gray-400'}`}>
+                      {categoryLabels[a.category] ?? a.category}
+                    </span>
+                  </div>
                   <p class="text-sm text-gray-300 group-hover:text-white transition-colors line-clamp-2">{a.title}</p>
                   <p class="text-xs text-gray-500 mt-1">
                     {new Date(a.published_at!).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}

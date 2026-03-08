@@ -1,0 +1,418 @@
+---
+import BaseLayout from '@layouts/BaseLayout.astro';
+import AdminNav from '@components/astro/AdminNav.astro';
+import { requireAdmin } from './_admin-guard';
+import { supabaseAdmin } from '@lib/db/client';
+
+const redirect = await requireAdmin(Astro);
+if (redirect) return redirect;
+
+// ─── Pagination ───
+const PER_PAGE = 20;
+const page = Math.max(1, parseInt(Astro.url.searchParams.get('page') ?? '1', 10) || 1);
+const offset = (page - 1) * PER_PAGE;
+
+// ─── Filter ───
+const filter = Astro.url.searchParams.get('filter') ?? ''; // 'pending', 'approved', 'rejected', ''
+
+// ─── Fetch reports ───
+let query = supabaseAdmin
+  .from('performance_reports')
+  .select('id, game_id, device_id, user_id, fps_avg, tdp_limit_watts, preset, resolution, overall_rating, moderation_status, created_at', { count: 'exact' })
+  .order('created_at', { ascending: false })
+  .range(offset, offset + PER_PAGE - 1);
+
+if (filter === 'pending') {
+  query = query.eq('moderation_status', 'pending');
+} else if (filter === 'approved') {
+  query = query.eq('moderation_status', 'approved');
+} else if (filter === 'rejected') {
+  query = query.eq('moderation_status', 'rejected');
+}
+
+const { data: reports, count: totalCount } = await query;
+const total = totalCount ?? 0;
+const totalPages = Math.ceil(total / PER_PAGE);
+
+// Look up game, device, and user details
+let enrichedReports: Array<{
+  id: string;
+  gameName: string;
+  gameSlug: string;
+  gameImage: string | null;
+  deviceName: string;
+  deviceSlug: string;
+  submitterName: string;
+  fpsAvg: number;
+  tdpWatts: number | null;
+  preset: string | null;
+  resolution: string | null;
+  overallRating: string;
+  moderationStatus: string;
+  createdAt: string;
+}> = [];
+
+if (reports && reports.length > 0) {
+  const gameIds = [...new Set(reports.map(r => r.game_id))];
+  const deviceIds = [...new Set(reports.map(r => r.device_id))];
+  const userIds = [...new Set(reports.filter(r => r.user_id).map(r => r.user_id))];
+
+  const promises: Promise<any>[] = [
+    supabaseAdmin.from('games').select('id, name, slug, header_image').in('id', gameIds),
+    supabaseAdmin.from('devices').select('id, name, slug').in('id', deviceIds),
+  ];
+  if (userIds.length > 0) {
+    promises.push(supabaseAdmin.from('users').select('id, display_name, email').in('id', userIds));
+  }
+
+  const results = await Promise.all(promises);
+  const { data: games } = results[0];
+  const { data: devices } = results[1];
+  const users = userIds.length > 0 ? results[2]?.data : [];
+
+  const gameMap = new Map((games ?? []).map((g: any) => [g.id, { name: g.name, slug: g.slug, headerImage: g.header_image }]));
+  const deviceMap = new Map((devices ?? []).map((d: any) => [d.id, { name: d.name, slug: d.slug }]));
+  const userMap = new Map((users ?? []).map((u: any) => [u.id, u.display_name ?? u.email ?? 'Unknown']));
+
+  enrichedReports = reports.map(r => ({
+    id: r.id,
+    gameName: gameMap.get(r.game_id)?.name ?? 'Unknown',
+    gameSlug: gameMap.get(r.game_id)?.slug ?? '',
+    gameImage: gameMap.get(r.game_id)?.headerImage ?? null,
+    deviceName: deviceMap.get(r.device_id)?.name ?? 'Unknown',
+    deviceSlug: deviceMap.get(r.device_id)?.slug ?? '',
+    submitterName: r.user_id ? (userMap.get(r.user_id) ?? 'Unknown') : 'Anonymous',
+    fpsAvg: r.fps_avg,
+    tdpWatts: r.tdp_limit_watts,
+    preset: r.preset,
+    resolution: r.resolution,
+    overallRating: r.overall_rating,
+    moderationStatus: r.moderation_status ?? 'approved',
+    createdAt: r.created_at,
+  }));
+}
+
+function formatDate(dateStr: string): string {
+  return new Date(dateStr).toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+}
+
+function ratingBadgeColor(rating: string): string {
+  switch (rating) {
+    case 'excellent': return 'bg-emerald-500/20 text-emerald-400';
+    case 'good': return 'bg-green-500/20 text-green-400';
+    case 'fair': return 'bg-yellow-500/20 text-yellow-400';
+    case 'poor': return 'bg-orange-500/20 text-orange-400';
+    case 'unplayable': return 'bg-red-500/20 text-red-400';
+    default: return 'bg-gray-500/20 text-gray-400';
+  }
+}
+
+function statusBadgeColor(status: string): string {
+  switch (status) {
+    case 'approved': return 'bg-emerald-500/20 text-emerald-400';
+    case 'pending': return 'bg-amber-500/20 text-amber-400';
+    case 'rejected': return 'bg-red-500/20 text-red-400';
+    default: return 'bg-gray-500/20 text-gray-400';
+  }
+}
+---
+
+<BaseLayout title="Reports Moderation" noindex>
+  <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
+    <div class="mb-8">
+      <h1 class="text-2xl font-bold text-white">Reports Moderation</h1>
+      <p class="mt-1 text-sm text-gray-400">{total} reports total</p>
+    </div>
+
+    <div class="flex flex-col lg:flex-row gap-8">
+      <AdminNav />
+
+      <div class="flex-1 min-w-0">
+        <!-- Filters -->
+        <div class="mb-6 flex flex-wrap gap-2">
+          <a
+            href="/admin/reports"
+            class:list={[
+              'rounded-lg px-3 py-1.5 text-sm font-medium transition-colors',
+              !filter
+                ? 'bg-emerald-600/20 text-emerald-400 border border-emerald-500/30'
+                : 'text-gray-400 hover:text-white border border-gray-700 hover:bg-gray-800',
+            ]}
+          >
+            All
+          </a>
+          <a
+            href="/admin/reports?filter=pending"
+            class:list={[
+              'rounded-lg px-3 py-1.5 text-sm font-medium transition-colors',
+              filter === 'pending'
+                ? 'bg-amber-600/20 text-amber-400 border border-amber-500/30'
+                : 'text-gray-400 hover:text-white border border-gray-700 hover:bg-gray-800',
+            ]}
+          >
+            Pending
+          </a>
+          <a
+            href="/admin/reports?filter=approved"
+            class:list={[
+              'rounded-lg px-3 py-1.5 text-sm font-medium transition-colors',
+              filter === 'approved'
+                ? 'bg-emerald-600/20 text-emerald-400 border border-emerald-500/30'
+                : 'text-gray-400 hover:text-white border border-gray-700 hover:bg-gray-800',
+            ]}
+          >
+            Approved
+          </a>
+          <a
+            href="/admin/reports?filter=rejected"
+            class:list={[
+              'rounded-lg px-3 py-1.5 text-sm font-medium transition-colors',
+              filter === 'rejected'
+                ? 'bg-red-600/20 text-red-400 border border-red-500/30'
+                : 'text-gray-400 hover:text-white border border-gray-700 hover:bg-gray-800',
+            ]}
+          >
+            Rejected
+          </a>
+        </div>
+
+        <!-- Reports List -->
+        <div class="space-y-3">
+          {enrichedReports.length === 0 ? (
+            <div class="rounded-xl border border-gray-800 bg-gray-900 p-8 text-center text-gray-500">
+              No reports found.
+            </div>
+          ) : (
+            enrichedReports.map(report => (
+              <div
+                class:list={[
+                  'rounded-xl border bg-gray-900 p-4 transition-colors',
+                  report.moderationStatus === 'pending' ? 'border-amber-700/50' : report.moderationStatus === 'rejected' ? 'border-red-700/50' : 'border-gray-800',
+                ]}
+                data-report-id={report.id}
+              >
+                <div class="flex items-start gap-4">
+                  <!-- Game Image -->
+                  {report.gameImage && (
+                    <div class="hidden sm:block shrink-0">
+                      <img
+                        src={report.gameImage}
+                        alt={report.gameName}
+                        class="h-16 w-28 rounded-lg object-cover"
+                      />
+                    </div>
+                  )}
+
+                  <div class="flex-1 min-w-0">
+                    <!-- Header: Game + Device + Status -->
+                    <div class="flex flex-wrap items-center gap-2 mb-1">
+                      <a href={`/games/${report.gameSlug}`} class="text-sm font-medium text-emerald-400 hover:text-emerald-300 transition-colors truncate">
+                        {report.gameName}
+                      </a>
+                      <span class="text-xs text-gray-600">on</span>
+                      <a href={`/devices/${report.deviceSlug}`} class="text-sm text-gray-300 hover:text-white transition-colors truncate">
+                        {report.deviceName}
+                      </a>
+                      <span class:list={[
+                        'inline-flex rounded-md px-2 py-0.5 text-xs font-medium capitalize',
+                        ratingBadgeColor(report.overallRating),
+                      ]}>
+                        {report.overallRating}
+                      </span>
+                      <span class:list={[
+                        'inline-flex rounded-md px-2 py-0.5 text-xs font-medium capitalize',
+                        statusBadgeColor(report.moderationStatus),
+                      ]}>
+                        {report.moderationStatus}
+                      </span>
+                    </div>
+
+                    <!-- Submitter -->
+                    <p class="text-xs text-gray-500 mb-2">Submitted by {report.submitterName}</p>
+
+                    <!-- Stats Row -->
+                    <div class="flex flex-wrap items-center gap-4 text-xs text-gray-400">
+                      <span class="inline-flex items-center gap-1">
+                        <span class="text-gray-500">FPS:</span>
+                        <span class="text-white font-medium">{report.fpsAvg}</span>
+                      </span>
+                      {report.tdpWatts && (
+                        <span class="inline-flex items-center gap-1">
+                          <span class="text-gray-500">TDP:</span>
+                          <span class="text-white font-medium">{report.tdpWatts}W</span>
+                        </span>
+                      )}
+                      {report.preset && (
+                        <span class="inline-flex items-center gap-1">
+                          <span class="text-gray-500">Preset:</span>
+                          <span class="text-white font-medium capitalize">{report.preset}</span>
+                        </span>
+                      )}
+                      {report.resolution && (
+                        <span class="inline-flex items-center gap-1">
+                          <span class="text-gray-500">Res:</span>
+                          <span class="text-white font-medium">{report.resolution}</span>
+                        </span>
+                      )}
+                      <span class="text-gray-600">{formatDate(report.createdAt)}</span>
+                    </div>
+                  </div>
+
+                  <!-- Action Buttons -->
+                  <div class="shrink-0 flex flex-col gap-1.5">
+                    {report.moderationStatus === 'pending' && (
+                      <>
+                        <button
+                          class="admin-report-approve rounded-md border border-emerald-700 px-2.5 py-1 text-xs font-medium text-emerald-400 hover:bg-emerald-900/30 transition-colors"
+                          data-report-id={report.id}
+                        >
+                          Approve
+                        </button>
+                        <button
+                          class="admin-report-reject rounded-md border border-amber-700 px-2.5 py-1 text-xs font-medium text-amber-400 hover:bg-amber-900/30 transition-colors"
+                          data-report-id={report.id}
+                        >
+                          Reject
+                        </button>
+                      </>
+                    )}
+                    <button
+                      class="admin-report-delete rounded-md border border-red-700 px-2.5 py-1 text-xs font-medium text-red-400 hover:bg-red-900/30 transition-colors"
+                      data-report-id={report.id}
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+
+        <!-- Pagination -->
+        {totalPages > 1 && (
+          <div class="mt-6 flex items-center justify-between">
+            <p class="text-sm text-gray-500">
+              Showing {offset + 1}–{Math.min(offset + PER_PAGE, total)} of {total}
+            </p>
+            <div class="flex gap-2">
+              {page > 1 && (
+                <a
+                  href={`/admin/reports?page=${page - 1}${filter ? `&filter=${filter}` : ''}`}
+                  class="rounded-lg border border-gray-700 px-3 py-1.5 text-sm text-gray-300 hover:bg-gray-800 transition-colors"
+                >
+                  Previous
+                </a>
+              )}
+              {page < totalPages && (
+                <a
+                  href={`/admin/reports?page=${page + 1}${filter ? `&filter=${filter}` : ''}`}
+                  class="rounded-lg border border-gray-700 px-3 py-1.5 text-sm text-gray-300 hover:bg-gray-800 transition-colors"
+                >
+                  Next
+                </a>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  </div>
+</BaseLayout>
+
+<script>
+  function initReportModeration() {
+    // Approve buttons
+    document.querySelectorAll('.admin-report-approve').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        const target = e.currentTarget as HTMLButtonElement;
+        const reportId = target.dataset.reportId;
+        if (!reportId) return;
+
+        try {
+          const res = await fetch('/api/admin/reports', {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ reportId, moderation_status: 'approved' }),
+          });
+
+          if (!res.ok) {
+            const data = await res.json();
+            alert(data.error ?? 'Failed to approve report');
+            return;
+          }
+
+          window.location.reload();
+        } catch {
+          alert('Network error. Please try again.');
+        }
+      });
+    });
+
+    // Reject buttons
+    document.querySelectorAll('.admin-report-reject').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        const target = e.currentTarget as HTMLButtonElement;
+        const reportId = target.dataset.reportId;
+        if (!reportId) return;
+
+        try {
+          const res = await fetch('/api/admin/reports', {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ reportId, moderation_status: 'rejected' }),
+          });
+
+          if (!res.ok) {
+            const data = await res.json();
+            alert(data.error ?? 'Failed to reject report');
+            return;
+          }
+
+          window.location.reload();
+        } catch {
+          alert('Network error. Please try again.');
+        }
+      });
+    });
+
+    // Delete buttons
+    document.querySelectorAll('.admin-report-delete').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        const target = e.currentTarget as HTMLButtonElement;
+        const reportId = target.dataset.reportId;
+        if (!reportId) return;
+
+        const confirmed = confirm('Are you sure you want to delete this report? This will reject it and mark it as deleted.');
+        if (!confirmed) return;
+
+        try {
+          const res = await fetch('/api/admin/reports', {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ reportId }),
+          });
+
+          if (!res.ok) {
+            const data = await res.json();
+            alert(data.error ?? 'Failed to delete report');
+            return;
+          }
+
+          window.location.reload();
+        } catch {
+          alert('Network error. Please try again.');
+        }
+      });
+    });
+  }
+
+  initReportModeration();
+  document.addEventListener('astro:after-swap', initReportModeration);
+</script>

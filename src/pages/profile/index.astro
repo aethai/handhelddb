@@ -84,6 +84,38 @@ const badgesForGrid = (allBadgesRaw ?? []).map((b: any) => ({
   earnedAt: earnedMap.get(b.id) ?? null,
 }));
 
+// ─── Fetch followed games ───
+const { data: followedGamesRaw } = await supabaseAdmin
+  .from('game_follows')
+  .select('game_id, created_at, games(slug, name, header_image, capsule_image)')
+  .eq('user_id', user.id)
+  .order('created_at', { ascending: false })
+  .limit(12);
+
+const followedGames = (followedGamesRaw ?? []).map((f: any) => ({
+  gameId: f.game_id,
+  followedAt: f.created_at,
+  slug: f.games?.slug,
+  name: f.games?.name ?? 'Unknown Game',
+  image: f.games?.capsule_image ?? f.games?.header_image,
+}));
+
+// ─── Fetch user library (from Steam import) ───
+const { data: libraryRaw, count: libraryCount } = await supabaseAdmin
+  .from('user_library')
+  .select('game_id, playtime_hours, games(slug, name, header_image, capsule_image)', { count: 'exact' })
+  .eq('user_id', user.id)
+  .order('playtime_hours', { ascending: false })
+  .limit(12);
+
+const libraryGames = (libraryRaw ?? []).map((l: any) => ({
+  gameId: l.game_id,
+  playtime: l.playtime_hours ?? 0,
+  slug: l.games?.slug,
+  name: l.games?.name ?? 'Unknown Game',
+  image: l.games?.capsule_image ?? l.games?.header_image,
+}));
+
 // ─── Derived values ───
 const displayName = profile.display_name ?? profile.username ?? user.email?.split('@')[0] ?? 'User';
 const avatarUrl = profile.avatar_url ?? (user.user_metadata?.avatar_url as string | undefined);
@@ -170,6 +202,10 @@ const ratingColors: Record<string, string> = {
               <p class="text-xl font-bold text-white">{points}</p>
               <p class="text-xs text-gray-500">Points</p>
             </div>
+            <div>
+              <p class="text-xl font-bold text-white">{followedGames.length}</p>
+              <p class="text-xs text-gray-500">Following</p>
+            </div>
           </div>
         </div>
 
@@ -243,6 +279,104 @@ const ratingColors: Record<string, string> = {
         <BadgeGrid client:visible badges={badgesForGrid} />
       </div>
     </section>
+
+    <!-- ═══════════════════════════════════════════
+         FOLLOWED GAMES
+         ═══════════════════════════════════════════ -->
+    <section class="mt-8">
+      <div class="flex items-center justify-between mb-4">
+        <div>
+          <h2 class="text-xl font-bold text-white">Followed Games</h2>
+          <p class="mt-0.5 text-sm text-gray-500">Games you're tracking for updates</p>
+        </div>
+        {followedGames.length > 0 && (
+          <span class="text-sm text-gray-500">{followedGames.length} games</span>
+        )}
+      </div>
+
+      {followedGames.length > 0 ? (
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+          {followedGames.map(game => (
+            <a
+              href={game.slug ? `/games/${game.slug}` : '#'}
+              class="group rounded-lg border border-gray-800 bg-gray-900 overflow-hidden hover:border-gray-600 transition-all"
+            >
+              <div class="aspect-[460/215] bg-gray-800 overflow-hidden">
+                {game.image ? (
+                  <img src={game.image} alt={game.name} class="h-full w-full object-cover group-hover:scale-105 transition-transform duration-300" loading="lazy" />
+                ) : (
+                  <div class="h-full w-full flex items-center justify-center">
+                    <svg class="h-8 w-8 text-gray-600" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                )}
+              </div>
+              <div class="p-2.5">
+                <p class="text-xs font-medium text-white truncate group-hover:text-emerald-400 transition-colors">{game.name}</p>
+              </div>
+            </a>
+          ))}
+        </div>
+      ) : (
+        <div class="rounded-xl border border-dashed border-gray-700 bg-gray-900/50 p-8 text-center">
+          <svg class="mx-auto h-10 w-10 text-gray-600 mb-3" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z" />
+          </svg>
+          <p class="text-gray-400 text-sm">No followed games yet.</p>
+          <p class="text-gray-500 text-xs mt-1">
+            <a href="/games" class="text-emerald-400 hover:text-emerald-300 transition-colors">Browse games</a> and follow the ones you play.
+          </p>
+        </div>
+      )}
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         MY LIBRARY
+         ═══════════════════════════════════════════ -->
+    {(libraryCount ?? 0) > 0 && (
+      <section class="mt-8">
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <h2 class="text-xl font-bold text-white">My Library</h2>
+            <p class="mt-0.5 text-sm text-gray-500">{libraryCount} games from Steam</p>
+          </div>
+        </div>
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+          {libraryGames.map(game => (
+            <a
+              href={game.slug ? `/games/${game.slug}` : '#'}
+              class="group rounded-lg border border-gray-800 bg-gray-900 overflow-hidden hover:border-gray-600 transition-all"
+            >
+              <div class="aspect-[460/215] bg-gray-800 overflow-hidden">
+                {game.image ? (
+                  <img src={game.image} alt={game.name} class="h-full w-full object-cover group-hover:scale-105 transition-transform duration-300" loading="lazy" />
+                ) : (
+                  <div class="h-full w-full flex items-center justify-center">
+                    <svg class="h-8 w-8 text-gray-600" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                )}
+              </div>
+              <div class="p-2.5">
+                <p class="text-xs font-medium text-white truncate group-hover:text-emerald-400 transition-colors">{game.name}</p>
+                {game.playtime > 0 && (
+                  <p class="text-[10px] text-gray-500 mt-0.5">{game.playtime.toFixed(1)}h played</p>
+                )}
+              </div>
+            </a>
+          ))}
+        </div>
+        {(libraryCount ?? 0) > 12 && (
+          <p class="mt-3 text-center text-xs text-gray-500">
+            Showing top 12 by playtime out of {libraryCount} games
+          </p>
+        )}
+      </section>
+    )}
 
     <!-- ═══════════════════════════════════════════
          MY DEVICES
