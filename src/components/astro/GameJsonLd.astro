@@ -1,0 +1,89 @@
+---
+interface Props {
+  game: {
+    name: string;
+    description?: string | null;
+    short_description?: string | null;
+    header_image?: string | null;
+    genres?: string[] | null;
+    developers?: string[] | null;
+    metacritic_score?: number | null;
+    release_date?: string | null;
+    steam_appid?: number | null;
+    slug: string;
+    price_usd?: number | null;
+    is_free_to_play?: boolean | null;
+  };
+}
+
+const { game } = Astro.props;
+
+const baseUrl = (import.meta.env.PUBLIC_SITE_URL ?? 'https://handhelddb.com').replace(/\/+$/, '');
+
+const genres = (game.genres as string[]) ?? [];
+const developers = (game.developers as string[]) ?? [];
+const cleanDescription = game.short_description || game.description?.replace(/<[^>]*>/g, '').slice(0, 500) || '';
+
+const jsonLd: Record<string, unknown> = {
+  '@context': 'https://schema.org',
+  '@type': 'VideoGame',
+  name: game.name,
+  url: `${baseUrl}/games/${game.slug}`,
+};
+
+if (cleanDescription) {
+  jsonLd.description = cleanDescription;
+}
+
+if (game.header_image) {
+  jsonLd.image = game.header_image;
+}
+
+if (genres.length > 0) {
+  jsonLd.genre = genres;
+}
+
+if (developers.length > 0) {
+  jsonLd.author = developers.map((dev) => ({
+    '@type': 'Organization',
+    name: dev,
+  }));
+}
+
+if (game.release_date) {
+  jsonLd.datePublished = new Date(game.release_date).toISOString().split('T')[0];
+}
+
+if (game.metacritic_score) {
+  jsonLd.aggregateRating = {
+    '@type': 'AggregateRating',
+    ratingValue: game.metacritic_score,
+    bestRating: 100,
+    worstRating: 0,
+    ratingCount: 1,
+  };
+}
+
+if (game.is_free_to_play) {
+  jsonLd.offers = {
+    '@type': 'Offer',
+    price: 0,
+    priceCurrency: 'USD',
+    availability: 'https://schema.org/InStock',
+  };
+} else if (game.price_usd != null) {
+  jsonLd.offers = {
+    '@type': 'Offer',
+    price: game.price_usd,
+    priceCurrency: 'USD',
+    availability: 'https://schema.org/InStock',
+  };
+}
+
+if (game.steam_appid) {
+  jsonLd.gamePlatform = 'PC';
+  jsonLd.sameAs = `https://store.steampowered.com/app/${game.steam_appid}`;
+}
+---
+
+<script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />

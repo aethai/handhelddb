@@ -59,6 +59,15 @@ const resolvedCanonical = canonicalUrl ?? new URL(Astro.url.pathname, siteUrl).h
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+    <!-- Analytics (Plausible) -->
+    {import.meta.env.PUBLIC_PLAUSIBLE_DOMAIN && (
+      <script
+        defer
+        data-domain={import.meta.env.PUBLIC_PLAUSIBLE_DOMAIN}
+        src={import.meta.env.PUBLIC_PLAUSIBLE_SRC ?? 'https://plausible.io/js/script.js'}
+      />
+    )}
   </head>
   <body class="min-h-screen bg-gray-950 text-gray-100 flex flex-col">
     <Header user={Astro.locals.user} />

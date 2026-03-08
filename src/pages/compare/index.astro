@@ -1,0 +1,25 @@
+---
+import BaseLayout from '@layouts/BaseLayout.astro';
+import CompareTable from '@components/react/CompareTable';
+import { supabaseAdmin } from '@lib/db/client';
+
+// Fetch all active devices
+const { data: devices, error } = await supabaseAdmin
+  .from('devices')
+  .select('*')
+  .eq('is_active', true)
+  .order('name');
+
+if (error) {
+  console.error('Failed to fetch devices for compare page:', error);
+}
+
+const allDevices = devices ?? [];
+---
+
+<BaseLayout
+  title="Compare Devices"
+  description="Compare handheld gaming devices side-by-side. Specs, performance, battery life, and pricing for Steam Deck, ROG Ally, Legion Go and more."
+>
+  <CompareTable client:load devices={allDevices} />
+</BaseLayout>

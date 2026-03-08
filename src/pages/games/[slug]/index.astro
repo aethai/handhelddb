@@ -1,6 +1,8 @@
 ---
 import BaseLayout from '@layouts/BaseLayout.astro';
 import PerformanceBadge from '@components/astro/PerformanceBadge.astro';
+import GameJsonLd from '@components/astro/GameJsonLd.astro';
+import BreadcrumbJsonLd from '@components/astro/BreadcrumbJsonLd.astro';
 import CommentSection from '@components/react/CommentSection';
 import { supabaseAdmin } from '@lib/db/client';
 
@@ -63,6 +65,12 @@ const currentUser = Astro.locals.user;
   description={`Best settings for ${game.name} on Steam Deck, ROG Ally, Legion Go. FPS benchmarks, TDP profiles, and battery life.`}
   ogImage={`${import.meta.env.PUBLIC_SITE_URL ?? ''}/api/og/${slug}`}
 >
+  <GameJsonLd game={game} />
+  <BreadcrumbJsonLd items={[
+    { name: 'Home', url: `${import.meta.env.PUBLIC_SITE_URL ?? ''}/` },
+    { name: 'Games', url: `${import.meta.env.PUBLIC_SITE_URL ?? ''}/games` },
+    { name: game.name, url: `${import.meta.env.PUBLIC_SITE_URL ?? ''}/games/${game.slug}` },
+  ]} />
   <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
     <!-- Breadcrumb -->
     <nav class="mb-4 text-sm text-gray-500">
