@@ -1,55 +1,274 @@
 ---
 import BaseLayout from '@layouts/BaseLayout.astro';
+import PerformanceBadge from '@components/astro/PerformanceBadge.astro';
 
 const { slug } = Astro.params;
-const deviceName = slug?.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ') ?? 'Device';
+
+// ─── Mock: Steam Deck OLED ───
+const device = {
+  name: 'Steam Deck OLED',
+  manufacturer: 'Valve',
+  chip: 'AMD Van Gogh (custom APU)',
+  gpu: 'RDNA 2, 8 CUs @ 1.6 GHz',
+  ramGb: 16,
+  storageGb: 512,
+  screenResolution: '1280x800',
+  screenSize: 7.4,
+  screenType: 'HDR OLED',
+  batteryWh: 50,
+  tdpMin: 3,
+  tdpMax: 15,
+  tdpDefault: 12,
+  weightGrams: 640,
+  defaultOs: 'SteamOS 3.6',
+  msrpUsd: 549,
+};
+
+const stats = {
+  totalTested: 487,
+  at60fps: 142,
+  at40fps: 198,
+  at30fps: 112,
+  under30fps: 35,
+  avgBattery: 2.4,
+};
+
+const topGames = [
+  { name: 'Hades II', slug: 'hades-ii', fps: 60, preset: 'High', battery: '3.5h', rating: 'excellent', reports: 42 },
+  { name: 'Stardew Valley', slug: 'stardew-valley', fps: 60, preset: 'Ultra', battery: '6.0h', rating: 'excellent', reports: 38 },
+  { name: 'Vampire Survivors', slug: 'vampire-survivors', fps: 60, preset: 'Ultra', battery: '5.5h', rating: 'excellent', reports: 35 },
+  { name: 'Elden Ring', slug: 'elden-ring', fps: 40, preset: 'Medium', battery: '2.1h', rating: 'good', reports: 87 },
+  { name: 'Cyberpunk 2077', slug: 'cyberpunk-2077', fps: 35, preset: 'Low', battery: '1.8h', rating: 'fair', reports: 72 },
+  { name: "Baldur's Gate 3", slug: 'baldurs-gate-3', fps: 38, preset: 'Medium', battery: '2.0h', rating: 'fair', reports: 65 },
+  { name: 'God of War Ragnarok', slug: 'god-of-war-ragnarok', fps: 34, preset: 'Low', battery: '1.7h', rating: 'fair', reports: 41 },
+  { name: 'Helldivers 2', slug: 'helldivers-2', fps: 32, preset: 'Low', battery: '1.6h', rating: 'fair', reports: 58 },
+  { name: 'Palworld', slug: 'palworld', fps: 40, preset: 'Medium', battery: '2.2h', rating: 'good', reports: 44 },
+  { name: 'Hollow Knight: Silksong', slug: 'hollow-knight-silksong', fps: 60, preset: 'Ultra', battery: '4.5h', rating: 'excellent', reports: 28 },
+];
+
+const ratingColors: Record<string, string> = {
+  excellent: 'text-green-400',
+  good: 'text-emerald-400',
+  fair: 'text-yellow-400',
+  poor: 'text-orange-400',
+};
+
+const displayName = slug === 'steam-deck-oled' ? device.name : (slug?.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ') ?? 'Device');
 ---
 
 <BaseLayout
-  title={`${deviceName} — Game Performance Database`}
-  description={`${deviceName} game compatibility and performance data. See FPS benchmarks, optimal settings, and battery life for hundreds of games.`}
+  title={`${displayName} — Game Performance Database`}
+  description={`${displayName} game compatibility and performance data. FPS benchmarks, optimal settings, battery life for ${stats.totalTested} games.`}
 >
   <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Breadcrumb -->
+    <nav class="mb-4 text-sm text-gray-500">
+      <a href="/" class="hover:text-white transition-colors">Home</a>
+      <span class="mx-2">/</span>
+      <a href="/devices" class="hover:text-white transition-colors">Devices</a>
+      <span class="mx-2">/</span>
+      <span class="text-gray-300">{displayName}</span>
+    </nav>
+
     <!-- Device Header -->
-    <div class="rounded-xl border border-gray-800 bg-gray-900 p-6">
+    <div class="rounded-xl border border-gray-800 bg-gray-900 p-6 sm:p-8">
       <div class="flex flex-col md:flex-row gap-6">
-        <div class="w-full md:w-48 h-48 rounded-lg bg-gray-800 flex items-center justify-center">
-          <svg class="h-16 w-16 text-gray-600" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-            <rect x="5" y="3" width="14" height="18" rx="3" />
+        <!-- Device image placeholder -->
+        <div class="w-full md:w-56 h-56 rounded-xl bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center border border-gray-800">
+          <svg class="h-20 w-20 text-gray-700" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="4" y="8" width="24" height="16" rx="4" stroke="currentColor" stroke-width="1.5" />
+            <circle cx="11" cy="16" r="2" fill="currentColor" />
+            <circle cx="21" cy="14" r="1.5" fill="currentColor" />
+            <circle cx="23" cy="16" r="1.5" fill="currentColor" />
+            <circle cx="21" cy="18" r="1.5" fill="currentColor" />
+            <circle cx="19" cy="16" r="1.5" fill="currentColor" />
           </svg>
         </div>
-        <div class="flex-1">
-          <h1 class="text-3xl font-bold text-white">{deviceName}</h1>
-          <p class="mt-4 text-gray-400">Device details will be loaded from the database.</p>
 
-          <!-- Stats placeholders -->
-          <div class="mt-6 grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <div class="flex-1">
+          <p class="text-xs text-emerald-400 uppercase tracking-wider font-semibold">{device.manufacturer}</p>
+          <h1 class="text-3xl font-bold text-white mt-1">{displayName}</h1>
+
+          <!-- Quick specs pills -->
+          <div class="mt-4 flex flex-wrap gap-2">
+            <span class="rounded-lg bg-gray-800 border border-gray-700 px-3 py-1.5 text-xs text-gray-300">{device.chip}</span>
+            <span class="rounded-lg bg-gray-800 border border-gray-700 px-3 py-1.5 text-xs text-gray-300">{device.ramGb}GB RAM</span>
+            <span class="rounded-lg bg-gray-800 border border-gray-700 px-3 py-1.5 text-xs text-gray-300">{device.screenSize}" {device.screenType}</span>
+            <span class="rounded-lg bg-gray-800 border border-gray-700 px-3 py-1.5 text-xs text-gray-300">{device.batteryWh} Wh</span>
+            <span class="rounded-lg bg-gray-800 border border-gray-700 px-3 py-1.5 text-xs text-gray-300">{device.tdpMin}-{device.tdpMax}W TDP</span>
+            <span class="rounded-lg bg-gray-800 border border-gray-700 px-3 py-1.5 text-xs text-gray-300">{device.weightGrams}g</span>
+          </div>
+
+          <!-- Performance summary stats -->
+          <div class="mt-6 grid grid-cols-2 sm:grid-cols-5 gap-3">
             <div class="rounded-lg bg-gray-800 p-3 text-center">
-              <p class="text-2xl font-bold text-white">—</p>
-              <p class="text-xs text-gray-500">Games Tested</p>
+              <p class="text-2xl font-bold text-white">{stats.totalTested}</p>
+              <p class="text-xs text-gray-500 mt-0.5">Games Tested</p>
             </div>
             <div class="rounded-lg bg-gray-800 p-3 text-center">
-              <p class="text-2xl font-bold text-green-400">—</p>
-              <p class="text-xs text-gray-500">60fps Games</p>
+              <p class="text-2xl font-bold text-green-400">{stats.at60fps}</p>
+              <p class="text-xs text-gray-500 mt-0.5">60fps</p>
             </div>
             <div class="rounded-lg bg-gray-800 p-3 text-center">
-              <p class="text-2xl font-bold text-yellow-400">—</p>
-              <p class="text-xs text-gray-500">40fps Games</p>
+              <p class="text-2xl font-bold text-emerald-400">{stats.at40fps}</p>
+              <p class="text-xs text-gray-500 mt-0.5">40fps</p>
             </div>
             <div class="rounded-lg bg-gray-800 p-3 text-center">
-              <p class="text-2xl font-bold text-emerald-400">—</p>
-              <p class="text-xs text-gray-500">Avg Battery</p>
+              <p class="text-2xl font-bold text-yellow-400">{stats.at30fps}</p>
+              <p class="text-xs text-gray-500 mt-0.5">30fps</p>
+            </div>
+            <div class="rounded-lg bg-gray-800 p-3 text-center">
+              <p class="text-2xl font-bold text-emerald-400">{stats.avgBattery}h</p>
+              <p class="text-xs text-gray-500 mt-0.5">Avg Battery</p>
+            </div>
+          </div>
+
+          <!-- FPS distribution bar -->
+          <div class="mt-4">
+            <div class="h-3 rounded-full overflow-hidden flex">
+              <div class="bg-green-500" style={`width: ${(stats.at60fps / stats.totalTested * 100).toFixed(0)}%`} title={`${stats.at60fps} games at 60fps`}></div>
+              <div class="bg-emerald-500" style={`width: ${(stats.at40fps / stats.totalTested * 100).toFixed(0)}%`} title={`${stats.at40fps} games at 40fps`}></div>
+              <div class="bg-yellow-500" style={`width: ${(stats.at30fps / stats.totalTested * 100).toFixed(0)}%`} title={`${stats.at30fps} games at 30fps`}></div>
+              <div class="bg-red-500" style={`width: ${(stats.under30fps / stats.totalTested * 100).toFixed(0)}%`} title={`${stats.under30fps} games under 30fps`}></div>
+            </div>
+            <div class="mt-2 flex items-center gap-4 text-xs text-gray-500">
+              <span class="flex items-center gap-1"><span class="h-2 w-2 rounded-full bg-green-500"></span> 60fps ({stats.at60fps})</span>
+              <span class="flex items-center gap-1"><span class="h-2 w-2 rounded-full bg-emerald-500"></span> 40fps ({stats.at40fps})</span>
+              <span class="flex items-center gap-1"><span class="h-2 w-2 rounded-full bg-yellow-500"></span> 30fps ({stats.at30fps})</span>
+              <span class="flex items-center gap-1"><span class="h-2 w-2 rounded-full bg-red-500"></span> &lt;30fps ({stats.under30fps})</span>
             </div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Tested Games -->
-    <div class="mt-6 rounded-xl border border-gray-800 bg-gray-900 p-6">
-      <h2 class="text-xl font-bold text-white mb-4">Tested Games</h2>
-      <div class="text-center py-8 text-gray-600">
-        <p>Connect database to see tested games for this device.</p>
+    <div class="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <!-- GAME LIST (2/3) -->
+      <div class="lg:col-span-2">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-xl font-bold text-white">Tested Games</h2>
+          <div class="flex gap-2">
+            <select class="rounded-lg border border-gray-700 bg-gray-800 px-3 py-1.5 text-xs text-gray-300 focus:border-emerald-500 focus:outline-none">
+              <option>Sort by: FPS (High)</option>
+              <option>Sort by: FPS (Low)</option>
+              <option>Sort by: Battery Life</option>
+              <option>Sort by: Most Reports</option>
+              <option>Sort by: Name</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="rounded-xl border border-gray-800 bg-gray-900 overflow-hidden">
+          <!-- Search within device -->
+          <div class="p-4 border-b border-gray-800">
+            <div class="relative">
+              <svg class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z" />
+              </svg>
+              <input type="text" placeholder="Search games on this device..." class="w-full rounded-lg border border-gray-700 bg-gray-800 py-2 pl-10 pr-4 text-sm text-white placeholder-gray-500 focus:border-emerald-500 focus:outline-none" />
+            </div>
+          </div>
+
+          <!-- Table -->
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+              <thead>
+                <tr class="border-b border-gray-800 text-gray-500">
+                  <th class="py-3 px-4 text-left font-medium">Game</th>
+                  <th class="py-3 px-3 text-center font-medium">FPS</th>
+                  <th class="py-3 px-3 text-center font-medium">Preset</th>
+                  <th class="py-3 px-3 text-center font-medium">Battery</th>
+                  <th class="py-3 px-3 text-center font-medium">Reports</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-800/50">
+                {topGames.map((g) => (
+                  <tr class="hover:bg-gray-800/30 transition-colors">
+                    <td class="py-3 px-4">
+                      <a href={`/games/${g.slug}`} class="font-medium text-white hover:text-emerald-400 transition-colors">{g.name}</a>
+                    </td>
+                    <td class="py-3 px-3 text-center">
+                      <PerformanceBadge fps={g.fps} size="sm" />
+                    </td>
+                    <td class="py-3 px-3 text-center text-gray-400">{g.preset}</td>
+                    <td class="py-3 px-3 text-center text-gray-400">{g.battery}</td>
+                    <td class="py-3 px-3 text-center text-gray-500">{g.reports}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Pagination -->
+          <div class="border-t border-gray-800 px-4 py-3 flex items-center justify-between">
+            <span class="text-xs text-gray-500">Showing 1-10 of {stats.totalTested}</span>
+            <div class="flex gap-1">
+              <button class="rounded-md bg-emerald-600 px-3 py-1 text-xs font-medium text-white">1</button>
+              <button class="rounded-md bg-gray-800 px-3 py-1 text-xs text-gray-400 hover:text-white transition-colors">2</button>
+              <button class="rounded-md bg-gray-800 px-3 py-1 text-xs text-gray-400 hover:text-white transition-colors">3</button>
+              <span class="px-2 py-1 text-xs text-gray-600">...</span>
+              <button class="rounded-md bg-gray-800 px-3 py-1 text-xs text-gray-400 hover:text-white transition-colors">49</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SIDEBAR: SPECS (1/3) -->
+      <div class="space-y-4">
+        <!-- Full Specs -->
+        <div class="rounded-xl border border-gray-800 bg-gray-900 p-5">
+          <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Full Specifications</h3>
+          <dl class="space-y-2.5 text-sm">
+            <div class="flex justify-between"><dt class="text-gray-500">Chip</dt><dd class="text-gray-300 text-right max-w-[60%]">{device.chip}</dd></div>
+            <div class="flex justify-between"><dt class="text-gray-500">GPU</dt><dd class="text-gray-300 text-right max-w-[60%]">{device.gpu}</dd></div>
+            <div class="flex justify-between"><dt class="text-gray-500">RAM</dt><dd class="text-gray-300">{device.ramGb} GB LPDDR5</dd></div>
+            <div class="flex justify-between"><dt class="text-gray-500">Storage</dt><dd class="text-gray-300">{device.storageGb} GB NVMe</dd></div>
+            <div class="flex justify-between"><dt class="text-gray-500">Screen</dt><dd class="text-gray-300">{device.screenSize}" {device.screenType}</dd></div>
+            <div class="flex justify-between"><dt class="text-gray-500">Resolution</dt><dd class="text-gray-300">{device.screenResolution}</dd></div>
+            <div class="flex justify-between"><dt class="text-gray-500">Battery</dt><dd class="text-gray-300">{device.batteryWh} Wh</dd></div>
+            <div class="flex justify-between"><dt class="text-gray-500">TDP Range</dt><dd class="text-gray-300">{device.tdpMin}-{device.tdpMax}W</dd></div>
+            <div class="flex justify-between"><dt class="text-gray-500">Default TDP</dt><dd class="text-gray-300">{device.tdpDefault}W</dd></div>
+            <div class="flex justify-between"><dt class="text-gray-500">Weight</dt><dd class="text-gray-300">{device.weightGrams}g</dd></div>
+            <div class="flex justify-between"><dt class="text-gray-500">OS</dt><dd class="text-gray-300">{device.defaultOs}</dd></div>
+            <div class="flex justify-between"><dt class="text-gray-500">Price</dt><dd class="text-gray-300 font-medium">${device.msrpUsd}</dd></div>
+          </dl>
+        </div>
+
+        <!-- Compare CTA -->
+        <div class="rounded-xl border border-gray-800 bg-gray-900 p-5 text-center">
+          <p class="text-sm text-gray-400 mb-3">Compare with other devices</p>
+          <div class="flex flex-col gap-2">
+            <a href="/compare/steam-deck-oled/rog-ally-x" class="rounded-lg border border-gray-700 px-3 py-2 text-sm text-gray-300 hover:border-emerald-500 hover:text-white transition-colors">
+              vs ROG Ally X
+            </a>
+            <a href="/compare/steam-deck-oled/legion-go" class="rounded-lg border border-gray-700 px-3 py-2 text-sm text-gray-300 hover:border-emerald-500 hover:text-white transition-colors">
+              vs Legion Go
+            </a>
+          </div>
+        </div>
+
+        <!-- Quick Links -->
+        <div class="rounded-xl border border-gray-800 bg-gray-900 p-5">
+          <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Quick Filters</h3>
+          <div class="space-y-1.5">
+            <a href="#" class="flex items-center justify-between rounded-lg px-3 py-2 text-sm text-gray-400 hover:bg-gray-800 hover:text-white transition-colors">
+              <span>60fps games</span>
+              <span class="text-xs text-green-400">{stats.at60fps}</span>
+            </a>
+            <a href="#" class="flex items-center justify-between rounded-lg px-3 py-2 text-sm text-gray-400 hover:bg-gray-800 hover:text-white transition-colors">
+              <span>40fps games</span>
+              <span class="text-xs text-emerald-400">{stats.at40fps}</span>
+            </a>
+            <a href="#" class="flex items-center justify-between rounded-lg px-3 py-2 text-sm text-gray-400 hover:bg-gray-800 hover:text-white transition-colors">
+              <span>Best battery life</span>
+              <span class="text-xs text-gray-500">&rarr;</span>
+            </a>
+            <a href="#" class="flex items-center justify-between rounded-lg px-3 py-2 text-sm text-gray-400 hover:bg-gray-800 hover:text-white transition-colors">
+              <span>Free to play</span>
+              <span class="text-xs text-gray-500">&rarr;</span>
+            </a>
+          </div>
+        </div>
       </div>
     </div>
   </div>

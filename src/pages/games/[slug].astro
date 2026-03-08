@@ -2,154 +2,405 @@
 import BaseLayout from '@layouts/BaseLayout.astro';
 import PerformanceBadge from '@components/astro/PerformanceBadge.astro';
 
-// TODO: Fetch game data from DB by slug
 const { slug } = Astro.params;
 
-// Placeholder data structure showing what the page will look like
+// ─── Mock data: Elden Ring as example ───
 const game = {
-  name: slug?.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ') ?? 'Game',
-  slug,
-  headerImage: null as string | null,
-  description: 'Game description will be loaded from the database.',
-  genres: ['Action', 'RPG'],
-  developers: ['Developer Studio'],
-  releaseDate: '2024-01-01',
-  metacriticScore: null as number | null,
+  name: 'Elden Ring',
+  slug: 'elden-ring',
+  description: 'Rise, Tarnished, and be guided by grace to brandish the power of the Elden Ring and become an Elden Lord in the Lands Between. An action RPG developed by FromSoftware and BANDAI NAMCO Entertainment.',
+  genres: ['Action', 'RPG', 'Open World'],
+  tags: ['Souls-like', 'Dark Fantasy', 'Co-op', 'Difficult'],
+  developers: ['FromSoftware'],
+  publishers: ['Bandai Namco'],
+  metacriticScore: 94,
+  steamReviewScore: 92,
   protondbTier: 'gold',
   deckCompatibility: 'verified',
+  priceUsd: 59.99,
+  hltbMainHours: 55,
+  hltbExtraHours: 98,
+  hltbCompletionistHours: 132,
 };
+
+const devicePerformance = [
+  {
+    device: 'Steam Deck OLED', deviceSlug: 'steam-deck-oled', verdict: 'good',
+    profiles: [
+      { name: 'Battery Saver', tdp: '8W', fps: 30, preset: 'Low', resolution: '1280x800', fsr: 'Performance', battery: '3.2h', thermal: 'Warm', fan: 'Quiet' },
+      { name: 'Balanced', tdp: '12W', fps: 40, preset: 'Medium', resolution: '1280x800', fsr: 'Quality', battery: '2.1h', thermal: 'Warm', fan: 'Audible' },
+      { name: 'Performance', tdp: '15W', fps: 45, preset: 'Medium', resolution: '1280x800', fsr: 'Off', battery: '1.5h', thermal: 'Hot', fan: 'Loud' },
+    ],
+    reportCount: 87, confidence: 'high',
+  },
+  {
+    device: 'ROG Ally X', deviceSlug: 'rog-ally-x', verdict: 'good',
+    profiles: [
+      { name: 'Battery Saver', tdp: '13W', fps: 35, preset: 'Medium', resolution: '1920x1080', fsr: 'Performance', battery: '3.5h', thermal: 'Warm', fan: 'Quiet' },
+      { name: 'Balanced', tdp: '20W', fps: 50, preset: 'Medium', resolution: '1920x1080', fsr: 'Quality', battery: '2.3h', thermal: 'Warm', fan: 'Audible' },
+      { name: 'Performance', tdp: '30W', fps: 60, preset: 'High', resolution: '1920x1080', fsr: 'Off', battery: '1.4h', thermal: 'Hot', fan: 'Loud' },
+    ],
+    reportCount: 56, confidence: 'high',
+  },
+  {
+    device: 'Legion Go', deviceSlug: 'legion-go', verdict: 'fair',
+    profiles: [
+      { name: 'Battery Saver', tdp: '12W', fps: 30, preset: 'Low', resolution: '2560x1600', fsr: 'Ultra Perf', battery: '2.2h', thermal: 'Warm', fan: 'Audible' },
+      { name: 'Balanced', tdp: '20W', fps: 42, preset: 'Medium', resolution: '1920x1200', fsr: 'Performance', battery: '1.5h', thermal: 'Hot', fan: 'Audible' },
+      { name: 'Performance', tdp: '30W', fps: 52, preset: 'High', resolution: '1920x1200', fsr: 'Quality', battery: '1.0h', thermal: 'Hot', fan: 'Loud' },
+    ],
+    reportCount: 32, confidence: 'medium',
+  },
+];
+
+const reports = [
+  {
+    user: 'DeckMaster42', level: 'Elite', device: 'Steam Deck OLED', fps: 42, preset: 'Medium',
+    resolution: '1280x800', tdp: '12W', battery: '2.0h', thermal: 'Warm', rating: 'good',
+    notes: 'Runs great on Medium with FSR Quality. Some frame drops in Liurnia but otherwise very smooth. Highly recommend capping at 40fps.',
+    upvotes: 34, downvotes: 2, time: '3 days ago', qualityTier: 'verified',
+  },
+  {
+    user: 'AllyPro', level: 'Expert', device: 'ROG Ally X', fps: 55, preset: 'High',
+    resolution: '1920x1080', tdp: '25W', battery: '1.6h', thermal: 'Hot', rating: 'good',
+    notes: 'Much better experience than on original Ally thanks to the extra RAM. Can run High preset without FSR at 50-60fps. Battery life is short though.',
+    upvotes: 21, downvotes: 1, time: '5 days ago', qualityTier: 'community_confirmed',
+  },
+  {
+    user: 'HandheldHero', level: 'Expert', device: 'Steam Deck OLED', fps: 38, preset: 'Low',
+    resolution: '1280x800', tdp: '10W', battery: '2.8h', thermal: 'Cool', rating: 'fair',
+    notes: 'Low preset at 10W TDP gives decent battery life for longer sessions. Playable but not pretty. Good for grinding.',
+    upvotes: 15, downvotes: 0, time: '1 week ago', qualityTier: 'reported',
+  },
+];
+
+const verdictColors: Record<string, string> = {
+  excellent: 'text-green-400 bg-green-500/10 border-green-500/20',
+  good: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20',
+  fair: 'text-yellow-400 bg-yellow-500/10 border-yellow-500/20',
+};
+
+const confidenceLabels: Record<string, { label: string; color: string }> = {
+  high: { label: 'High confidence', color: 'text-green-400' },
+  medium: { label: 'Medium confidence', color: 'text-yellow-400' },
+  low: { label: 'Low confidence', color: 'text-orange-400' },
+};
+
+const qualityBadges: Record<string, { label: string; color: string }> = {
+  verified: { label: 'Verified', color: 'bg-green-500/20 text-green-400' },
+  community_confirmed: { label: 'Confirmed', color: 'bg-blue-500/20 text-blue-400' },
+  reported: { label: 'Reported', color: 'bg-gray-500/20 text-gray-400' },
+};
+
+const levelColors: Record<string, string> = {
+  Elite: 'text-purple-400',
+  Expert: 'text-amber-400',
+  Veteran: 'text-blue-400',
+};
+
+const displayName = slug === 'elden-ring' ? game.name : (slug?.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ') ?? 'Game');
 ---
 
 <BaseLayout
-  title={`${game.name} Performance on Handhelds`}
-  description={`Best settings for ${game.name} on Steam Deck, ROG Ally, Legion Go. FPS benchmarks, TDP profiles, and battery life estimates.`}
+  title={`${displayName} — Handheld Performance`}
+  description={`Best settings for ${displayName} on Steam Deck, ROG Ally, Legion Go. FPS benchmarks, TDP profiles, and battery life from ${devicePerformance.reduce((s, d) => s + d.reportCount, 0)} reports.`}
 >
   <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
-    <!-- Hero Section -->
+    <!-- Breadcrumb -->
+    <nav class="mb-4 text-sm text-gray-500">
+      <a href="/" class="hover:text-white transition-colors">Home</a>
+      <span class="mx-2">/</span>
+      <a href="/games" class="hover:text-white transition-colors">Games</a>
+      <span class="mx-2">/</span>
+      <span class="text-gray-300">{displayName}</span>
+    </nav>
+
     <div class="flex flex-col lg:flex-row gap-8">
-      <!-- Main Content -->
-      <div class="flex-1">
-        <!-- Game Header -->
+      <!-- MAIN CONTENT -->
+      <div class="flex-1 min-w-0">
+        <!-- Game Header Card -->
         <div class="rounded-xl border border-gray-800 bg-gray-900 overflow-hidden">
-          {game.headerImage ? (
-            <img src={game.headerImage} alt={game.name} class="w-full aspect-[460/215] object-cover" />
-          ) : (
-            <div class="w-full aspect-[460/215] bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center">
-              <span class="text-4xl font-bold text-gray-700">{game.name}</span>
+          <div class="w-full aspect-[21/7] bg-gradient-to-br from-gray-800 via-gray-850 to-gray-900 flex items-center justify-center relative">
+            <span class="text-5xl font-bold text-gray-700/50">{displayName}</span>
+            <div class="absolute top-4 left-4 flex gap-2">
+              <span class="rounded-lg bg-green-500/20 border border-green-500/30 px-2 py-1 text-xs font-medium text-green-400">Deck Verified</span>
+              <span class="rounded-lg bg-yellow-500/20 border border-yellow-500/30 px-2 py-1 text-xs font-medium text-yellow-400">ProtonDB Gold</span>
             </div>
-          )}
+            <div class="absolute top-4 right-4">
+              <span class="rounded-lg bg-gray-800/80 border border-gray-700 px-2 py-1 text-xs font-medium text-gray-300">Demanding</span>
+            </div>
+          </div>
 
           <div class="p-6">
-            <div class="flex items-start justify-between">
+            <div class="flex items-start justify-between gap-4">
               <div>
-                <h1 class="text-3xl font-bold text-white">{game.name}</h1>
-                <div class="mt-2 flex items-center gap-3 text-sm text-gray-400">
-                  {game.developers.map(dev => <span>{dev}</span>)}
-                  <span class="text-gray-600">|</span>
+                <h1 class="text-3xl font-bold text-white">{displayName}</h1>
+                <div class="mt-2 flex items-center gap-3 text-sm text-gray-400 flex-wrap">
+                  <span>{game.developers[0]}</span>
+                  <span class="text-gray-700">|</span>
                   {game.genres.map(genre => (
-                    <span class="rounded-full bg-gray-800 px-2 py-0.5 text-xs">{genre}</span>
+                    <span class="rounded-full bg-gray-800 px-2.5 py-0.5 text-xs text-gray-300">{genre}</span>
                   ))}
                 </div>
               </div>
+              <div class="flex gap-2 flex-shrink-0">
+                <button class="rounded-lg border border-gray-700 p-2 text-gray-400 hover:text-white hover:border-gray-500 transition-colors" title="Follow">
+                  <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" /></svg>
+                </button>
+                <button class="rounded-lg border border-gray-700 p-2 text-gray-400 hover:text-white hover:border-gray-500 transition-colors" title="Share">
+                  <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7.217 10.907a2.25 2.25 0 100 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186l9.566-5.314m-9.566 7.5l9.566 5.314m0 0a2.25 2.25 0 103.935 2.186 2.25 2.25 0 00-3.935-2.186zm0-12.814a2.25 2.25 0 103.933-2.185 2.25 2.25 0 00-3.933 2.185z" /></svg>
+                </button>
+              </div>
             </div>
-
-            <p class="mt-4 text-gray-400">{game.description}</p>
+            <p class="mt-4 text-gray-400 leading-relaxed">{game.description}</p>
           </div>
         </div>
 
-        <!-- Device Performance Grid (placeholder) -->
-        <div class="mt-6 rounded-xl border border-gray-800 bg-gray-900 p-6">
-          <h2 class="text-xl font-bold text-white mb-4">Performance by Device</h2>
-          <div class="overflow-x-auto">
-            <table class="w-full text-sm">
-              <thead>
-                <tr class="border-b border-gray-800">
-                  <th class="py-3 pr-4 text-left text-gray-400 font-medium">Device</th>
-                  <th class="py-3 px-4 text-center text-gray-400 font-medium">FPS</th>
-                  <th class="py-3 px-4 text-center text-gray-400 font-medium">Preset</th>
-                  <th class="py-3 px-4 text-center text-gray-400 font-medium">TDP</th>
-                  <th class="py-3 px-4 text-center text-gray-400 font-medium">Battery</th>
-                  <th class="py-3 pl-4 text-center text-gray-400 font-medium">Reports</th>
-                </tr>
-              </thead>
-              <tbody class="text-gray-300">
-                <tr class="border-b border-gray-800/50">
-                  <td class="py-3 pr-4 font-medium text-white" colspan="6">
-                    <div class="text-center text-gray-600 py-4">
-                      Connect database to see performance data
+        <!-- PERFORMANCE BY DEVICE — TDP PROFILES -->
+        <div class="mt-6 space-y-4">
+          <div class="flex items-center justify-between">
+            <h2 class="text-xl font-bold text-white">Performance by Device</h2>
+            <span class="text-sm text-gray-500">{devicePerformance.reduce((s, d) => s + d.reportCount, 0)} total reports</span>
+          </div>
+
+          {devicePerformance.map((dp) => (
+            <div class="rounded-xl border border-gray-800 bg-gray-900 overflow-hidden">
+              <div class="flex items-center justify-between px-5 py-4 border-b border-gray-800">
+                <div class="flex items-center gap-3">
+                  <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-gray-800 text-gray-500">
+                    <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="3" /></svg>
+                  </div>
+                  <div>
+                    <a href={`/devices/${dp.deviceSlug}`} class="font-semibold text-white hover:text-emerald-400 transition-colors">{dp.device}</a>
+                    <div class="flex items-center gap-2 mt-0.5">
+                      <span class={`text-xs ${confidenceLabels[dp.confidence].color}`}>{confidenceLabels[dp.confidence].label}</span>
+                      <span class="text-xs text-gray-600">&bull;</span>
+                      <span class="text-xs text-gray-500">{dp.reportCount} reports</span>
                     </div>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
+                  </div>
+                </div>
+                <div class={`rounded-lg border px-3 py-1.5 text-sm font-semibold capitalize ${verdictColors[dp.verdict]}`}>{dp.verdict}</div>
+              </div>
+
+              <!-- TDP Profile columns -->
+              <div class="grid grid-cols-3 divide-x divide-gray-800">
+                {dp.profiles.map((p) => (
+                  <div class="px-4 py-4 hover:bg-gray-800/30 transition-colors">
+                    <div class="flex items-center justify-between mb-3">
+                      <span class="text-xs font-semibold text-gray-400 uppercase tracking-wider">{p.name}</span>
+                      <span class="text-xs text-gray-600">{p.tdp}</span>
+                    </div>
+                    <div class="mb-3">
+                      <div class="flex items-baseline gap-1">
+                        <span class={`text-2xl font-bold ${p.fps >= 60 ? 'text-green-400' : p.fps >= 40 ? 'text-emerald-400' : p.fps >= 30 ? 'text-yellow-400' : 'text-orange-400'}`}>{p.fps}</span>
+                        <span class="text-sm text-gray-500">fps</span>
+                      </div>
+                      <div class="mt-1.5 h-1.5 rounded-full bg-gray-800 overflow-hidden">
+                        <div class={`h-full rounded-full ${p.fps >= 60 ? 'bg-green-500' : p.fps >= 40 ? 'bg-emerald-500' : p.fps >= 30 ? 'bg-yellow-500' : 'bg-orange-500'}`} style={`width: ${Math.min(p.fps / 60 * 100, 100)}%`}></div>
+                      </div>
+                    </div>
+                    <dl class="space-y-1.5 text-xs">
+                      <div class="flex justify-between"><dt class="text-gray-500">Preset</dt><dd class="text-gray-300">{p.preset}</dd></div>
+                      <div class="flex justify-between"><dt class="text-gray-500">Resolution</dt><dd class="text-gray-300">{p.resolution}</dd></div>
+                      <div class="flex justify-between"><dt class="text-gray-500">FSR</dt><dd class="text-gray-300">{p.fsr}</dd></div>
+                      <div class="flex justify-between"><dt class="text-gray-500">Battery</dt><dd class="text-gray-300 font-medium">{p.battery}</dd></div>
+                      <div class="flex justify-between"><dt class="text-gray-500">Thermal</dt><dd class="text-gray-300">{p.thermal}</dd></div>
+                      <div class="flex justify-between"><dt class="text-gray-500">Fan</dt><dd class="text-gray-300">{p.fan}</dd></div>
+                    </dl>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
         </div>
 
-        <!-- Community Reports (placeholder) -->
-        <div class="mt-6 rounded-xl border border-gray-800 bg-gray-900 p-6">
+        <!-- COMMUNITY REPORTS -->
+        <div class="mt-8">
           <div class="flex items-center justify-between mb-4">
             <h2 class="text-xl font-bold text-white">Community Reports</h2>
-            <a
-              href="/report/new"
-              class="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-emerald-500 transition-colors"
-            >
-              <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
-              </svg>
+            <a href="/report/new" class="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-emerald-500 transition-colors">
+              <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" /></svg>
               Submit Report
             </a>
           </div>
-          <div class="text-center py-8 text-gray-600">
-            <p>No performance reports yet. Be the first to report!</p>
+
+          <div class="space-y-3">
+            {reports.map((r) => (
+              <div class="rounded-xl border border-gray-800 bg-gray-900 p-5 hover:border-gray-700 transition-colors">
+                <div class="flex items-start justify-between gap-4">
+                  <div class="flex items-center gap-3">
+                    <div class="flex h-9 w-9 items-center justify-center rounded-full bg-gray-800 text-xs font-bold text-gray-400">{r.user.slice(0, 2).toUpperCase()}</div>
+                    <div>
+                      <div class="flex items-center gap-2">
+                        <span class="font-medium text-white">{r.user}</span>
+                        <span class={`text-xs font-medium ${levelColors[r.level]}`}>{r.level}</span>
+                        {qualityBadges[r.qualityTier] && (
+                          <span class={`rounded-md px-1.5 py-0.5 text-xs font-medium ${qualityBadges[r.qualityTier].color}`}>{qualityBadges[r.qualityTier].label}</span>
+                        )}
+                      </div>
+                      <div class="flex items-center gap-2 text-xs text-gray-500 mt-0.5">
+                        <span>{r.device}</span>
+                        <span class="text-gray-700">&bull;</span>
+                        <span>{r.time}</span>
+                      </div>
+                    </div>
+                  </div>
+                  <PerformanceBadge fps={r.fps} size="md" />
+                </div>
+
+                <div class="mt-3 flex flex-wrap gap-2">
+                  <span class="rounded-md bg-gray-800 px-2 py-1 text-xs text-gray-300">{r.preset}</span>
+                  <span class="rounded-md bg-gray-800 px-2 py-1 text-xs text-gray-300">{r.resolution}</span>
+                  <span class="rounded-md bg-gray-800 px-2 py-1 text-xs text-gray-300">{r.tdp}</span>
+                  <span class="rounded-md bg-gray-800 px-2 py-1 text-xs text-gray-300">{r.battery}</span>
+                  <span class="rounded-md bg-gray-800 px-2 py-1 text-xs text-gray-300">{r.thermal}</span>
+                </div>
+
+                {r.notes && <p class="mt-3 text-sm text-gray-400 leading-relaxed">{r.notes}</p>}
+
+                <div class="mt-3 flex items-center gap-4 pt-3 border-t border-gray-800">
+                  <button class="flex items-center gap-1 text-xs text-gray-500 hover:text-emerald-400 transition-colors">
+                    <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 15.75l7.5-7.5 7.5 7.5" /></svg>
+                    {r.upvotes}
+                  </button>
+                  <button class="flex items-center gap-1 text-xs text-gray-500 hover:text-red-400 transition-colors">
+                    <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" /></svg>
+                    {r.downvotes}
+                  </button>
+                  <button class="text-xs text-gray-500 hover:text-white transition-colors">Reply</button>
+                  <button class="text-xs text-gray-500 hover:text-orange-400 transition-colors ml-auto">Flag</button>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
 
-        <!-- Comments (placeholder for React island) -->
-        <div class="mt-6 rounded-xl border border-gray-800 bg-gray-900 p-6">
-          <h2 class="text-xl font-bold text-white mb-4">Comments</h2>
-          <div class="text-center py-8 text-gray-600">
-            <p>Sign in to leave a comment</p>
+        <!-- COMMENTS / DISCUSSION -->
+        <div class="mt-8 rounded-xl border border-gray-800 bg-gray-900 p-6">
+          <h2 class="text-xl font-bold text-white mb-4">Discussion</h2>
+          <div class="rounded-lg border border-gray-800 bg-gray-800/50 p-4">
+            <textarea placeholder="Share tips, ask questions about performance..." class="w-full bg-transparent text-gray-300 placeholder-gray-600 resize-none focus:outline-none text-sm" rows="3"></textarea>
+            <div class="flex items-center justify-between mt-2">
+              <span class="text-xs text-gray-600">Markdown supported</span>
+              <button class="rounded-lg bg-emerald-600 px-4 py-1.5 text-sm font-medium text-white hover:bg-emerald-500 transition-colors">Post Comment</button>
+            </div>
+          </div>
+
+          <div class="mt-6 space-y-4">
+            <div class="flex gap-3">
+              <div class="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-gray-800 text-xs font-bold text-gray-400">RP</div>
+              <div class="flex-1">
+                <div class="flex items-center gap-2">
+                  <span class="text-sm font-medium text-white">RPGHunter</span>
+                  <span class="text-xs text-blue-400">Veteran</span>
+                  <span class="text-xs text-gray-600">2 days ago</span>
+                </div>
+                <p class="mt-1 text-sm text-gray-400">Has anyone tested with the latest patch? I heard they optimized shader compilation for Deck.</p>
+                <div class="mt-2 flex items-center gap-3">
+                  <button class="text-xs text-gray-500 hover:text-emerald-400 transition-colors">5 likes</button>
+                  <button class="text-xs text-gray-500 hover:text-white transition-colors">Reply</button>
+                </div>
+                <div class="mt-3 ml-2 pl-4 border-l border-gray-800">
+                  <div class="flex gap-3">
+                    <div class="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-gray-800 text-xs font-bold text-gray-400">DM</div>
+                    <div>
+                      <div class="flex items-center gap-2">
+                        <span class="text-sm font-medium text-white">DeckMaster42</span>
+                        <span class="text-xs text-purple-400">Elite</span>
+                        <span class="text-xs text-gray-600">1 day ago</span>
+                      </div>
+                      <p class="mt-1 text-sm text-gray-400">Yes! Tested on SteamOS 3.6. Shader stutter is way better, gaining ~3-5fps in open areas.</p>
+                      <div class="mt-2 flex items-center gap-3">
+                        <button class="text-xs text-gray-500 hover:text-emerald-400 transition-colors">8 likes</button>
+                        <button class="text-xs text-gray-500 hover:text-white transition-colors">Reply</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
-      <!-- Sidebar -->
+      <!-- SIDEBAR -->
       <aside class="w-full lg:w-80 flex-shrink-0 space-y-4">
-        <!-- Quick Verdict (placeholder) -->
+        <!-- Quick Verdict -->
         <div class="rounded-xl border border-gray-800 bg-gray-900 p-5">
-          <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-3">Quick Verdict</h3>
-          <div class="space-y-2 text-sm text-gray-600">
-            <p>Performance data will appear here</p>
+          <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">Quick Verdict</h3>
+          <div class="space-y-3">
+            {devicePerformance.map((dp) => (
+              <div class="flex items-center justify-between">
+                <span class="text-sm text-gray-300">{dp.device.replace('ASUS ', '').replace('Lenovo ', '')}</span>
+                <PerformanceBadge fps={dp.profiles[1].fps} size="sm" />
+              </div>
+            ))}
+          </div>
+          <div class="mt-4 pt-3 border-t border-gray-800">
+            <p class="text-xs text-gray-500">Balanced profile, {devicePerformance.reduce((s, d) => s + d.reportCount, 0)} reports</p>
           </div>
         </div>
 
-        <!-- Metadata -->
+        <!-- Game Info -->
         <div class="rounded-xl border border-gray-800 bg-gray-900 p-5">
-          <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-3">Game Info</h3>
-          <dl class="space-y-3 text-sm">
-            <div class="flex justify-between">
-              <dt class="text-gray-500">Developer</dt>
-              <dd class="text-gray-300">{game.developers[0]}</dd>
-            </div>
-            <div class="flex justify-between">
-              <dt class="text-gray-500">Genres</dt>
-              <dd class="text-gray-300">{game.genres.join(', ')}</dd>
-            </div>
-            {game.metacriticScore && (
-              <div class="flex justify-between">
-                <dt class="text-gray-500">Metacritic</dt>
-                <dd class="text-gray-300">{game.metacriticScore}/100</dd>
-              </div>
-            )}
-            <div class="flex justify-between">
-              <dt class="text-gray-500">ProtonDB</dt>
-              <dd class="text-gray-300 capitalize">{game.protondbTier}</dd>
-            </div>
-            <div class="flex justify-between">
-              <dt class="text-gray-500">Deck Status</dt>
-              <dd class="text-gray-300 capitalize">{game.deckCompatibility}</dd>
-            </div>
+          <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Game Info</h3>
+          <dl class="space-y-2.5 text-sm">
+            <div class="flex justify-between"><dt class="text-gray-500">Developer</dt><dd class="text-gray-300">{game.developers[0]}</dd></div>
+            <div class="flex justify-between"><dt class="text-gray-500">Publisher</dt><dd class="text-gray-300">{game.publishers[0]}</dd></div>
+            <div class="flex justify-between"><dt class="text-gray-500">Released</dt><dd class="text-gray-300">Feb 25, 2022</dd></div>
+            <div class="flex justify-between"><dt class="text-gray-500">Price</dt><dd class="text-gray-300">${game.priceUsd}</dd></div>
+            <div class="flex justify-between"><dt class="text-gray-500">Genres</dt><dd class="text-gray-300 text-right">{game.genres.join(', ')}</dd></div>
           </dl>
+        </div>
+
+        <!-- Scores -->
+        <div class="rounded-xl border border-gray-800 bg-gray-900 p-5">
+          <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Scores</h3>
+          <div class="grid grid-cols-2 gap-3">
+            <div class="rounded-lg bg-gray-800 p-3 text-center">
+              <p class="text-xl font-bold text-green-400">{game.metacriticScore}</p>
+              <p class="text-xs text-gray-500 mt-0.5">Metacritic</p>
+            </div>
+            <div class="rounded-lg bg-gray-800 p-3 text-center">
+              <p class="text-xl font-bold text-blue-400">{game.steamReviewScore}%</p>
+              <p class="text-xs text-gray-500 mt-0.5">Steam</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- HLTB -->
+        <div class="rounded-xl border border-gray-800 bg-gray-900 p-5">
+          <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Time to Beat</h3>
+          <div class="space-y-2">
+            <div class="flex justify-between items-center"><span class="text-sm text-gray-500">Main Story</span><span class="text-sm font-medium text-gray-300">{game.hltbMainHours}h</span></div>
+            <div class="h-1.5 rounded-full bg-gray-800 overflow-hidden"><div class="h-full rounded-full bg-emerald-500/60" style="width: 42%"></div></div>
+            <div class="flex justify-between items-center mt-2"><span class="text-sm text-gray-500">Main + Extra</span><span class="text-sm font-medium text-gray-300">{game.hltbExtraHours}h</span></div>
+            <div class="h-1.5 rounded-full bg-gray-800 overflow-hidden"><div class="h-full rounded-full bg-emerald-500/60" style="width: 74%"></div></div>
+            <div class="flex justify-between items-center mt-2"><span class="text-sm text-gray-500">Completionist</span><span class="text-sm font-medium text-gray-300">{game.hltbCompletionistHours}h</span></div>
+            <div class="h-1.5 rounded-full bg-gray-800 overflow-hidden"><div class="h-full rounded-full bg-emerald-500/60" style="width: 100%"></div></div>
+          </div>
+        </div>
+
+        <!-- Compatibility -->
+        <div class="rounded-xl border border-gray-800 bg-gray-900 p-5">
+          <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Compatibility</h3>
+          <dl class="space-y-2.5 text-sm">
+            <div class="flex justify-between items-center"><dt class="text-gray-500">Deck Status</dt><dd class="rounded-md bg-green-500/20 px-2 py-0.5 text-xs font-medium text-green-400">Verified</dd></div>
+            <div class="flex justify-between items-center"><dt class="text-gray-500">ProtonDB</dt><dd class="rounded-md bg-yellow-500/20 px-2 py-0.5 text-xs font-medium text-yellow-400">Gold</dd></div>
+            <div class="flex justify-between items-center"><dt class="text-gray-500">Anti-Cheat</dt><dd class="text-gray-300">N/A</dd></div>
+            <div class="flex justify-between items-center"><dt class="text-gray-500">Controller</dt><dd class="text-green-400 text-xs">Works OOB</dd></div>
+            <div class="flex justify-between items-center"><dt class="text-gray-500">Suspend</dt><dd class="text-green-400 text-xs">Works</dd></div>
+          </dl>
+        </div>
+
+        <!-- Tags -->
+        <div class="rounded-xl border border-gray-800 bg-gray-900 p-5">
+          <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Tags</h3>
+          <div class="flex flex-wrap gap-1.5">
+            {game.tags.map(tag => (
+              <a href={`/games?tag=${tag.toLowerCase()}`} class="rounded-full bg-gray-800 px-2.5 py-1 text-xs text-gray-400 hover:text-white hover:bg-gray-700 transition-colors">{tag}</a>
+            ))}
+          </div>
         </div>
       </aside>
     </div>
