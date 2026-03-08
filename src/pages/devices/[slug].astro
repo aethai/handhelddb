@@ -1,5 +1,6 @@
 ---
 import BaseLayout from '@layouts/BaseLayout.astro';
+import PerformanceHeatmap from '@components/react/PerformanceHeatmap';
 import { supabaseAdmin } from '@lib/db/client';
 
 const { slug } = Astro.params;
@@ -23,6 +24,81 @@ const { data: otherDevices } = await supabaseAdmin
   .eq('is_active', true)
   .order('name')
   .limit(5);
+
+// Fetch performance reports for this device (for heatmap)
+const { data: deviceReportsRaw } = await supabaseAdmin
+  .from('performance_reports')
+  .select('fps_avg, overall_rating, preset, game_id, games(name, slug)')
+  .eq('device_id', device.id)
+  .eq('is_flagged', false);
+
+// Group reports by game, calculate averages
+const gameGroups = new Map<string, {
+  gameName: string;
+  gameSlug: string;
+  fpsValues: number[];
+  ratings: string[];
+  presets: string[];
+}>();
+
+for (const report of deviceReportsRaw ?? []) {
+  const game = (report as any).games;
+  if (!game?.slug || !report.fps_avg) continue;
+
+  const existing = gameGroups.get(game.slug);
+  if (existing) {
+    existing.fpsValues.push(report.fps_avg);
+    if (report.overall_rating) existing.ratings.push(report.overall_rating);
+    if (report.preset) existing.presets.push(report.preset);
+  } else {
+    gameGroups.set(game.slug, {
+      gameName: game.name,
+      gameSlug: game.slug,
+      fpsValues: [report.fps_avg],
+      ratings: report.overall_rating ? [report.overall_rating] : [],
+      presets: report.preset ? [report.preset] : [],
+    });
+  }
+}
+
+// Build heatmap data
+const heatmapData = [...gameGroups.values()].map((g) => {
+  const fpsAvg = g.fpsValues.reduce((a, b) => a + b, 0) / g.fpsValues.length;
+  // Most common rating
+  const ratingCounts = new Map<string, number>();
+  for (const r of g.ratings) {
+    ratingCounts.set(r, (ratingCounts.get(r) ?? 0) + 1);
+  }
+  let topRating = 'fair';
+  let topRatingCount = 0;
+  for (const [rating, count] of ratingCounts) {
+    if (count > topRatingCount) {
+      topRating = rating;
+      topRatingCount = count;
+    }
+  }
+  // Most common preset
+  const presetCounts = new Map<string, number>();
+  for (const p of g.presets) {
+    presetCounts.set(p, (presetCounts.get(p) ?? 0) + 1);
+  }
+  let topPreset = 'medium';
+  let topPresetCount = 0;
+  for (const [preset, count] of presetCounts) {
+    if (count > topPresetCount) {
+      topPreset = preset;
+      topPresetCount = count;
+    }
+  }
+  return {
+    gameName: g.gameName,
+    gameSlug: g.gameSlug,
+    fpsAvg: Math.round(fpsAvg * 10) / 10,
+    rating: topRating,
+    preset: topPreset,
+    reportCount: g.fpsValues.length,
+  };
+});
 ---
 
 <BaseLayout
@@ -140,5 +216,17 @@ const { data: otherDevices } = await supabaseAdmin
         )}
       </div>
     </div>
+
+    <!-- Performance Heatmap -->
+    {heatmapData.length > 0 && (
+      <div class="mt-6 rounded-xl border border-gray-800 bg-gray-900 p-6 sm:p-8">
+        <PerformanceHeatmap
+          client:load
+          data={heatmapData}
+          deviceName={device.name}
+          deviceSlug={device.slug}
+        />
+      </div>
+    )}
   </div>
 </BaseLayout>

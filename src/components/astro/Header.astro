@@ -1,5 +1,6 @@
 ---
 import SearchBar from '@components/react/SearchBar';
+import NotificationBell from '@components/react/NotificationBell';
 
 interface Props {
   user?: { email?: string; user_metadata?: Record<string, unknown> } | null;
@@ -51,6 +52,9 @@ const navLinks = [
         <div class="hidden md:block">
           <SearchBar client:load variant="header" placeholder="Search games..." />
         </div>
+        {user && (
+          <NotificationBell client:load />
+        )}
         <a
           href="/report/new"
           class="hidden sm:inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-emerald-500 transition-colors"

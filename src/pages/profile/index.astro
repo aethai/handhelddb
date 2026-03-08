@@ -2,6 +2,7 @@
 import BaseLayout from '@layouts/BaseLayout.astro';
 import DevicePicker from '@components/react/DevicePicker';
 import SteamImport from '@components/react/SteamImport';
+import BadgeGrid from '@components/react/BadgeGrid';
 import { supabaseAdmin } from '@lib/db/client';
 
 // ─── Auth guard ───
@@ -58,6 +59,29 @@ const recentReports = (recentReportsRaw ?? []).map((r: any) => ({
   gameName: r.games?.name ?? 'Unknown Game',
   gameImage: r.games?.header_image,
   deviceName: r.devices?.name ?? 'Unknown Device',
+}));
+
+// ─── Fetch user's badges ───
+const { data: userBadgesRaw } = await supabaseAdmin
+  .from('user_badges')
+  .select('earned_at, badges(*)')
+  .eq('user_id', user.id);
+
+const { data: allBadgesRaw } = await supabaseAdmin
+  .from('badges')
+  .select('*');
+
+// Build badge list: earned badges with dates, unearned badges without
+const earnedMap = new Map(
+  (userBadgesRaw ?? []).map((ub: any) => [ub.badges?.id, ub.earned_at])
+);
+
+const badgesForGrid = (allBadgesRaw ?? []).map((b: any) => ({
+  name: b.name,
+  description: b.description,
+  icon: b.icon,
+  category: b.category,
+  earnedAt: earnedMap.get(b.id) ?? null,
 }));
 
 // ─── Derived values ───
@@ -204,6 +228,19 @@ const ratingColors: Record<string, string> = {
         </form>
         <p id="edit-profile-error" class="hidden mt-2 text-sm text-red-400"></p>
         <p id="edit-profile-success" class="hidden mt-2 text-sm text-emerald-400"></p>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         BADGES
+         ═══════════════════════════════════════════ -->
+    <section class="mt-8">
+      <div class="mb-4">
+        <h2 class="text-xl font-bold text-white">Badges</h2>
+        <p class="mt-0.5 text-sm text-gray-500">Achievements earned through your contributions</p>
+      </div>
+      <div class="rounded-xl border border-gray-800 bg-gray-900 p-6">
+        <BadgeGrid client:load badges={badgesForGrid} />
       </div>
     </section>
 

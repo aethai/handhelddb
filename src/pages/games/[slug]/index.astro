@@ -4,6 +4,7 @@ import PerformanceBadge from '@components/astro/PerformanceBadge.astro';
 import GameJsonLd from '@components/astro/GameJsonLd.astro';
 import BreadcrumbJsonLd from '@components/astro/BreadcrumbJsonLd.astro';
 import CommentSection from '@components/react/CommentSection';
+import FollowButton from '@components/react/FollowButton';
 import { supabaseAdmin } from '@lib/db/client';
 
 const { slug } = Astro.params;
@@ -58,6 +59,20 @@ const releaseDate = game.release_date ? new Date(game.release_date).toLocaleDate
 const cleanDescription = game.short_description || (game.description?.replace(/<[^>]*>/g, '').slice(0, 500) ?? '');
 
 const currentUser = Astro.locals.user;
+
+// Fetch follow state for current user
+const { data: followData } = await supabaseAdmin
+  .from('game_follows')
+  .select('id')
+  .eq('game_id', game.id)
+  .eq('user_id', currentUser?.id ?? '')
+  .maybeSingle();
+
+// Fetch follower count
+const { count: followerCount } = await supabaseAdmin
+  .from('game_follows')
+  .select('id', { count: 'exact', head: true })
+  .eq('game_id', game.id);
 ---
 
 <BaseLayout
@@ -122,6 +137,12 @@ const currentUser = Astro.locals.user;
                 </div>
               </div>
               <div class="flex gap-2 flex-shrink-0">
+                <FollowButton
+                  client:load
+                  gameId={game.id}
+                  initialFollowing={!!followData}
+                  followerCount={followerCount ?? 0}
+                />
                 <a
                   href="/report/new"
                   class="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-emerald-500 transition-colors"
