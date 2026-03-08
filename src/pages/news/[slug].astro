@@ -97,7 +97,7 @@ const { data: recentArticles } = await supabaseAdmin
         <!-- Cover Image -->
         {article.cover_image && (
           <div class="mb-8 rounded-xl overflow-hidden">
-            <img src={article.cover_image} alt={article.title} class="w-full h-auto" />
+            <img src={article.cover_image} alt={article.title} class="w-full h-auto" loading="lazy" />
           </div>
         )}
 

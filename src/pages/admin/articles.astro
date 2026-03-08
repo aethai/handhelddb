@@ -1,0 +1,292 @@
+---
+import BaseLayout from '@layouts/BaseLayout.astro';
+import AdminNav from '@components/astro/AdminNav.astro';
+import { requireAdmin } from './_admin-guard';
+import { supabaseAdmin } from '@lib/db/client';
+
+const redirect = await requireAdmin(Astro);
+if (redirect) return redirect;
+
+// ─── Pagination ───
+const PER_PAGE = 25;
+const page = Math.max(1, parseInt(Astro.url.searchParams.get('page') ?? '1', 10) || 1);
+const offset = (page - 1) * PER_PAGE;
+
+// ─── Status filter ───
+const statusFilter = Astro.url.searchParams.get('status') ?? '';
+
+// ─── Fetch articles ───
+let query = supabaseAdmin
+  .from('articles')
+  .select('id, title, slug, category, status, ai_generated, published_at, view_count, created_at', { count: 'exact' })
+  .order('created_at', { ascending: false })
+  .range(offset, offset + PER_PAGE - 1);
+
+if (statusFilter && ['draft', 'in_review', 'published', 'archived'].includes(statusFilter)) {
+  query = query.eq('status', statusFilter);
+}
+
+const { data: articles, count: totalCount } = await query;
+const total = totalCount ?? 0;
+const totalPages = Math.ceil(total / PER_PAGE);
+
+function formatDate(dateStr: string | null): string {
+  if (!dateStr) return '-';
+  return new Date(dateStr).toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  });
+}
+
+function statusBadgeColor(status: string): string {
+  switch (status) {
+    case 'published': return 'bg-emerald-500/20 text-emerald-400';
+    case 'draft': return 'bg-gray-500/20 text-gray-400';
+    case 'in_review': return 'bg-yellow-500/20 text-yellow-400';
+    case 'archived': return 'bg-red-500/20 text-red-400';
+    default: return 'bg-gray-500/20 text-gray-400';
+  }
+}
+
+function categoryLabel(cat: string): string {
+  return cat.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+}
+---
+
+<BaseLayout title="Articles Management" noindex>
+  <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
+    <div class="mb-8 flex items-center justify-between">
+      <div>
+        <h1 class="text-2xl font-bold text-white">Articles Management</h1>
+        <p class="mt-1 text-sm text-gray-400">{total} articles total</p>
+      </div>
+      <a
+        href="/admin/articles/new"
+        class="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-500 transition-colors"
+      >
+        <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+        </svg>
+        New Article
+      </a>
+    </div>
+
+    <div class="flex flex-col lg:flex-row gap-8">
+      <AdminNav />
+
+      <div class="flex-1 min-w-0">
+        <!-- Filters -->
+        <div class="mb-6 flex flex-wrap gap-2">
+          <a
+            href="/admin/articles"
+            class:list={[
+              'rounded-lg px-3 py-1.5 text-sm font-medium transition-colors',
+              !statusFilter
+                ? 'bg-emerald-600/20 text-emerald-400 border border-emerald-500/30'
+                : 'text-gray-400 hover:text-white border border-gray-700 hover:bg-gray-800',
+            ]}
+          >
+            All
+          </a>
+          {['draft', 'in_review', 'published', 'archived'].map(status => (
+            <a
+              href={`/admin/articles?status=${status}`}
+              class:list={[
+                'rounded-lg px-3 py-1.5 text-sm font-medium transition-colors capitalize',
+                statusFilter === status
+                  ? 'bg-emerald-600/20 text-emerald-400 border border-emerald-500/30'
+                  : 'text-gray-400 hover:text-white border border-gray-700 hover:bg-gray-800',
+              ]}
+            >
+              {status.replace('_', ' ')}
+            </a>
+          ))}
+        </div>
+
+        <!-- Articles Table -->
+        <div class="rounded-xl border border-gray-800 bg-gray-900 overflow-hidden">
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+              <thead>
+                <tr class="border-b border-gray-800 bg-gray-900/50">
+                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
+                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
+                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">AI</th>
+                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Published</th>
+                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Views</th>
+                  <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-800">
+                {(!articles || articles.length === 0) ? (
+                  <tr>
+                    <td colspan="7" class="px-4 py-8 text-center text-gray-500">No articles found.</td>
+                  </tr>
+                ) : (
+                  articles.map(article => (
+                    <tr class="hover:bg-gray-800/50 transition-colors" data-article-id={article.id}>
+                      <td class="px-4 py-3">
+                        <a href={`/admin/articles/${article.id}`} class="font-medium text-white hover:text-emerald-400 transition-colors">
+                          {article.title}
+                        </a>
+                      </td>
+                      <td class="px-4 py-3 text-gray-400 whitespace-nowrap">{categoryLabel(article.category)}</td>
+                      <td class="px-4 py-3">
+                        <span class:list={[
+                          'inline-flex rounded-md px-2 py-0.5 text-xs font-medium capitalize',
+                          statusBadgeColor(article.status),
+                        ]}>
+                          {article.status?.replace('_', ' ')}
+                        </span>
+                      </td>
+                      <td class="px-4 py-3">
+                        {article.ai_generated ? (
+                          <span class="inline-flex rounded-md px-2 py-0.5 text-xs font-medium bg-purple-500/20 text-purple-400">AI</span>
+                        ) : (
+                          <span class="text-gray-600">-</span>
+                        )}
+                      </td>
+                      <td class="px-4 py-3 text-gray-500 whitespace-nowrap">{formatDate(article.published_at)}</td>
+                      <td class="px-4 py-3 text-gray-300">{(article.view_count ?? 0).toLocaleString()}</td>
+                      <td class="px-4 py-3 text-right">
+                        <div class="flex items-center justify-end gap-2">
+                          <a
+                            href={`/admin/articles/${article.id}`}
+                            class="rounded-md border border-gray-700 px-2 py-1 text-xs font-medium text-gray-300 hover:bg-gray-800 transition-colors"
+                          >
+                            Edit
+                          </a>
+                          <button
+                            class="admin-article-toggle rounded-md px-2 py-1 text-xs font-medium transition-colors border"
+                            data-article-id={article.id}
+                            data-action={article.status === 'published' ? 'unpublish' : 'publish'}
+                            class:list={[
+                              article.status === 'published'
+                                ? 'border-amber-700 text-amber-400 hover:bg-amber-900/30'
+                                : 'border-emerald-700 text-emerald-400 hover:bg-emerald-900/30',
+                            ]}
+                          >
+                            {article.status === 'published' ? 'Unpublish' : 'Publish'}
+                          </button>
+                          <button
+                            class="admin-article-delete rounded-md border border-red-700 px-2 py-1 text-xs font-medium text-red-400 hover:bg-red-900/30 transition-colors"
+                            data-article-id={article.id}
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Pagination -->
+        {totalPages > 1 && (
+          <div class="mt-6 flex items-center justify-between">
+            <p class="text-sm text-gray-500">
+              Showing {offset + 1}–{Math.min(offset + PER_PAGE, total)} of {total}
+            </p>
+            <div class="flex gap-2">
+              {page > 1 && (
+                <a
+                  href={`/admin/articles?page=${page - 1}${statusFilter ? `&status=${statusFilter}` : ''}`}
+                  class="rounded-lg border border-gray-700 px-3 py-1.5 text-sm text-gray-300 hover:bg-gray-800 transition-colors"
+                >
+                  Previous
+                </a>
+              )}
+              {page < totalPages && (
+                <a
+                  href={`/admin/articles?page=${page + 1}${statusFilter ? `&status=${statusFilter}` : ''}`}
+                  class="rounded-lg border border-gray-700 px-3 py-1.5 text-sm text-gray-300 hover:bg-gray-800 transition-colors"
+                >
+                  Next
+                </a>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  </div>
+</BaseLayout>
+
+<script>
+  function initArticleActions() {
+    // Toggle publish/unpublish
+    document.querySelectorAll('.admin-article-toggle').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        const target = e.currentTarget as HTMLButtonElement;
+        const articleId = target.dataset.articleId;
+        const action = target.dataset.action;
+        if (!articleId || !action) return;
+
+        const newStatus = action === 'publish' ? 'published' : 'draft';
+        const confirmed = confirm(`Are you sure you want to ${action} this article?`);
+        if (!confirmed) return;
+
+        try {
+          const body: Record<string, unknown> = { articleId, status: newStatus };
+          if (newStatus === 'published') {
+            body.published_at = new Date().toISOString();
+          }
+
+          const res = await fetch('/api/admin/articles', {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body),
+          });
+
+          if (!res.ok) {
+            const data = await res.json();
+            alert(data.error ?? 'Failed to update article');
+            return;
+          }
+
+          window.location.reload();
+        } catch {
+          alert('Network error. Please try again.');
+        }
+      });
+    });
+
+    // Delete (archive)
+    document.querySelectorAll('.admin-article-delete').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        const target = e.currentTarget as HTMLButtonElement;
+        const articleId = target.dataset.articleId;
+        if (!articleId) return;
+
+        const confirmed = confirm('Are you sure you want to archive this article? It will no longer be visible.');
+        if (!confirmed) return;
+
+        try {
+          const res = await fetch('/api/admin/articles', {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ articleId }),
+          });
+
+          if (!res.ok) {
+            const data = await res.json();
+            alert(data.error ?? 'Failed to delete article');
+            return;
+          }
+
+          window.location.reload();
+        } catch {
+          alert('Network error. Please try again.');
+        }
+      });
+    });
+  }
+
+  initArticleActions();
+  document.addEventListener('astro:after-swap', initArticleActions);
+</script>

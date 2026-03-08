@@ -240,7 +240,7 @@ const ratingColors: Record<string, string> = {
         <p class="mt-0.5 text-sm text-gray-500">Achievements earned through your contributions</p>
       </div>
       <div class="rounded-xl border border-gray-800 bg-gray-900 p-6">
-        <BadgeGrid client:load badges={badgesForGrid} />
+        <BadgeGrid client:visible badges={badgesForGrid} />
       </div>
     </section>
 
@@ -435,7 +435,7 @@ const ratingColors: Record<string, string> = {
         <p class="mt-0.5 text-sm text-gray-500">Import your Steam library to see which games have performance data</p>
       </div>
       <div class="rounded-xl border border-gray-800 bg-gray-900 p-6">
-        <SteamImport client:load currentUserId={profile.id} />
+        <SteamImport client:visible currentUserId={profile.id} />
       </div>
     </section>
   </div>

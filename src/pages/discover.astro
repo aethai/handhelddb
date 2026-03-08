@@ -2,75 +2,131 @@
 import BaseLayout from '@layouts/BaseLayout.astro';
 import GameCard from '@components/astro/GameCard.astro';
 import { supabaseAdmin } from '@lib/db/client';
+import { getCached, setCache } from '@lib/cache';
 
-// ─── Fetch real data from Supabase ───
+// ─── Types ───
+type GameRow = { slug: string; name: string; header_image: string | null; genres: string[] | null; deck_compatibility: string | null; metacritic_score: number | null };
+type MappedGame = { slug: string; name: string; headerImage: string | null; genres: string[]; deckCompatibility: string | null };
+type CurationItem = { title: string; subtitle: string; emoji: string; games: MappedGame[] };
+type DiscoverCache = {
+  curations: CurationItem[];
+  topGenres: [string, number][];
+  devices: Array<{ slug: string; name: string; manufacturer: string; id: string }>;
+  deviceReportMap: Record<string, number>;
+  topRatedAll: MappedGame[];
+};
 
-// 1. Top-rated games (by metacritic_score)
-const { data: topRated } = await supabaseAdmin
-  .from('games')
-  .select('slug, name, header_image, genres, deck_compatibility, metacritic_score')
-  .not('metacritic_score', 'is', null)
-  .order('metacritic_score', { ascending: false })
-  .limit(8);
+const cacheKey = 'discover:curated';
+let cached = getCached<DiscoverCache>(cacheKey);
 
-// 2. Steam Deck Verified games
-const { data: deckVerified } = await supabaseAdmin
-  .from('games')
-  .select('slug, name, header_image, genres, deck_compatibility, metacritic_score')
-  .eq('deck_compatibility', 'verified')
-  .order('metacritic_score', { ascending: false })
-  .limit(4);
-
-// 3. Free to Play games
-const { data: freeGames } = await supabaseAdmin
-  .from('games')
-  .select('slug, name, header_image, genres, deck_compatibility, metacritic_score')
-  .eq('is_free_to_play', true)
-  .order('metacritic_score', { ascending: false })
-  .limit(4);
-
-// 4. RPG games
-const { data: rpgGames } = await supabaseAdmin
-  .from('games')
-  .select('slug, name, header_image, genres, deck_compatibility, metacritic_score')
-  .contains('genres', ['RPG'])
-  .order('metacritic_score', { ascending: false })
-  .limit(4);
-
-// 5. Action games
-const { data: actionGames } = await supabaseAdmin
-  .from('games')
-  .select('slug, name, header_image, genres, deck_compatibility, metacritic_score')
-  .contains('genres', ['Action'])
-  .order('metacritic_score', { ascending: false })
-  .limit(4);
-
-// 6. Indie gems (Indie genre, good metacritic)
-const { data: indieGames } = await supabaseAdmin
-  .from('games')
-  .select('slug, name, header_image, genres, deck_compatibility, metacritic_score')
-  .contains('genres', ['Indie'])
-  .not('metacritic_score', 'is', null)
-  .order('metacritic_score', { ascending: false })
-  .limit(4);
-
-// Genre counts
-const { data: allGamesGenres } = await supabaseAdmin
-  .from('games')
-  .select('genres');
-const genreCountMap = new Map<string, number>();
-(allGamesGenres ?? []).forEach(g => {
-  ((g.genres as string[]) ?? []).forEach(genre => {
-    genreCountMap.set(genre, (genreCountMap.get(genre) ?? 0) + 1);
+if (!cached) {
+  const mapGame = (g: GameRow): MappedGame => ({
+    slug: g.slug,
+    name: g.name,
+    headerImage: g.header_image,
+    genres: (g.genres as string[]) ?? [],
+    deckCompatibility: g.deck_compatibility,
   });
-});
 
-// Sort genres by count descending, take top 12
-const topGenres = [...genreCountMap.entries()]
-  .sort((a, b) => b[1] - a[1])
-  .slice(0, 12);
+  // ─── Fetch all 6 curated queries + genre counts + devices in parallel ───
+  const [
+    topRatedRes,
+    deckVerifiedRes,
+    freeGamesRes,
+    rpgGamesRes,
+    actionGamesRes,
+    indieGamesRes,
+    allGamesGenresRes,
+    devicesRes,
+    reportCountsRes,
+  ] = await Promise.all([
+    supabaseAdmin.from('games').select('slug, name, header_image, genres, deck_compatibility, metacritic_score').not('metacritic_score', 'is', null).order('metacritic_score', { ascending: false }).limit(8),
+    supabaseAdmin.from('games').select('slug, name, header_image, genres, deck_compatibility, metacritic_score').eq('deck_compatibility', 'verified').order('metacritic_score', { ascending: false }).limit(4),
+    supabaseAdmin.from('games').select('slug, name, header_image, genres, deck_compatibility, metacritic_score').eq('is_free_to_play', true).order('metacritic_score', { ascending: false }).limit(4),
+    supabaseAdmin.from('games').select('slug, name, header_image, genres, deck_compatibility, metacritic_score').contains('genres', ['RPG']).order('metacritic_score', { ascending: false }).limit(4),
+    supabaseAdmin.from('games').select('slug, name, header_image, genres, deck_compatibility, metacritic_score').contains('genres', ['Action']).order('metacritic_score', { ascending: false }).limit(4),
+    supabaseAdmin.from('games').select('slug, name, header_image, genres, deck_compatibility, metacritic_score').contains('genres', ['Indie']).not('metacritic_score', 'is', null).order('metacritic_score', { ascending: false }).limit(4),
+    supabaseAdmin.from('games').select('genres'),
+    supabaseAdmin.from('devices').select('slug, name, manufacturer, id').order('name').limit(6),
+    supabaseAdmin.from('performance_reports').select('device_id'),
+  ]);
 
-// Genre color mapping
+  const topRated = topRatedRes.data;
+  const deckVerified = deckVerifiedRes.data;
+  const freeGames = freeGamesRes.data;
+  const rpgGames = rpgGamesRes.data;
+  const actionGames = actionGamesRes.data;
+  const indieGames = indieGamesRes.data;
+
+  // Genre counts
+  const genreCountMap = new Map<string, number>();
+  (allGamesGenresRes.data ?? []).forEach(g => {
+    ((g.genres as string[]) ?? []).forEach(genre => {
+      genreCountMap.set(genre, (genreCountMap.get(genre) ?? 0) + 1);
+    });
+  });
+  const topGenres: [string, number][] = [...genreCountMap.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 12);
+
+  // Report counts per device
+  const deviceReportMapLocal: Record<string, number> = {};
+  (reportCountsRes.data ?? []).forEach(r => {
+    deviceReportMapLocal[r.device_id] = (deviceReportMapLocal[r.device_id] ?? 0) + 1;
+  });
+
+  const curations: CurationItem[] = [
+    {
+      title: 'Highest Rated',
+      subtitle: 'Top metacritic scores in our database',
+      emoji: '\u{1F3C6}',
+      games: (topRated ?? []).slice(0, 4).map(mapGame),
+    },
+    ...(deckVerified && deckVerified.length > 0 ? [{
+      title: 'Steam Deck Verified',
+      subtitle: 'Officially verified for Steam Deck',
+      emoji: '\u2705',
+      games: deckVerified.map(mapGame),
+    }] : []),
+    ...(freeGames && freeGames.length > 0 ? [{
+      title: 'Free to Play',
+      subtitle: 'Great handheld games that cost nothing',
+      emoji: '\u{1F3AE}',
+      games: freeGames.map(mapGame),
+    }] : []),
+    ...(rpgGames && rpgGames.length > 0 ? [{
+      title: 'Best RPGs',
+      subtitle: 'Role-playing adventures for handheld gaming',
+      emoji: '\u2694\uFE0F',
+      games: rpgGames.map(mapGame),
+    }] : []),
+    ...(actionGames && actionGames.length > 0 ? [{
+      title: 'Top Action Games',
+      subtitle: 'Fast-paced games that shine on handhelds',
+      emoji: '\u{1F4A5}',
+      games: actionGames.map(mapGame),
+    }] : []),
+    ...(indieGames && indieGames.length > 0 ? [{
+      title: 'Indie Gems',
+      subtitle: 'Hidden indie favorites with great handheld performance',
+      emoji: '\u{1F48E}',
+      games: indieGames.map(mapGame),
+    }] : []),
+  ].filter(c => c.games.length > 0);
+
+  cached = {
+    curations,
+    topGenres,
+    devices: (devicesRes.data ?? []) as Array<{ slug: string; name: string; manufacturer: string; id: string }>,
+    deviceReportMap: deviceReportMapLocal,
+    topRatedAll: (topRated ?? []).map(mapGame),
+  };
+  setCache(cacheKey, cached, 600); // 10 minutes
+}
+
+const { curations, topGenres, devices, deviceReportMap, topRatedAll } = cached;
+
+// Genre color mapping (static, no need to cache)
 const genreColors: Record<string, string> = {
   'Action': 'border-red-500/30 text-red-400 hover:bg-red-500/10',
   'RPG': 'border-purple-500/30 text-purple-400 hover:bg-purple-500/10',
@@ -86,71 +142,6 @@ const genreColors: Record<string, string> = {
   'Racing': 'border-amber-500/30 text-amber-400 hover:bg-amber-500/10',
 };
 const defaultColor = 'border-gray-500/30 text-gray-400 hover:bg-gray-500/10';
-
-// Devices for quick filters
-const { data: devices } = await supabaseAdmin
-  .from('devices')
-  .select('slug, name, manufacturer, id')
-  .order('name')
-  .limit(6);
-
-// Report counts per device
-const { data: reportCounts } = await supabaseAdmin
-  .from('performance_reports')
-  .select('device_id');
-const deviceReportMap = new Map<string, number>();
-(reportCounts ?? []).forEach(r => {
-  deviceReportMap.set(r.device_id, (deviceReportMap.get(r.device_id) ?? 0) + 1);
-});
-
-// Build curated lists from real data
-type GameRow = { slug: string; name: string; header_image: string | null; genres: string[] | null; deck_compatibility: string | null; metacritic_score: number | null };
-const mapGame = (g: GameRow) => ({
-  slug: g.slug,
-  name: g.name,
-  headerImage: g.header_image,
-  genres: (g.genres as string[]) ?? [],
-  deckCompatibility: g.deck_compatibility,
-});
-
-const curations = [
-  {
-    title: 'Highest Rated',
-    subtitle: 'Top metacritic scores in our database',
-    emoji: '🏆',
-    games: (topRated ?? []).slice(0, 4).map(mapGame),
-  },
-  ...(deckVerified && deckVerified.length > 0 ? [{
-    title: 'Steam Deck Verified',
-    subtitle: 'Officially verified for Steam Deck',
-    emoji: '✅',
-    games: deckVerified.map(mapGame),
-  }] : []),
-  ...(freeGames && freeGames.length > 0 ? [{
-    title: 'Free to Play',
-    subtitle: 'Great handheld games that cost nothing',
-    emoji: '🎮',
-    games: freeGames.map(mapGame),
-  }] : []),
-  ...(rpgGames && rpgGames.length > 0 ? [{
-    title: 'Best RPGs',
-    subtitle: 'Role-playing adventures for handheld gaming',
-    emoji: '⚔️',
-    games: rpgGames.map(mapGame),
-  }] : []),
-  ...(actionGames && actionGames.length > 0 ? [{
-    title: 'Top Action Games',
-    subtitle: 'Fast-paced games that shine on handhelds',
-    emoji: '💥',
-    games: actionGames.map(mapGame),
-  }] : []),
-  ...(indieGames && indieGames.length > 0 ? [{
-    title: 'Indie Gems',
-    subtitle: 'Hidden indie favorites with great handheld performance',
-    emoji: '💎',
-    games: indieGames.map(mapGame),
-  }] : []),
-].filter(c => c.games.length > 0);
 ---
 
 <BaseLayout title="What Should I Play?" description="Discover the best handheld games. Curated lists for Steam Deck, ROG Ally, and Legion Go — browse by genre, rating, and device compatibility.">
@@ -217,7 +208,7 @@ const curations = [
                 {device.name}
               </p>
               <p class="mt-2 text-sm text-gray-400">
-                {deviceReportMap.get(device.id) ?? 0} reports
+                {deviceReportMap[device.id] ?? 0} reports
               </p>
             </a>
           ))}
@@ -226,7 +217,7 @@ const curations = [
     )}
 
     <!-- Recently Added -->
-    {(topRated ?? []).length > 4 && (
+    {topRatedAll.length > 4 && (
       <div class="mt-16">
         <div class="flex items-end justify-between mb-5">
           <div>
@@ -240,8 +231,8 @@ const curations = [
           </a>
         </div>
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {(topRated ?? []).slice(4, 8).map((g) => (
-            <GameCard {...mapGame(g)} />
+          {topRatedAll.slice(4, 8).map((g) => (
+            <GameCard {...g} />
           ))}
         </div>
       </div>

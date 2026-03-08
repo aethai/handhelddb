@@ -1,0 +1,221 @@
+---
+import BaseLayout from '@layouts/BaseLayout.astro';
+import AdminNav from '@components/astro/AdminNav.astro';
+import { requireAdmin } from './_admin-guard';
+import { supabaseAdmin } from '@lib/db/client';
+
+const redirect = await requireAdmin(Astro);
+if (redirect) return redirect;
+
+// ─── Fetch stats ───
+const [
+  { count: totalUsers },
+  { count: totalGames },
+  { count: totalDevices },
+  { count: totalArticles },
+  { count: totalReports },
+  { count: totalComments },
+] = await Promise.all([
+  supabaseAdmin.from('users').select('*', { count: 'exact', head: true }),
+  supabaseAdmin.from('games').select('*', { count: 'exact', head: true }),
+  supabaseAdmin.from('devices').select('*', { count: 'exact', head: true }),
+  supabaseAdmin.from('articles').select('*', { count: 'exact', head: true }),
+  supabaseAdmin.from('performance_reports').select('*', { count: 'exact', head: true }),
+  supabaseAdmin.from('comments').select('*', { count: 'exact', head: true }),
+]);
+
+// ─── Recent users ───
+const { data: recentUsers } = await supabaseAdmin
+  .from('users')
+  .select('id, display_name, email, avatar_url, created_at')
+  .order('created_at', { ascending: false })
+  .limit(5);
+
+// ─── Recent reports ───
+const { data: recentReports } = await supabaseAdmin
+  .from('performance_reports')
+  .select('id, fps_avg, overall_rating, quality_tier, created_at, game_id, device_id')
+  .order('created_at', { ascending: false })
+  .limit(5);
+
+// Look up game and device names for reports
+let reportDetails: Array<{
+  id: string;
+  gameName: string;
+  deviceName: string;
+  fpsAvg: number;
+  overallRating: string;
+  createdAt: string;
+}> = [];
+
+if (recentReports && recentReports.length > 0) {
+  const gameIds = [...new Set(recentReports.map(r => r.game_id))];
+  const deviceIds = [...new Set(recentReports.map(r => r.device_id))];
+
+  const [{ data: games }, { data: devices }] = await Promise.all([
+    supabaseAdmin.from('games').select('id, name').in('id', gameIds),
+    supabaseAdmin.from('devices').select('id, name').in('id', deviceIds),
+  ]);
+
+  const gameMap = new Map((games ?? []).map(g => [g.id, g.name]));
+  const deviceMap = new Map((devices ?? []).map(d => [d.id, d.name]));
+
+  reportDetails = recentReports.map(r => ({
+    id: r.id,
+    gameName: gameMap.get(r.game_id) ?? 'Unknown',
+    deviceName: deviceMap.get(r.device_id) ?? 'Unknown',
+    fpsAvg: r.fps_avg,
+    overallRating: r.overall_rating,
+    createdAt: r.created_at,
+  }));
+}
+
+const stats = [
+  { label: 'Total Users', value: totalUsers ?? 0, color: 'emerald', icon: 'users' },
+  { label: 'Total Games', value: totalGames ?? 0, color: 'blue', icon: 'games' },
+  { label: 'Total Devices', value: totalDevices ?? 0, color: 'purple', icon: 'devices' },
+  { label: 'Total Articles', value: totalArticles ?? 0, color: 'amber', icon: 'articles' },
+  { label: 'Total Reports', value: totalReports ?? 0, color: 'cyan', icon: 'reports' },
+  { label: 'Total Comments', value: totalComments ?? 0, color: 'rose', icon: 'comments' },
+];
+
+function formatDate(dateStr: string): string {
+  return new Date(dateStr).toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+}
+
+function ratingBadgeColor(rating: string): string {
+  switch (rating) {
+    case 'excellent': return 'bg-emerald-500/20 text-emerald-400';
+    case 'good': return 'bg-green-500/20 text-green-400';
+    case 'fair': return 'bg-yellow-500/20 text-yellow-400';
+    case 'poor': return 'bg-orange-500/20 text-orange-400';
+    case 'unplayable': return 'bg-red-500/20 text-red-400';
+    default: return 'bg-gray-500/20 text-gray-400';
+  }
+}
+---
+
+<BaseLayout title="Admin Dashboard" noindex>
+  <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Header -->
+    <div class="mb-8">
+      <h1 class="text-2xl font-bold text-white">Admin Dashboard</h1>
+      <p class="mt-1 text-sm text-gray-400">Overview of your Handheld GameDB instance.</p>
+    </div>
+
+    <div class="flex flex-col lg:flex-row gap-8">
+      <AdminNav />
+
+      <div class="flex-1 min-w-0">
+        <!-- Stats Grid -->
+        <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-8">
+          {stats.map(stat => (
+            <div class="rounded-xl border border-gray-800 bg-gray-900 p-4">
+              <p class="text-xs font-medium text-gray-500 uppercase tracking-wider">{stat.label}</p>
+              <p class:list={[
+                'mt-2 text-2xl font-bold',
+                stat.color === 'emerald' && 'text-emerald-400',
+                stat.color === 'blue' && 'text-blue-400',
+                stat.color === 'purple' && 'text-purple-400',
+                stat.color === 'amber' && 'text-amber-400',
+                stat.color === 'cyan' && 'text-cyan-400',
+                stat.color === 'rose' && 'text-rose-400',
+              ]}>
+                {stat.value.toLocaleString()}
+              </p>
+            </div>
+          ))}
+        </div>
+
+        <!-- Recent Content -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <!-- Recent Users -->
+          <div class="rounded-xl border border-gray-800 bg-gray-900 p-5">
+            <div class="flex items-center justify-between mb-4">
+              <h2 class="text-sm font-semibold text-white">Recent Registrations</h2>
+              <a href="/admin/users" class="text-xs text-emerald-400 hover:text-emerald-300">View all</a>
+            </div>
+            {(!recentUsers || recentUsers.length === 0) ? (
+              <p class="text-sm text-gray-500">No users yet.</p>
+            ) : (
+              <div class="space-y-3">
+                {recentUsers.map(user => (
+                  <div class="flex items-center gap-3">
+                    {user.avatar_url ? (
+                      <img src={user.avatar_url} alt="" class="h-8 w-8 rounded-full" />
+                    ) : (
+                      <div class="h-8 w-8 rounded-full bg-gray-700 flex items-center justify-center text-xs font-bold text-gray-300">
+                        {(user.display_name ?? user.email ?? '?').charAt(0).toUpperCase()}
+                      </div>
+                    )}
+                    <div class="min-w-0 flex-1">
+                      <p class="text-sm font-medium text-white truncate">{user.display_name ?? 'No name'}</p>
+                      <p class="text-xs text-gray-500 truncate">{user.email ?? 'No email'}</p>
+                    </div>
+                    <span class="text-xs text-gray-600 whitespace-nowrap">{formatDate(user.created_at)}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <!-- Recent Reports -->
+          <div class="rounded-xl border border-gray-800 bg-gray-900 p-5">
+            <div class="flex items-center justify-between mb-4">
+              <h2 class="text-sm font-semibold text-white">Recent Reports</h2>
+              <span class="text-xs text-gray-500">{totalReports ?? 0} total</span>
+            </div>
+            {reportDetails.length === 0 ? (
+              <p class="text-sm text-gray-500">No reports yet.</p>
+            ) : (
+              <div class="space-y-3">
+                {reportDetails.map(report => (
+                  <div class="flex items-center gap-3">
+                    <div class="min-w-0 flex-1">
+                      <p class="text-sm font-medium text-white truncate">{report.gameName}</p>
+                      <p class="text-xs text-gray-500">{report.deviceName} &middot; {report.fpsAvg} FPS</p>
+                    </div>
+                    <span class:list={[
+                      'inline-flex rounded-md px-2 py-0.5 text-xs font-medium capitalize',
+                      ratingBadgeColor(report.overallRating),
+                    ]}>
+                      {report.overallRating}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        <!-- System Status -->
+        <div class="mt-6 rounded-xl border border-gray-800 bg-gray-900 p-5">
+          <h2 class="text-sm font-semibold text-white mb-3">System Status</h2>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
+            <div>
+              <span class="text-gray-500">Database</span>
+              <span class="ml-2 inline-flex items-center gap-1 text-emerald-400">
+                <span class="h-1.5 w-1.5 rounded-full bg-emerald-400"></span>
+                Connected
+              </span>
+            </div>
+            <div>
+              <span class="text-gray-500">Games imported</span>
+              <span class="ml-2 text-white">{(totalGames ?? 0).toLocaleString()}</span>
+            </div>
+            <div>
+              <span class="text-gray-500">Active devices</span>
+              <span class="ml-2 text-white">{(totalDevices ?? 0).toLocaleString()}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</BaseLayout>

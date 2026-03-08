@@ -60,6 +60,9 @@ const SECURITY_HEADERS: Record<string, string> = {
 };
 
 export const onRequest = defineMiddleware(async ({ cookies, locals, request, url }, next) => {
+  // ── Response timing ──
+  const start = Date.now();
+
   // ── Periodic cleanup of stale rate-limit entries ──
   cleanupStaleEntries();
 
@@ -108,6 +111,9 @@ export const onRequest = defineMiddleware(async ({ cookies, locals, request, url
       response.headers.set(header, value);
     }
   }
+
+  // ── Response timing header ──
+  response.headers.set('X-Response-Time', `${Date.now() - start}ms`);
 
   return response;
 });

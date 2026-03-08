@@ -1,20 +1,41 @@
 ---
 import BaseLayout from '@layouts/BaseLayout.astro';
 import { supabaseAdmin } from '@lib/db/client';
+import { getCached, setCache } from '@lib/cache';
 
 const page = Math.max(1, Number(Astro.url.searchParams.get('page')) || 1);
 const perPage = 12;
 const offset = (page - 1) * perPage;
 
-const { data: articles, count } = await supabaseAdmin
-  .from('articles')
-  .select('slug, title, lead, cover_image, category, tags, published_at, view_count', { count: 'exact' })
-  .eq('status', 'published')
-  .not('published_at', 'is', null)
-  .order('published_at', { ascending: false })
-  .range(offset, offset + perPage - 1);
+type NewsPageCache = {
+  articles: Array<{ slug: string; title: string; lead: string | null; cover_image: string | null; category: string; tags: string[] | null; published_at: string | null; view_count: number | null }>;
+  count: number;
+};
 
-const totalPages = Math.ceil((count ?? 0) / perPage);
+const cacheKey = `news:list:${page}`;
+let newsData = getCached<NewsPageCache>(cacheKey);
+
+let articles: NewsPageCache['articles'];
+let count: number;
+
+if (newsData) {
+  articles = newsData.articles;
+  count = newsData.count;
+} else {
+  const res = await supabaseAdmin
+    .from('articles')
+    .select('slug, title, lead, cover_image, category, tags, published_at, view_count', { count: 'exact' })
+    .eq('status', 'published')
+    .not('published_at', 'is', null)
+    .order('published_at', { ascending: false })
+    .range(offset, offset + perPage - 1);
+
+  articles = (res.data ?? []) as NewsPageCache['articles'];
+  count = res.count ?? 0;
+  setCache(cacheKey, { articles, count }, 300); // 5 minutes
+}
+
+const totalPages = Math.ceil(count / perPage);
 
 const categoryColors: Record<string, string> = {
   device_launch: 'bg-blue-500/20 text-blue-400',

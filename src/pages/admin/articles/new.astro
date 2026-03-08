@@ -1,0 +1,327 @@
+---
+import BaseLayout from '@layouts/BaseLayout.astro';
+import AdminNav from '@components/astro/AdminNav.astro';
+import { requireAdmin } from '../_admin-guard';
+
+const redirect = await requireAdmin(Astro);
+if (redirect) return redirect;
+
+const categories = [
+  'device_launch',
+  'device_update',
+  'os_update',
+  'driver_update',
+  'game_patch',
+  'game_launch',
+  'sale_event',
+  'performance_analysis',
+  'industry',
+  'editorial',
+];
+
+const statuses = ['draft', 'in_review', 'published'];
+
+function categoryLabel(cat: string): string {
+  return cat.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+}
+---
+
+<BaseLayout title="New Article" noindex>
+  <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
+    <div class="mb-8">
+      <div class="flex items-center gap-3 mb-2">
+        <a href="/admin/articles" class="text-gray-500 hover:text-white transition-colors">
+          <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+          </svg>
+        </a>
+        <h1 class="text-2xl font-bold text-white">New Article</h1>
+      </div>
+      <p class="mt-1 text-sm text-gray-400">Create a new article or news post.</p>
+    </div>
+
+    <div class="flex flex-col lg:flex-row gap-8">
+      <AdminNav />
+
+      <div class="flex-1 min-w-0">
+        <form id="article-form" class="space-y-6">
+          <!-- Title & Slug -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label for="title" class="block text-sm font-medium text-gray-300 mb-1">Title *</label>
+              <input
+                type="text"
+                id="title"
+                name="title"
+                required
+                class="w-full rounded-lg border border-gray-700 bg-gray-900 px-4 py-2.5 text-sm text-white placeholder-gray-500 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 focus:outline-none"
+                placeholder="Article title"
+              />
+            </div>
+            <div>
+              <label for="slug" class="block text-sm font-medium text-gray-300 mb-1">Slug (auto-generated)</label>
+              <input
+                type="text"
+                id="slug"
+                name="slug"
+                class="w-full rounded-lg border border-gray-700 bg-gray-900 px-4 py-2.5 text-sm text-white placeholder-gray-500 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 focus:outline-none"
+                placeholder="auto-generated-from-title"
+              />
+            </div>
+          </div>
+
+          <!-- Category & Status -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label for="category" class="block text-sm font-medium text-gray-300 mb-1">Category *</label>
+              <select
+                id="category"
+                name="category"
+                required
+                class="w-full rounded-lg border border-gray-700 bg-gray-900 px-4 py-2.5 text-sm text-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 focus:outline-none"
+              >
+                {categories.map(cat => (
+                  <option value={cat}>{categoryLabel(cat)}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label for="status" class="block text-sm font-medium text-gray-300 mb-1">Status</label>
+              <select
+                id="status"
+                name="status"
+                class="w-full rounded-lg border border-gray-700 bg-gray-900 px-4 py-2.5 text-sm text-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 focus:outline-none"
+              >
+                {statuses.map(s => (
+                  <option value={s}>{s.replace('_', ' ').replace(/\b\w/g, c => c.toUpperCase())}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <!-- Lead -->
+          <div>
+            <label for="lead" class="block text-sm font-medium text-gray-300 mb-1">Lead / Summary *</label>
+            <textarea
+              id="lead"
+              name="lead"
+              required
+              rows="3"
+              class="w-full rounded-lg border border-gray-700 bg-gray-900 px-4 py-2.5 text-sm text-white placeholder-gray-500 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 focus:outline-none resize-y"
+              placeholder="Brief summary of the article..."
+            ></textarea>
+          </div>
+
+          <!-- Body -->
+          <div>
+            <label for="body" class="block text-sm font-medium text-gray-300 mb-1">Body (HTML) *</label>
+            <textarea
+              id="body"
+              name="body"
+              required
+              rows="16"
+              class="w-full rounded-lg border border-gray-700 bg-gray-900 px-4 py-2.5 text-sm text-white font-mono placeholder-gray-500 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 focus:outline-none resize-y"
+              placeholder="<p>Article content goes here...</p>"
+            ></textarea>
+          </div>
+
+          <!-- Cover Image -->
+          <div>
+            <label for="cover_image" class="block text-sm font-medium text-gray-300 mb-1">Cover Image URL</label>
+            <input
+              type="url"
+              id="cover_image"
+              name="cover_image"
+              class="w-full rounded-lg border border-gray-700 bg-gray-900 px-4 py-2.5 text-sm text-white placeholder-gray-500 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 focus:outline-none"
+              placeholder="https://example.com/image.jpg"
+            />
+          </div>
+
+          <!-- Tags & Devices -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label for="tags" class="block text-sm font-medium text-gray-300 mb-1">Tags (comma-separated)</label>
+              <input
+                type="text"
+                id="tags"
+                name="tags"
+                class="w-full rounded-lg border border-gray-700 bg-gray-900 px-4 py-2.5 text-sm text-white placeholder-gray-500 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 focus:outline-none"
+                placeholder="steam-deck, performance, update"
+              />
+            </div>
+            <div>
+              <label for="devices" class="block text-sm font-medium text-gray-300 mb-1">Devices (comma-separated slugs)</label>
+              <input
+                type="text"
+                id="devices"
+                name="devices"
+                class="w-full rounded-lg border border-gray-700 bg-gray-900 px-4 py-2.5 text-sm text-white placeholder-gray-500 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 focus:outline-none"
+                placeholder="steam-deck-oled, rog-ally-x"
+              />
+            </div>
+          </div>
+
+          <!-- SEO -->
+          <div class="rounded-xl border border-gray-800 bg-gray-900/50 p-4 space-y-4">
+            <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wider">SEO</h3>
+            <div>
+              <label for="meta_title" class="block text-sm font-medium text-gray-300 mb-1">Meta Title</label>
+              <input
+                type="text"
+                id="meta_title"
+                name="meta_title"
+                class="w-full rounded-lg border border-gray-700 bg-gray-900 px-4 py-2.5 text-sm text-white placeholder-gray-500 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 focus:outline-none"
+                placeholder="Custom meta title (optional)"
+              />
+            </div>
+            <div>
+              <label for="meta_description" class="block text-sm font-medium text-gray-300 mb-1">Meta Description</label>
+              <textarea
+                id="meta_description"
+                name="meta_description"
+                rows="2"
+                class="w-full rounded-lg border border-gray-700 bg-gray-900 px-4 py-2.5 text-sm text-white placeholder-gray-500 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 focus:outline-none resize-y"
+                placeholder="Custom meta description (optional)"
+              ></textarea>
+            </div>
+          </div>
+
+          <!-- Actions -->
+          <div class="flex items-center gap-3 pt-4 border-t border-gray-800">
+            <button
+              type="submit"
+              id="btn-save"
+              class="rounded-lg bg-gray-700 px-5 py-2.5 text-sm font-medium text-white hover:bg-gray-600 transition-colors"
+            >
+              Save Draft
+            </button>
+            <button
+              type="button"
+              id="btn-publish"
+              class="rounded-lg bg-emerald-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-emerald-500 transition-colors"
+            >
+              Save &amp; Publish
+            </button>
+            <a
+              href="/admin/articles"
+              class="rounded-lg border border-gray-700 px-5 py-2.5 text-sm font-medium text-gray-400 hover:text-white hover:bg-gray-800 transition-colors"
+            >
+              Cancel
+            </a>
+            <div id="save-status" class="ml-auto text-sm text-gray-500 hidden"></div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</BaseLayout>
+
+<script>
+  function initArticleEditor() {
+    const form = document.getElementById('article-form') as HTMLFormElement;
+    const titleInput = document.getElementById('title') as HTMLInputElement;
+    const slugInput = document.getElementById('slug') as HTMLInputElement;
+    const btnPublish = document.getElementById('btn-publish') as HTMLButtonElement;
+    const saveStatus = document.getElementById('save-status') as HTMLDivElement;
+
+    // Auto-generate slug from title
+    titleInput?.addEventListener('input', () => {
+      if (!slugInput.dataset.manual) {
+        slugInput.value = titleInput.value
+          .toLowerCase()
+          .replace(/[^a-z0-9\s-]/g, '')
+          .replace(/\s+/g, '-')
+          .replace(/-+/g, '-')
+          .replace(/^-|-$/g, '');
+      }
+    });
+
+    slugInput?.addEventListener('input', () => {
+      slugInput.dataset.manual = 'true';
+    });
+
+    async function submitForm(publishNow: boolean) {
+      const title = (form.querySelector('#title') as HTMLInputElement).value.trim();
+      const slug = (form.querySelector('#slug') as HTMLInputElement).value.trim();
+      const category = (form.querySelector('#category') as HTMLSelectElement).value;
+      const lead = (form.querySelector('#lead') as HTMLTextAreaElement).value.trim();
+      const body = (form.querySelector('#body') as HTMLTextAreaElement).value.trim();
+      const coverImage = (form.querySelector('#cover_image') as HTMLInputElement).value.trim();
+      const tagsRaw = (form.querySelector('#tags') as HTMLInputElement).value.trim();
+      const devicesRaw = (form.querySelector('#devices') as HTMLInputElement).value.trim();
+      const metaTitle = (form.querySelector('#meta_title') as HTMLInputElement).value.trim();
+      const metaDescription = (form.querySelector('#meta_description') as HTMLTextAreaElement).value.trim();
+
+      if (!title || !lead || !body) {
+        alert('Title, lead, and body are required.');
+        return;
+      }
+
+      let status = (form.querySelector('#status') as HTMLSelectElement).value;
+      if (publishNow) status = 'published';
+
+      const payload: Record<string, unknown> = {
+        title,
+        slug: slug || title.toLowerCase().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-'),
+        category,
+        status,
+        lead,
+        body,
+        body_html: body,
+        cover_image: coverImage || null,
+        tags: tagsRaw ? tagsRaw.split(',').map(t => t.trim()).filter(Boolean) : [],
+        devices: devicesRaw ? devicesRaw.split(',').map(d => d.trim()).filter(Boolean) : [],
+        meta_title: metaTitle || null,
+        meta_description: metaDescription || null,
+      };
+
+      if (publishNow) {
+        payload.published_at = new Date().toISOString();
+      }
+
+      saveStatus.textContent = 'Saving...';
+      saveStatus.classList.remove('hidden');
+
+      try {
+        const res = await fetch('/api/admin/articles', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          saveStatus.textContent = data.error ?? 'Failed to save';
+          saveStatus.classList.add('text-red-400');
+          return;
+        }
+
+        saveStatus.textContent = 'Saved!';
+        saveStatus.classList.add('text-emerald-400');
+
+        // Redirect to edit page
+        if (data.article?.id) {
+          window.location.href = `/admin/articles/${data.article.id}`;
+        } else {
+          window.location.href = '/admin/articles';
+        }
+      } catch {
+        saveStatus.textContent = 'Network error';
+        saveStatus.classList.add('text-red-400');
+      }
+    }
+
+    form?.addEventListener('submit', (e) => {
+      e.preventDefault();
+      submitForm(false);
+    });
+
+    btnPublish?.addEventListener('click', () => {
+      submitForm(true);
+    });
+  }
+
+  initArticleEditor();
+  document.addEventListener('astro:after-swap', initArticleEditor);
+</script>

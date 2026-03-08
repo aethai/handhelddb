@@ -2,23 +2,41 @@
 import BaseLayout from '@layouts/BaseLayout.astro';
 import DeviceCard from '@components/astro/DeviceCard.astro';
 import { supabaseAdmin } from '@lib/db/client';
+import { getCached, setCache } from '@lib/cache';
 
-const { data: devicesData } = await supabaseAdmin
-  .from('devices')
-  .select('*')
-  .order('manufacturer')
-  .order('name');
+type DeviceItem = {
+  slug: string;
+  name: string;
+  manufacturer: string;
+  screenSize: number | null;
+  batteryWh: number | null;
+  chip: string | null;
+  image: string | null;
+  msrpUsd: number | null;
+};
 
-const devices = (devicesData ?? []).map(d => ({
-  slug: d.slug,
-  name: d.name,
-  manufacturer: d.manufacturer,
-  screenSize: d.screen_size,
-  batteryWh: d.battery_wh,
-  chip: d.chip,
-  image: d.image,
-  msrpUsd: d.msrp_usd,
-}));
+const cacheKey = 'devices:list';
+let devices = getCached<DeviceItem[]>(cacheKey);
+
+if (!devices) {
+  const { data: devicesData } = await supabaseAdmin
+    .from('devices')
+    .select('*')
+    .order('manufacturer')
+    .order('name');
+
+  devices = (devicesData ?? []).map(d => ({
+    slug: d.slug,
+    name: d.name,
+    manufacturer: d.manufacturer,
+    screenSize: d.screen_size,
+    batteryWh: d.battery_wh,
+    chip: d.chip,
+    image: d.image,
+    msrpUsd: d.msrp_usd,
+  }));
+  setCache(cacheKey, devices, 600); // 10 minutes
+}
 ---
 
 <BaseLayout title="Devices" description="Compare handheld gaming devices. Steam Deck OLED, ROG Ally X, Legion Go specs, performance, and game compatibility.">

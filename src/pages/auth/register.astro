@@ -2,7 +2,6 @@
 import BaseLayout from '@layouts/BaseLayout.astro';
 import { getUser } from '@lib/auth/supabase';
 
-// Redirect if already logged in
 const user = await getUser(Astro.cookies);
 if (user) {
   return Astro.redirect('/');
@@ -10,10 +9,9 @@ if (user) {
 
 const redirectTo = Astro.url.searchParams.get('redirect') ?? '/';
 const errorParam = Astro.url.searchParams.get('error');
-const registered = Astro.url.searchParams.get('registered');
 ---
 
-<BaseLayout title="Sign In" noindex>
+<BaseLayout title="Create Account" noindex>
   <section class="flex min-h-[60vh] items-center justify-center px-4 py-16">
     <div class="w-full max-w-md">
       <div class="rounded-2xl border border-gray-800 bg-gray-900/50 p-8">
@@ -21,31 +19,36 @@ const registered = Astro.url.searchParams.get('registered');
         <div class="text-center mb-8">
           <div class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-500/10 border border-emerald-500/20">
             <svg class="h-7 w-7 text-emerald-400" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
+              <path stroke-linecap="round" stroke-linejoin="round" d="M18 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0ZM3 19.235v-.11a6.375 6.375 0 0 1 12.75 0v.109A12.318 12.318 0 0 1 9.374 21c-2.331 0-4.512-.645-6.374-1.766Z" />
             </svg>
           </div>
-          <h1 class="text-2xl font-bold text-white">Sign in to GameDB</h1>
+          <h1 class="text-2xl font-bold text-white">Create your account</h1>
           <p class="mt-2 text-sm text-gray-400">
-            Submit performance reports, earn points, and help the community.
+            Join the community and start contributing performance data.
           </p>
         </div>
 
-        <!-- Success message (after registration) -->
-        {registered && (
-          <div class="rounded-lg border border-emerald-500/20 bg-emerald-500/10 px-4 py-3 mb-6 text-sm text-emerald-400">
-            Account created successfully! Sign in to continue.
-          </div>
-        )}
-
         <!-- Error message -->
         <div id="auth-error" class:list={["rounded-lg border border-red-500/20 bg-red-500/10 px-4 py-3 mb-6 text-sm text-red-400", !errorParam && "hidden"]}>
-          {errorParam === 'oauth_failed' ? 'Google sign-in failed. Try email/password instead.' :
-           errorParam === 'exchange_failed' ? 'Authentication failed. Please try again.' : ''}
+          {errorParam === 'oauth_failed' ? 'OAuth sign-in failed. Please try again.' : ''}
         </div>
 
-        <!-- Email/Password Form -->
-        <form id="login-form" class="space-y-4">
+        <!-- Registration Form -->
+        <form id="register-form" class="space-y-4">
           <input type="hidden" name="redirect" value={redirectTo} />
+
+          <div>
+            <label for="displayName" class="block text-sm font-medium text-gray-300 mb-1.5">Display name <span class="text-gray-600">(optional)</span></label>
+            <input
+              type="text"
+              id="displayName"
+              name="displayName"
+              maxlength="50"
+              autocomplete="name"
+              placeholder="How others will see you"
+              class="w-full rounded-xl border border-gray-700 bg-gray-800/50 px-4 py-3 text-sm text-white placeholder-gray-500 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 transition-colors"
+            />
+          </div>
 
           <div>
             <label for="email" class="block text-sm font-medium text-gray-300 mb-1.5">Email address</label>
@@ -68,8 +71,9 @@ const registered = Astro.url.searchParams.get('registered');
                 id="password"
                 name="password"
                 required
-                autocomplete="current-password"
-                placeholder="Your password"
+                minlength="8"
+                autocomplete="new-password"
+                placeholder="Min. 8 characters"
                 class="w-full rounded-xl border border-gray-700 bg-gray-800/50 px-4 py-3 pr-10 text-sm text-white placeholder-gray-500 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 transition-colors"
               />
               <button
@@ -78,12 +82,28 @@ const registered = Astro.url.searchParams.get('registered');
                 class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300 transition-colors"
                 aria-label="Toggle password visibility"
               >
-                <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                <svg id="eye-icon" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
                   <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
                 </svg>
               </button>
             </div>
+            <p id="password-strength" class="mt-1.5 text-xs text-gray-600"></p>
+          </div>
+
+          <div>
+            <label for="confirmPassword" class="block text-sm font-medium text-gray-300 mb-1.5">Confirm password</label>
+            <input
+              type="password"
+              id="confirmPassword"
+              name="confirmPassword"
+              required
+              minlength="8"
+              autocomplete="new-password"
+              placeholder="Repeat your password"
+              class="w-full rounded-xl border border-gray-700 bg-gray-800/50 px-4 py-3 text-sm text-white placeholder-gray-500 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 transition-colors"
+            />
+            <p id="password-match" class="mt-1.5 text-xs text-red-400 hidden">Passwords do not match</p>
           </div>
 
           <button
@@ -91,7 +111,7 @@ const registered = Astro.url.searchParams.get('registered');
             id="submit-btn"
             class="w-full rounded-xl bg-emerald-600 px-4 py-3 text-sm font-semibold text-white hover:bg-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:ring-offset-gray-900 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Sign in
+            Create account
           </button>
         </form>
 
@@ -105,7 +125,7 @@ const registered = Astro.url.searchParams.get('registered');
           </div>
         </div>
 
-        <!-- OAuth Buttons -->
+        <!-- OAuth -->
         <div class="space-y-3">
           <a
             href={`/auth/callback/google?redirect=${encodeURIComponent(redirectTo)}`}
@@ -119,34 +139,22 @@ const registered = Astro.url.searchParams.get('registered');
             </svg>
             Google
           </a>
-
-          <!-- Steam login placeholder -->
-          <button
-            disabled
-            class="flex w-full items-center justify-center gap-3 rounded-xl border border-gray-700/50 bg-gray-800/30 px-4 py-3 text-sm font-medium text-gray-500 cursor-not-allowed"
-          >
-            <svg class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M11.979 0C5.678 0 .511 4.86.022 10.96l6.432 2.658a3.387 3.387 0 0 1 1.912-.588c.063 0 .125.002.188.006l2.861-4.142V8.83a4.528 4.528 0 0 1 4.524-4.524 4.528 4.528 0 0 1 4.524 4.524 4.528 4.528 0 0 1-4.524 4.524h-.105l-4.076 2.911c0 .052.004.105.004.159 0 1.875-1.515 3.396-3.39 3.396a3.406 3.406 0 0 1-3.363-2.924L.533 14.294A11.979 11.979 0 0 0 11.979 24c6.627 0 12-5.373 12-12S18.606 0 11.979 0Z"/>
-            </svg>
-            Steam (Coming Soon)
-          </button>
         </div>
 
-        <!-- Register link -->
+        <!-- Sign in link -->
         <p class="mt-6 text-center text-sm text-gray-500">
-          Don't have an account?
-          <a href={`/auth/register?redirect=${encodeURIComponent(redirectTo)}`} class="text-emerald-400 hover:text-emerald-300 transition-colors font-medium">
-            Create one
+          Already have an account?
+          <a href={`/auth/login?redirect=${encodeURIComponent(redirectTo)}`} class="text-emerald-400 hover:text-emerald-300 transition-colors font-medium">
+            Sign in
           </a>
         </p>
 
-        <!-- Info -->
+        <!-- Terms -->
         <div class="mt-4 rounded-xl border border-gray-800 bg-gray-950/50 p-4">
           <p class="text-xs text-gray-500 leading-relaxed">
-            By signing in, you agree to our
+            By creating an account, you agree to our
             <a href="/terms" class="text-emerald-400 hover:text-emerald-300">Terms of Service</a> and
             <a href="/privacy" class="text-emerald-400 hover:text-emerald-300">Privacy Policy</a>.
-            We only use your account to identify you and never share your data.
           </p>
         </div>
       </div>
@@ -155,15 +163,48 @@ const registered = Astro.url.searchParams.get('registered');
 </BaseLayout>
 
 <script>
-  const form = document.getElementById('login-form') as HTMLFormElement;
+  const form = document.getElementById('register-form') as HTMLFormElement;
   const errorEl = document.getElementById('auth-error')!;
   const submitBtn = document.getElementById('submit-btn') as HTMLButtonElement;
   const passwordInput = document.getElementById('password') as HTMLInputElement;
+  const confirmInput = document.getElementById('confirmPassword') as HTMLInputElement;
+  const matchMsg = document.getElementById('password-match')!;
+  const strengthMsg = document.getElementById('password-strength')!;
   const toggleBtn = document.getElementById('toggle-password')!;
 
   // Toggle password visibility
   toggleBtn.addEventListener('click', () => {
-    passwordInput.type = passwordInput.type === 'password' ? 'text' : 'password';
+    const isPassword = passwordInput.type === 'password';
+    passwordInput.type = isPassword ? 'text' : 'password';
+    confirmInput.type = isPassword ? 'text' : 'password';
+  });
+
+  // Password strength indicator
+  passwordInput.addEventListener('input', () => {
+    const val = passwordInput.value;
+    if (!val) { strengthMsg.textContent = ''; return; }
+    let score = 0;
+    if (val.length >= 8) score++;
+    if (val.length >= 12) score++;
+    if (/[A-Z]/.test(val) && /[a-z]/.test(val)) score++;
+    if (/\d/.test(val)) score++;
+    if (/[^A-Za-z0-9]/.test(val)) score++;
+
+    const labels = ['Very weak', 'Weak', 'Fair', 'Good', 'Strong'];
+    const colors = ['text-red-400', 'text-orange-400', 'text-yellow-400', 'text-emerald-400', 'text-emerald-300'];
+    const idx = Math.min(score, labels.length) - 1;
+    if (idx < 0) { strengthMsg.textContent = ''; return; }
+    strengthMsg.textContent = labels[idx];
+    strengthMsg.className = `mt-1.5 text-xs ${colors[idx]}`;
+  });
+
+  // Password match check
+  confirmInput.addEventListener('input', () => {
+    if (confirmInput.value && confirmInput.value !== passwordInput.value) {
+      matchMsg.classList.remove('hidden');
+    } else {
+      matchMsg.classList.add('hidden');
+    }
   });
 
   // Form submission
@@ -173,31 +214,40 @@ const registered = Astro.url.searchParams.get('registered');
 
     const email = (form.querySelector('#email') as HTMLInputElement).value.trim();
     const password = passwordInput.value;
+    const confirmPassword = confirmInput.value;
+    const displayName = (form.querySelector('#displayName') as HTMLInputElement).value.trim();
     const redirectTo = (form.querySelector('[name="redirect"]') as HTMLInputElement).value;
 
-    if (!email || !password) {
-      errorEl.textContent = 'Please enter your email and password.';
+    // Client-side validation
+    if (password !== confirmPassword) {
+      errorEl.textContent = 'Passwords do not match.';
+      errorEl.classList.remove('hidden');
+      return;
+    }
+
+    if (password.length < 8) {
+      errorEl.textContent = 'Password must be at least 8 characters.';
       errorEl.classList.remove('hidden');
       return;
     }
 
     submitBtn.disabled = true;
-    submitBtn.textContent = 'Signing in...';
+    submitBtn.textContent = 'Creating account...';
 
     try {
-      const res = await fetch('/api/auth/login', {
+      const res = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email, password, displayName: displayName || undefined }),
       });
 
       const data = await res.json();
 
       if (!res.ok || data.error) {
-        errorEl.textContent = data.error ?? 'Sign in failed. Please try again.';
+        errorEl.textContent = data.error ?? 'Registration failed. Please try again.';
         errorEl.classList.remove('hidden');
         submitBtn.disabled = false;
-        submitBtn.textContent = 'Sign in';
+        submitBtn.textContent = 'Create account';
         return;
       }
 
@@ -207,7 +257,7 @@ const registered = Astro.url.searchParams.get('registered');
       errorEl.textContent = 'Network error. Please try again.';
       errorEl.classList.remove('hidden');
       submitBtn.disabled = false;
-      submitBtn.textContent = 'Sign in';
+      submitBtn.textContent = 'Create account';
     }
   });
 </script>

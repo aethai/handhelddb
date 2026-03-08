@@ -2,51 +2,79 @@
 import BaseLayout from '@layouts/BaseLayout.astro';
 import GamesBrowser from '@components/react/GamesBrowser';
 import { supabaseAdmin } from '@lib/db/client';
+import { getCached, setCache } from '@lib/cache';
 
-// Fetch initial games (first page, sorted by name)
-const { data: games, count } = await supabaseAdmin
-  .from('games')
-  .select('id, slug, name, header_image, genres, deck_compatibility, metacritic_score, is_free_to_play', { count: 'exact' })
-  .order('name')
-  .limit(60);
+const cacheKey = 'games:list:initial';
 
-// Extract unique genres for filter pills
-const genreSet = new Set<string>();
-(games ?? []).forEach(g => {
-  ((g.genres as string[]) ?? []).forEach(genre => genreSet.add(genre));
-});
-// Also fetch from all games for complete genre list
-const { data: allGamesGenres } = await supabaseAdmin
-  .from('games')
-  .select('genres');
-(allGamesGenres ?? []).forEach(g => {
-  ((g.genres as string[]) ?? []).forEach(genre => genreSet.add(genre));
-});
-const allGenres = [...genreSet].sort();
+type CachedGamesData = {
+  initialGames: Array<{
+    id: string;
+    slug: string;
+    name: string;
+    header_image: string | null;
+    genres: string[];
+    deck_compatibility: string | null;
+    metacritic_score: number | null;
+    is_free_to_play: boolean | null;
+  }>;
+  allGenres: string[];
+  count: number;
+};
 
-const initialGames = (games ?? []).map(g => ({
-  id: g.id,
-  slug: g.slug,
-  name: g.name,
-  header_image: g.header_image,
-  genres: (g.genres as string[]) ?? [],
-  deck_compatibility: g.deck_compatibility,
-  metacritic_score: g.metacritic_score,
-  is_free_to_play: g.is_free_to_play,
-}));
+let cached = getCached<CachedGamesData>(cacheKey);
+
+if (!cached) {
+  // Fetch initial games (first page, sorted by name)
+  const { data: games, count } = await supabaseAdmin
+    .from('games')
+    .select('id, slug, name, header_image, genres, deck_compatibility, metacritic_score, is_free_to_play', { count: 'exact' })
+    .order('name')
+    .limit(60);
+
+  // Extract unique genres for filter pills
+  const genreSet = new Set<string>();
+  (games ?? []).forEach(g => {
+    ((g.genres as string[]) ?? []).forEach(genre => genreSet.add(genre));
+  });
+  // Also fetch from all games for complete genre list
+  const { data: allGamesGenres } = await supabaseAdmin
+    .from('games')
+    .select('genres');
+  (allGamesGenres ?? []).forEach(g => {
+    ((g.genres as string[]) ?? []).forEach(genre => genreSet.add(genre));
+  });
+
+  cached = {
+    initialGames: (games ?? []).map(g => ({
+      id: g.id,
+      slug: g.slug,
+      name: g.name,
+      header_image: g.header_image,
+      genres: (g.genres as string[]) ?? [],
+      deck_compatibility: g.deck_compatibility,
+      metacritic_score: g.metacritic_score,
+      is_free_to_play: g.is_free_to_play,
+    })),
+    allGenres: [...genreSet].sort(),
+    count: count ?? 0,
+  };
+  setCache(cacheKey, cached, 300); // 5 minutes
+}
+
+const { initialGames, allGenres, count } = cached;
 ---
 
 <BaseLayout title="Games" description="Browse all games with handheld performance data. Find optimal settings for Steam Deck, ROG Ally, and Legion Go.">
   <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
     <div class="mb-6">
       <h1 class="text-3xl font-bold text-white">Games</h1>
-      <p class="mt-1 text-gray-400">{count ?? 0} games with handheld performance data</p>
+      <p class="mt-1 text-gray-400">{count} games with handheld performance data</p>
     </div>
 
     <GamesBrowser
       client:load
       initialGames={initialGames}
-      totalGames={count ?? 0}
+      totalGames={count}
       allGenres={allGenres}
     />
   </div>

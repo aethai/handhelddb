@@ -254,7 +254,7 @@ function formatBattery(hours: number): string {
                     <div class="flex items-start justify-between gap-4">
                       <div class="flex items-center gap-3">
                         {report.user?.avatar_url ? (
-                          <img src={report.user.avatar_url} alt="" class="h-8 w-8 rounded-full" />
+                          <img src={report.user.avatar_url} alt="" class="h-8 w-8 rounded-full" loading="lazy" />
                         ) : (
                           <div class="h-8 w-8 rounded-full bg-emerald-600 flex items-center justify-center text-xs font-bold text-white">
                             {(report.user?.display_name ?? 'A').charAt(0).toUpperCase()}
@@ -352,7 +352,7 @@ function formatBattery(hours: number): string {
           <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">{device.name}</h3>
           {device.image && (
             <div class="mb-3 rounded-lg overflow-hidden bg-gray-800">
-              <img src={device.image} alt={device.name} class="w-full h-auto" />
+              <img src={device.image} alt={device.name} class="w-full h-auto" loading="lazy" />
             </div>
           )}
           <dl class="space-y-2 text-sm">
