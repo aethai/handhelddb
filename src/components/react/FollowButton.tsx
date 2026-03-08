@@ -64,8 +64,8 @@ export default function FollowButton({ gameId, initialFollowing, followerCount: 
       disabled={loading}
       className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-sm font-medium transition-all duration-200 ${
         following
-          ? 'border-[#D4A574]/30 bg-[#D4A574]/10 text-[#D4A574] hover:bg-[#D4A574]/20'
-          : 'border-[#44403C] bg-[#292524] text-gray-400 hover:border-[#57534E] hover:text-gray-200'
+          ? 'border-[#60A5FA]/30 bg-[#60A5FA]/10 text-[#60A5FA] hover:bg-[#60A5FA]/20'
+          : 'border-[#3A3D45] bg-[#2A2D35] text-[#9CA3AF] hover:border-[#4B5563] hover:text-gray-200'
       } ${loading ? 'opacity-60 cursor-wait' : 'cursor-pointer'}`}
       title={following ? 'Unfollow this game' : 'Follow this game'}
     >
@@ -88,8 +88,8 @@ export default function FollowButton({ gameId, initialFollowing, followerCount: 
         <span
           className={`ml-0.5 rounded-full px-1.5 py-0.5 text-xs leading-none ${
             following
-              ? 'bg-[#D4A574]/20 text-[#E8C5A0]'
-              : 'bg-gray-700 text-gray-400'
+              ? 'bg-[#60A5FA]/20 text-[#93C5FD]'
+              : 'bg-gray-700 text-[#9CA3AF]'
           }`}
         >
           {count}

@@ -30,14 +30,14 @@ function categoryLabel(cat: string): string {
   <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
     <div class="mb-8">
       <div class="flex items-center gap-3 mb-2">
-        <a href="/admin/articles" class="text-gray-500 hover:text-white transition-colors">
+        <a href="/admin/articles" class="text-[#6B7280] hover:text-white transition-colors">
           <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
           </svg>
         </a>
         <h1 class="text-2xl font-bold text-white">New Article</h1>
       </div>
-      <p class="mt-1 text-sm text-gray-400">Create a new article or news post.</p>
+      <p class="mt-1 text-sm text-[#9CA3AF]">Create a new article or news post.</p>
     </div>
 
     <div class="flex flex-col lg:flex-row gap-8">
@@ -48,23 +48,23 @@ function categoryLabel(cat: string): string {
           <!-- Title & Slug -->
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label for="title" class="block text-sm font-medium text-gray-300 mb-1">Title *</label>
+              <label for="title" class="block text-sm font-medium text-[#9CA3AF] mb-1">Title *</label>
               <input
                 type="text"
                 id="title"
                 name="title"
                 required
-                class="w-full rounded-lg border border-gray-700 bg-gray-900 px-4 py-2.5 text-sm text-white placeholder-gray-500 focus:border-[#D4A574] focus:ring-1 focus:ring-[#D4A574] focus:outline-none"
+                class="w-full rounded-lg border border-[#3A3D45] bg-[#16181D] px-4 py-2.5 text-sm text-white placeholder-[#6B7280] focus:border-[#60A5FA] focus:ring-1 focus:ring-[#60A5FA] focus:outline-none"
                 placeholder="Article title"
               />
             </div>
             <div>
-              <label for="slug" class="block text-sm font-medium text-gray-300 mb-1">Slug (auto-generated)</label>
+              <label for="slug" class="block text-sm font-medium text-[#9CA3AF] mb-1">Slug (auto-generated)</label>
               <input
                 type="text"
                 id="slug"
                 name="slug"
-                class="w-full rounded-lg border border-gray-700 bg-gray-900 px-4 py-2.5 text-sm text-white placeholder-gray-500 focus:border-[#D4A574] focus:ring-1 focus:ring-[#D4A574] focus:outline-none"
+                class="w-full rounded-lg border border-[#3A3D45] bg-[#16181D] px-4 py-2.5 text-sm text-white placeholder-[#6B7280] focus:border-[#60A5FA] focus:ring-1 focus:ring-[#60A5FA] focus:outline-none"
                 placeholder="auto-generated-from-title"
               />
             </div>
@@ -73,12 +73,12 @@ function categoryLabel(cat: string): string {
           <!-- Category & Status -->
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label for="category" class="block text-sm font-medium text-gray-300 mb-1">Category *</label>
+              <label for="category" class="block text-sm font-medium text-[#9CA3AF] mb-1">Category *</label>
               <select
                 id="category"
                 name="category"
                 required
-                class="w-full rounded-lg border border-gray-700 bg-gray-900 px-4 py-2.5 text-sm text-white focus:border-[#D4A574] focus:ring-1 focus:ring-[#D4A574] focus:outline-none"
+                class="w-full rounded-lg border border-[#3A3D45] bg-[#16181D] px-4 py-2.5 text-sm text-white focus:border-[#60A5FA] focus:ring-1 focus:ring-[#60A5FA] focus:outline-none"
               >
                 {categories.map(cat => (
                   <option value={cat}>{categoryLabel(cat)}</option>
@@ -86,11 +86,11 @@ function categoryLabel(cat: string): string {
               </select>
             </div>
             <div>
-              <label for="status" class="block text-sm font-medium text-gray-300 mb-1">Status</label>
+              <label for="status" class="block text-sm font-medium text-[#9CA3AF] mb-1">Status</label>
               <select
                 id="status"
                 name="status"
-                class="w-full rounded-lg border border-gray-700 bg-gray-900 px-4 py-2.5 text-sm text-white focus:border-[#D4A574] focus:ring-1 focus:ring-[#D4A574] focus:outline-none"
+                class="w-full rounded-lg border border-[#3A3D45] bg-[#16181D] px-4 py-2.5 text-sm text-white focus:border-[#60A5FA] focus:ring-1 focus:ring-[#60A5FA] focus:outline-none"
               >
                 {statuses.map(s => (
                   <option value={s}>{s.replace('_', ' ').replace(/\b\w/g, c => c.toUpperCase())}</option>
@@ -101,38 +101,38 @@ function categoryLabel(cat: string): string {
 
           <!-- Lead -->
           <div>
-            <label for="lead" class="block text-sm font-medium text-gray-300 mb-1">Lead / Summary *</label>
+            <label for="lead" class="block text-sm font-medium text-[#9CA3AF] mb-1">Lead / Summary *</label>
             <textarea
               id="lead"
               name="lead"
               required
               rows="3"
-              class="w-full rounded-lg border border-gray-700 bg-gray-900 px-4 py-2.5 text-sm text-white placeholder-gray-500 focus:border-[#D4A574] focus:ring-1 focus:ring-[#D4A574] focus:outline-none resize-y"
+              class="w-full rounded-lg border border-[#3A3D45] bg-[#16181D] px-4 py-2.5 text-sm text-white placeholder-[#6B7280] focus:border-[#60A5FA] focus:ring-1 focus:ring-[#60A5FA] focus:outline-none resize-y"
               placeholder="Brief summary of the article..."
             ></textarea>
           </div>
 
           <!-- Body -->
           <div>
-            <label for="body" class="block text-sm font-medium text-gray-300 mb-1">Body (HTML) *</label>
+            <label for="body" class="block text-sm font-medium text-[#9CA3AF] mb-1">Body (HTML) *</label>
             <textarea
               id="body"
               name="body"
               required
               rows="16"
-              class="w-full rounded-lg border border-gray-700 bg-gray-900 px-4 py-2.5 text-sm text-white font-mono placeholder-gray-500 focus:border-[#D4A574] focus:ring-1 focus:ring-[#D4A574] focus:outline-none resize-y"
+              class="w-full rounded-lg border border-[#3A3D45] bg-[#16181D] px-4 py-2.5 text-sm text-white font-mono placeholder-[#6B7280] focus:border-[#60A5FA] focus:ring-1 focus:ring-[#60A5FA] focus:outline-none resize-y"
               placeholder="<p>Article content goes here...</p>"
             ></textarea>
           </div>
 
           <!-- Cover Image -->
           <div>
-            <label for="cover_image" class="block text-sm font-medium text-gray-300 mb-1">Cover Image URL</label>
+            <label for="cover_image" class="block text-sm font-medium text-[#9CA3AF] mb-1">Cover Image URL</label>
             <input
               type="url"
               id="cover_image"
               name="cover_image"
-              class="w-full rounded-lg border border-gray-700 bg-gray-900 px-4 py-2.5 text-sm text-white placeholder-gray-500 focus:border-[#D4A574] focus:ring-1 focus:ring-[#D4A574] focus:outline-none"
+              class="w-full rounded-lg border border-[#3A3D45] bg-[#16181D] px-4 py-2.5 text-sm text-white placeholder-[#6B7280] focus:border-[#60A5FA] focus:ring-1 focus:ring-[#60A5FA] focus:outline-none"
               placeholder="https://example.com/image.jpg"
             />
           </div>
@@ -140,75 +140,75 @@ function categoryLabel(cat: string): string {
           <!-- Tags & Devices -->
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label for="tags" class="block text-sm font-medium text-gray-300 mb-1">Tags (comma-separated)</label>
+              <label for="tags" class="block text-sm font-medium text-[#9CA3AF] mb-1">Tags (comma-separated)</label>
               <input
                 type="text"
                 id="tags"
                 name="tags"
-                class="w-full rounded-lg border border-gray-700 bg-gray-900 px-4 py-2.5 text-sm text-white placeholder-gray-500 focus:border-[#D4A574] focus:ring-1 focus:ring-[#D4A574] focus:outline-none"
+                class="w-full rounded-lg border border-[#3A3D45] bg-[#16181D] px-4 py-2.5 text-sm text-white placeholder-[#6B7280] focus:border-[#60A5FA] focus:ring-1 focus:ring-[#60A5FA] focus:outline-none"
                 placeholder="steam-deck, performance, update"
               />
             </div>
             <div>
-              <label for="devices" class="block text-sm font-medium text-gray-300 mb-1">Devices (comma-separated slugs)</label>
+              <label for="devices" class="block text-sm font-medium text-[#9CA3AF] mb-1">Devices (comma-separated slugs)</label>
               <input
                 type="text"
                 id="devices"
                 name="devices"
-                class="w-full rounded-lg border border-gray-700 bg-gray-900 px-4 py-2.5 text-sm text-white placeholder-gray-500 focus:border-[#D4A574] focus:ring-1 focus:ring-[#D4A574] focus:outline-none"
+                class="w-full rounded-lg border border-[#3A3D45] bg-[#16181D] px-4 py-2.5 text-sm text-white placeholder-[#6B7280] focus:border-[#60A5FA] focus:ring-1 focus:ring-[#60A5FA] focus:outline-none"
                 placeholder="steam-deck-oled, rog-ally-x"
               />
             </div>
           </div>
 
           <!-- SEO -->
-          <div class="rounded-xl border border-gray-800 bg-gray-900/50 p-4 space-y-4">
-            <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wider">SEO</h3>
+          <div class="rounded-xl border border-[#2A2D35] bg-[#16181D]/50 p-4 space-y-4">
+            <h3 class="text-sm font-semibold text-[#9CA3AF]">SEO</h3>
             <div>
-              <label for="meta_title" class="block text-sm font-medium text-gray-300 mb-1">Meta Title</label>
+              <label for="meta_title" class="block text-sm font-medium text-[#9CA3AF] mb-1">Meta Title</label>
               <input
                 type="text"
                 id="meta_title"
                 name="meta_title"
-                class="w-full rounded-lg border border-gray-700 bg-gray-900 px-4 py-2.5 text-sm text-white placeholder-gray-500 focus:border-[#D4A574] focus:ring-1 focus:ring-[#D4A574] focus:outline-none"
+                class="w-full rounded-lg border border-[#3A3D45] bg-[#16181D] px-4 py-2.5 text-sm text-white placeholder-[#6B7280] focus:border-[#60A5FA] focus:ring-1 focus:ring-[#60A5FA] focus:outline-none"
                 placeholder="Custom meta title (optional)"
               />
             </div>
             <div>
-              <label for="meta_description" class="block text-sm font-medium text-gray-300 mb-1">Meta Description</label>
+              <label for="meta_description" class="block text-sm font-medium text-[#9CA3AF] mb-1">Meta Description</label>
               <textarea
                 id="meta_description"
                 name="meta_description"
                 rows="2"
-                class="w-full rounded-lg border border-gray-700 bg-gray-900 px-4 py-2.5 text-sm text-white placeholder-gray-500 focus:border-[#D4A574] focus:ring-1 focus:ring-[#D4A574] focus:outline-none resize-y"
+                class="w-full rounded-lg border border-[#3A3D45] bg-[#16181D] px-4 py-2.5 text-sm text-white placeholder-[#6B7280] focus:border-[#60A5FA] focus:ring-1 focus:ring-[#60A5FA] focus:outline-none resize-y"
                 placeholder="Custom meta description (optional)"
               ></textarea>
             </div>
           </div>
 
           <!-- Actions -->
-          <div class="flex items-center gap-3 pt-4 border-t border-gray-800">
+          <div class="flex items-center gap-3 pt-4 border-t border-[#2A2D35]">
             <button
               type="submit"
               id="btn-save"
-              class="rounded-lg bg-gray-700 px-5 py-2.5 text-sm font-medium text-white hover:bg-gray-600 transition-colors"
+              class="rounded-lg bg-[#3A3D45] px-5 py-2.5 text-sm font-medium text-white hover:bg-[#4B5563] transition-colors"
             >
               Save Draft
             </button>
             <button
               type="button"
               id="btn-publish"
-              class="rounded-lg bg-[#C9956B] px-5 py-2.5 text-sm font-medium text-white hover:bg-[#D4A574] transition-colors"
+              class="rounded-lg bg-[#60A5FA] px-5 py-2.5 text-sm font-medium text-white hover:bg-[#3B82F6] transition-colors"
             >
               Save &amp; Publish
             </button>
             <a
               href="/admin/articles"
-              class="rounded-lg border border-gray-700 px-5 py-2.5 text-sm font-medium text-gray-400 hover:text-white hover:bg-gray-800 transition-colors"
+              class="rounded-lg border border-[#3A3D45] px-5 py-2.5 text-sm font-medium text-[#9CA3AF] hover:text-white hover:bg-[#2A2D35] transition-colors"
             >
               Cancel
             </a>
-            <div id="save-status" class="ml-auto text-sm text-gray-500 hidden"></div>
+            <div id="save-status" class="ml-auto text-sm text-[#6B7280] hidden"></div>
           </div>
         </form>
       </div>
@@ -298,7 +298,7 @@ function categoryLabel(cat: string): string {
         }
 
         saveStatus.textContent = 'Saved!';
-        saveStatus.classList.add('text-[#D4A574]');
+        saveStatus.classList.add('text-[#60A5FA]');
 
         // Redirect to edit page
         if (data.article?.id) {

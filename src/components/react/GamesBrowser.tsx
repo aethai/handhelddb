@@ -28,10 +28,10 @@ interface Props {
 }
 
 const DECK_BADGES: Record<string, { label: string; class: string }> = {
-  verified: { label: 'Verified', class: 'bg-[#D4A574]/20 text-[#D4A574] border-[#D4A574]/30' },
+  verified: { label: 'Verified', class: 'bg-[#60A5FA]/20 text-[#60A5FA] border-[#60A5FA]/30' },
   playable: { label: 'Playable', class: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30' },
   unsupported: { label: 'Unsupported', class: 'bg-red-500/20 text-red-400 border-red-500/30' },
-  unknown: { label: 'Unknown', class: 'bg-gray-500/20 text-gray-400 border-gray-500/30' },
+  unknown: { label: 'Unknown', class: 'bg-[#6B7280]/20 text-[#9CA3AF] border-[#6B7280]/30' },
 };
 
 const SORT_OPTIONS = [
@@ -117,10 +117,10 @@ export default function GamesBrowser({ initialGames, totalGames, allGenres }: Pr
   return (
     <div>
       {/* Search + Controls */}
-      <div className="mb-6 rounded-xl border border-[#292524] bg-[#1C1917] p-4">
+      <div className="mb-6 rounded-xl border border-[#2A2D35] bg-[#16181D] p-4">
         <div className="flex gap-3">
           <div className="relative flex-1">
-            <svg className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-500" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+            <svg className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-[#6B7280]" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z" />
             </svg>
             <input
@@ -128,13 +128,13 @@ export default function GamesBrowser({ initialGames, totalGames, allGenres }: Pr
               value={query}
               onChange={e => setQuery(e.target.value)}
               placeholder="Search games..."
-              className="w-full rounded-lg border border-[#44403C] bg-[#292524] py-2.5 pl-12 pr-4 text-white placeholder-gray-500 focus:border-[#D4A574] focus:outline-none focus:ring-1 focus:ring-[#D4A574]"
+              className="w-full rounded-lg border border-[#3A3D45] bg-[#2A2D35] py-2.5 pl-12 pr-4 text-white placeholder-[#6B7280] focus:border-[#60A5FA] focus:outline-none focus:ring-1 focus:ring-[#60A5FA]"
             />
           </div>
           <select
             value={sort}
             onChange={e => setSort(e.target.value)}
-            className="rounded-lg border border-[#44403C] bg-[#292524] px-3 py-2.5 text-sm text-gray-300 focus:border-[#D4A574] focus:outline-none"
+            className="rounded-lg border border-[#3A3D45] bg-[#2A2D35] px-3 py-2.5 text-sm text-gray-300 focus:border-[#60A5FA] focus:outline-none"
           >
             {SORT_OPTIONS.map(o => (
               <option key={o.value} value={o.value}>{o.label}</option>
@@ -144,8 +144,8 @@ export default function GamesBrowser({ initialGames, totalGames, allGenres }: Pr
             onClick={() => setShowFilters(!showFilters)}
             className={`rounded-lg border px-3 py-2.5 text-sm transition-colors flex items-center gap-1.5 ${
               showFilters || selectedGenres.length > 0 || selectedDeck.length > 0
-                ? 'border-[#D4A574] bg-[#D4A574]/10 text-[#D4A574]'
-                : 'border-[#44403C] bg-[#292524] text-gray-300 hover:border-[#57534E]'
+                ? 'border-[#60A5FA] bg-[#60A5FA]/10 text-[#60A5FA]'
+                : 'border-[#3A3D45] bg-[#2A2D35] text-gray-300 hover:border-[#4B5563]'
             }`}
           >
             <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
@@ -153,7 +153,7 @@ export default function GamesBrowser({ initialGames, totalGames, allGenres }: Pr
             </svg>
             <span className="hidden sm:inline">Filters</span>
             {(selectedGenres.length + selectedDeck.length) > 0 && (
-              <span className="rounded-full bg-[#C9956B] px-1.5 text-[10px] font-bold text-white">
+              <span className="rounded-full bg-[#60A5FA] px-1.5 text-[10px] font-bold text-white">
                 {selectedGenres.length + selectedDeck.length}
               </span>
             )}
@@ -162,10 +162,10 @@ export default function GamesBrowser({ initialGames, totalGames, allGenres }: Pr
 
         {/* Filter Panel */}
         {showFilters && (
-          <div className="mt-4 space-y-4 border-t border-[#292524] pt-4">
+          <div className="mt-4 space-y-4 border-t border-[#2A2D35] pt-4">
             {/* Deck Compatibility */}
             <div>
-              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Deck Compatibility</p>
+              <p className="text-xs font-semibold text-[#9CA3AF] uppercase tracking-wider mb-2">Deck Compatibility</p>
               <div className="flex flex-wrap gap-2">
                 {DECK_FILTERS.map(d => (
                   <button
@@ -173,8 +173,8 @@ export default function GamesBrowser({ initialGames, totalGames, allGenres }: Pr
                     onClick={() => toggleDeck(d.value)}
                     className={`rounded-full border px-3 py-1 text-xs transition-colors ${
                       selectedDeck.includes(d.value)
-                        ? 'border-[#D4A574] bg-[#D4A574]/10 text-[#D4A574]'
-                        : 'border-[#44403C] text-gray-400 hover:border-[#57534E] hover:text-white'
+                        ? 'border-[#60A5FA] bg-[#60A5FA]/10 text-[#60A5FA]'
+                        : 'border-[#3A3D45] text-[#9CA3AF] hover:border-[#4B5563] hover:text-white'
                     }`}
                   >
                     {d.label}
@@ -185,7 +185,7 @@ export default function GamesBrowser({ initialGames, totalGames, allGenres }: Pr
 
             {/* Genres */}
             <div>
-              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Genres</p>
+              <p className="text-xs font-semibold text-[#9CA3AF] uppercase tracking-wider mb-2">Genres</p>
               <div className="flex flex-wrap gap-2">
                 {allGenres.map(g => (
                   <button
@@ -193,8 +193,8 @@ export default function GamesBrowser({ initialGames, totalGames, allGenres }: Pr
                     onClick={() => toggleGenre(g)}
                     className={`rounded-full border px-3 py-1 text-xs transition-colors ${
                       selectedGenres.includes(g)
-                        ? 'border-[#D4A574] bg-[#D4A574]/10 text-[#D4A574]'
-                        : 'border-[#44403C] text-gray-400 hover:border-[#57534E] hover:text-white'
+                        ? 'border-[#60A5FA] bg-[#60A5FA]/10 text-[#60A5FA]'
+                        : 'border-[#3A3D45] text-[#9CA3AF] hover:border-[#4B5563] hover:text-white'
                     }`}
                   >
                     {g}
@@ -204,7 +204,7 @@ export default function GamesBrowser({ initialGames, totalGames, allGenres }: Pr
             </div>
 
             {hasFilters && (
-              <button onClick={clearFilters} className="text-xs text-gray-500 hover:text-white transition-colors">
+              <button onClick={clearFilters} className="text-xs text-[#6B7280] hover:text-white transition-colors">
                 Clear all filters
               </button>
             )}
@@ -214,13 +214,13 @@ export default function GamesBrowser({ initialGames, totalGames, allGenres }: Pr
 
       {/* Results count + View toggle */}
       <div className="mb-4 flex items-center justify-between">
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-[#6B7280]">
           {loading ? 'Searching...' : `${totalHits} game${totalHits !== 1 ? 's' : ''}`}
         </p>
-        <div className="flex items-center gap-1 rounded-lg border border-[#292524] p-0.5">
+        <div className="flex items-center gap-1 rounded-lg border border-[#2A2D35] p-0.5">
           <button
             onClick={() => setViewMode('grid')}
-            className={`rounded-md p-1.5 transition-colors ${viewMode === 'grid' ? 'bg-[#292524] text-white' : 'text-gray-500 hover:text-gray-300'}`}
+            className={`rounded-md p-1.5 transition-colors ${viewMode === 'grid' ? 'bg-[#2A2D35] text-white' : 'text-[#6B7280] hover:text-gray-300'}`}
             title="Grid view"
           >
             <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
@@ -229,7 +229,7 @@ export default function GamesBrowser({ initialGames, totalGames, allGenres }: Pr
           </button>
           <button
             onClick={() => setViewMode('list')}
-            className={`rounded-md p-1.5 transition-colors ${viewMode === 'list' ? 'bg-[#292524] text-white' : 'text-gray-500 hover:text-gray-300'}`}
+            className={`rounded-md p-1.5 transition-colors ${viewMode === 'list' ? 'bg-[#2A2D35] text-white' : 'text-[#6B7280] hover:text-gray-300'}`}
             title="List view"
           >
             <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
@@ -247,7 +247,7 @@ export default function GamesBrowser({ initialGames, totalGames, allGenres }: Pr
               <a
                 key={game.id}
                 href={`/games/${game.slug}`}
-                className="group relative rounded-lg border border-[#292524] bg-[#1C1917] overflow-hidden hover:border-[#44403C] transition-colors"
+                className="group relative rounded-lg border border-[#2A2D35] bg-[#16181D] overflow-hidden hover:border-[#3A3D45] transition-colors"
               >
                 <div className="relative aspect-[460/300]">
                   {game.header_image ? (
@@ -258,7 +258,7 @@ export default function GamesBrowser({ initialGames, totalGames, allGenres }: Pr
                       loading="lazy"
                     />
                   ) : (
-                    <div className="absolute inset-0 bg-gradient-to-br from-[#292524] to-[#1C1917]" />
+                    <div className="absolute inset-0 bg-gradient-to-br from-[#2A2D35] to-[#16181D]" />
                   )}
                   {/* Overlay with game info at bottom */}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent" />
@@ -266,7 +266,7 @@ export default function GamesBrowser({ initialGames, totalGames, allGenres }: Pr
                     <h3 className="font-semibold text-white text-sm leading-tight line-clamp-2">{game.name}</h3>
                     <div className="mt-1 flex items-center gap-1.5">
                       {game.genres?.slice(0, 1).map(g => (
-                        <span key={g} className="text-[10px] text-stone-400">{g}</span>
+                        <span key={g} className="text-[10px] text-[#9CA3AF]">{g}</span>
                       ))}
                       {game.metacritic_score && (
                         <span className={`ml-auto text-[10px] font-bold ${
@@ -283,15 +283,15 @@ export default function GamesBrowser({ initialGames, totalGames, allGenres }: Pr
           </div>
         ) : (
           /* List view */
-          <div className="rounded-xl border border-[#292524] bg-[#1C1917] divide-y divide-[#292524]">
+          <div className="rounded-xl border border-[#2A2D35] bg-[#16181D] divide-y divide-[#2A2D35]">
             {games.map(game => (
               <a
                 key={game.id}
                 href={`/games/${game.slug}`}
-                className="flex items-center gap-4 px-4 py-3 hover:bg-[#292524]/50 transition-colors"
+                className="flex items-center gap-4 px-4 py-3 hover:bg-[#2A2D35]/50 transition-colors"
               >
                 {/* Thumbnail */}
-                <div className="w-16 h-9 rounded overflow-hidden flex-shrink-0 bg-[#292524]">
+                <div className="w-16 h-9 rounded overflow-hidden flex-shrink-0 bg-[#2A2D35]">
                   {game.header_image && (
                     <img src={game.header_image} alt="" className="w-full h-full object-cover" loading="lazy" />
                   )}
@@ -301,7 +301,7 @@ export default function GamesBrowser({ initialGames, totalGames, allGenres }: Pr
                 {/* Genres */}
                 <div className="hidden sm:flex items-center gap-1.5 flex-shrink-0">
                   {game.genres?.slice(0, 2).map(g => (
-                    <span key={g} className="text-[10px] text-stone-500">{g}</span>
+                    <span key={g} className="text-[10px] text-[#6B7280]">{g}</span>
                   ))}
                 </div>
                 {/* Deck badge */}
@@ -325,10 +325,10 @@ export default function GamesBrowser({ initialGames, totalGames, allGenres }: Pr
           </div>
         )
       ) : (
-        <div className="rounded-xl border border-[#292524] bg-[#1C1917] p-8 text-center">
-          <p className="text-gray-500">No games found matching your criteria.</p>
+        <div className="rounded-xl border border-[#2A2D35] bg-[#16181D] p-8 text-center">
+          <p className="text-[#6B7280]">No games found matching your criteria.</p>
           {hasFilters && (
-            <button onClick={clearFilters} className="mt-2 text-sm text-[#D4A574] hover:text-[#E8C5A0]">
+            <button onClick={clearFilters} className="mt-2 text-sm text-[#60A5FA] hover:text-[#93C5FD]">
               Clear filters
             </button>
           )}

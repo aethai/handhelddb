@@ -137,14 +137,14 @@ export default function ReportForm({ devices, isLoggedIn, preselectedGameId, pre
   if (!isLoggedIn) {
     return (
       <div className="text-center py-12">
-        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-[#292524]">
-          <svg className="h-8 w-8 text-gray-500" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-[#2A2D35]">
+          <svg className="h-8 w-8 text-[#6B7280]" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
           </svg>
         </div>
         <h3 className="text-lg font-semibold text-white">Sign in to submit a report</h3>
-        <p className="mt-2 text-sm text-gray-400">You need to be signed in to submit performance reports.</p>
-        <a href="/auth/login?redirect=/report/new" className="mt-4 inline-flex items-center gap-2 rounded-lg bg-[#C9956B] px-4 py-2 text-sm font-medium text-white hover:bg-[#D4A574] transition-colors">
+        <p className="mt-2 text-sm text-[#9CA3AF]">You need to be signed in to submit performance reports.</p>
+        <a href="/auth/login?redirect=/report/new" className="mt-4 inline-flex items-center gap-2 rounded-lg bg-[#60A5FA] px-4 py-2 text-sm font-medium text-white hover:bg-[#60A5FA] transition-colors">
           Sign in
         </a>
       </div>
@@ -154,18 +154,18 @@ export default function ReportForm({ devices, isLoggedIn, preselectedGameId, pre
   if (submitted) {
     return (
       <div className="text-center py-12">
-        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-[#D4A574]/20">
-          <svg className="h-8 w-8 text-[#D4A574]" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-[#60A5FA]/20">
+          <svg className="h-8 w-8 text-[#60A5FA]" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
           </svg>
         </div>
         <h3 className="text-lg font-semibold text-white">Report submitted!</h3>
-        <p className="mt-2 text-sm text-gray-400">Thank you for contributing to the community.</p>
+        <p className="mt-2 text-sm text-[#9CA3AF]">Thank you for contributing to the community.</p>
         <div className="mt-6 flex justify-center gap-3">
-          <a href={`/games/${data.gameSlug}`} className="rounded-lg bg-[#292524] px-4 py-2 text-sm text-gray-300 hover:bg-[#44403C] transition-colors">
+          <a href={`/games/${data.gameSlug}`} className="rounded-lg bg-[#2A2D35] px-4 py-2 text-sm text-gray-300 hover:bg-[#3A3D45] transition-colors">
             View game
           </a>
-          <button onClick={() => { setSubmitted(null); setStep(1); setData(INITIAL); }} className="rounded-lg bg-[#C9956B] px-4 py-2 text-sm font-medium text-white hover:bg-[#D4A574] transition-colors">
+          <button onClick={() => { setSubmitted(null); setStep(1); setData(INITIAL); }} className="rounded-lg bg-[#60A5FA] px-4 py-2 text-sm font-medium text-white hover:bg-[#60A5FA] transition-colors">
             Submit another
           </button>
         </div>
@@ -183,15 +183,15 @@ export default function ReportForm({ devices, isLoggedIn, preselectedGameId, pre
               key={label}
               onClick={() => i + 1 < step && setStep(i + 1)}
               className={`text-xs font-medium transition-colors ${
-                i + 1 === step ? 'text-[#D4A574]' : i + 1 < step ? 'text-gray-400 cursor-pointer hover:text-white' : 'text-gray-600'
+                i + 1 === step ? 'text-[#60A5FA]' : i + 1 < step ? 'text-[#9CA3AF] cursor-pointer hover:text-white' : 'text-gray-600'
               }`}
             >
               {label}
             </button>
           ))}
         </div>
-        <div className="h-1 rounded-full bg-[#292524]">
-          <div className="h-full rounded-full bg-[#C9956B] transition-all duration-300" style={{ width: `${(step / 4) * 100}%` }} />
+        <div className="h-1 rounded-full bg-[#2A2D35]">
+          <div className="h-full rounded-full bg-[#60A5FA] transition-all duration-300" style={{ width: `${(step / 4) * 100}%` }} />
         </div>
       </div>
 
@@ -212,7 +212,7 @@ export default function ReportForm({ devices, isLoggedIn, preselectedGameId, pre
         <button
           onClick={() => setStep(s => s - 1)}
           disabled={step === 1}
-          className="rounded-lg border border-[#44403C] px-4 py-2 text-sm text-gray-300 hover:border-[#57534E] hover:text-white transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+          className="rounded-lg border border-[#3A3D45] px-4 py-2 text-sm text-gray-300 hover:border-[#4B5563] hover:text-white transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
         >
           Back
         </button>
@@ -220,7 +220,7 @@ export default function ReportForm({ devices, isLoggedIn, preselectedGameId, pre
           <button
             onClick={() => setStep(s => s + 1)}
             disabled={!canAdvance()}
-            className="rounded-lg bg-[#C9956B] px-6 py-2 text-sm font-medium text-white hover:bg-[#D4A574] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="rounded-lg bg-[#60A5FA] px-6 py-2 text-sm font-medium text-white hover:bg-[#60A5FA] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Continue
           </button>
@@ -228,7 +228,7 @@ export default function ReportForm({ devices, isLoggedIn, preselectedGameId, pre
           <button
             onClick={handleSubmit}
             disabled={submitting || !canAdvance()}
-            className="rounded-lg bg-[#C9956B] px-6 py-2 text-sm font-medium text-white hover:bg-[#D4A574] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            className="rounded-lg bg-[#60A5FA] px-6 py-2 text-sm font-medium text-white hover:bg-[#60A5FA] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
           >
             {submitting && (
               <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
@@ -271,9 +271,9 @@ function Step1({ data, update, devices }: { data: ReportData; update: (p: Partia
       <div>
         <label className="block text-sm font-medium text-gray-300 mb-2">Game *</label>
         {data.gameId ? (
-          <div className="flex items-center gap-3 rounded-lg border border-[#D4A574]/30 bg-[#D4A574]/5 p-3">
+          <div className="flex items-center gap-3 rounded-lg border border-[#60A5FA]/30 bg-[#60A5FA]/5 p-3">
             <span className="text-sm text-white font-medium flex-1">{data.gameName}</span>
-            <button onClick={() => update({ gameId: '', gameName: '', gameSlug: '' })} className="text-xs text-gray-400 hover:text-white">
+            <button onClick={() => update({ gameId: '', gameName: '', gameSlug: '' })} className="text-xs text-[#9CA3AF] hover:text-white">
               Change
             </button>
           </div>
@@ -284,11 +284,11 @@ function Step1({ data, update, devices }: { data: ReportData; update: (p: Partia
               value={query}
               onChange={e => setQuery(e.target.value)}
               placeholder="Search for a game..."
-              className="w-full rounded-lg border border-[#44403C] bg-[#292524] py-2.5 px-4 text-sm text-white placeholder-gray-500 focus:border-[#D4A574] focus:outline-none focus:ring-1 focus:ring-[#D4A574]"
+              className="w-full rounded-lg border border-[#3A3D45] bg-[#2A2D35] py-2.5 px-4 text-sm text-white placeholder-[#6B7280] focus:border-[#60A5FA] focus:outline-none focus:ring-1 focus:ring-[#60A5FA]"
               autoFocus
             />
             {results.length > 0 && (
-              <div className="absolute z-10 mt-1 w-full rounded-lg border border-[#44403C] bg-[#1C1917] shadow-xl overflow-hidden">
+              <div className="absolute z-10 mt-1 w-full rounded-lg border border-[#3A3D45] bg-[#16181D] shadow-xl overflow-hidden">
                 {results.map(hit => (
                   <button
                     key={hit.id}
@@ -297,14 +297,14 @@ function Step1({ data, update, devices }: { data: ReportData; update: (p: Partia
                       setQuery('');
                       setResults([]);
                     }}
-                    className="flex items-center gap-3 w-full px-3 py-2.5 text-left hover:bg-[#292524] transition-colors"
+                    className="flex items-center gap-3 w-full px-3 py-2.5 text-left hover:bg-[#2A2D35] transition-colors"
                   >
                     {(hit.capsule_image || hit.header_image) && (
                       <img src={hit.capsule_image || hit.header_image} alt="" className="h-8 w-14 rounded object-cover flex-shrink-0" />
                     )}
                     <div className="min-w-0">
                       <p className="text-sm text-white truncate">{hit.name}</p>
-                      {hit.genres && <p className="text-xs text-gray-500">{hit.genres.slice(0, 2).join(', ')}</p>}
+                      {hit.genres && <p className="text-xs text-[#6B7280]">{hit.genres.slice(0, 2).join(', ')}</p>}
                     </div>
                   </button>
                 ))}
@@ -324,12 +324,12 @@ function Step1({ data, update, devices }: { data: ReportData; update: (p: Partia
               onClick={() => update({ deviceId: d.id, deviceName: d.name })}
               className={`rounded-lg border px-3 py-2.5 text-sm text-left transition-colors ${
                 data.deviceId === d.id
-                  ? 'border-[#D4A574] bg-[#D4A574]/10 text-[#D4A574]'
-                  : 'border-[#44403C] bg-[#292524] text-gray-300 hover:border-[#57534E]'
+                  ? 'border-[#60A5FA] bg-[#60A5FA]/10 text-[#60A5FA]'
+                  : 'border-[#3A3D45] bg-[#2A2D35] text-gray-300 hover:border-[#4B5563]'
               }`}
             >
               <span className="font-medium">{d.name}</span>
-              <span className="block text-xs text-gray-500 mt-0.5">{d.manufacturer}</span>
+              <span className="block text-xs text-[#6B7280] mt-0.5">{d.manufacturer}</span>
             </button>
           ))}
         </div>
@@ -343,7 +343,7 @@ function Step1({ data, update, devices }: { data: ReportData; update: (p: Partia
 function Step2({ data, update }: { data: ReportData; update: (p: Partial<ReportData>) => void }) {
   return (
     <div className="space-y-6">
-      <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider">Performance</h3>
+      <h3 className="text-sm font-semibold text-[#9CA3AF]">Performance</h3>
 
       <div className="grid grid-cols-2 gap-4">
         <Field label="Average FPS *" value={data.fpsAvg} onChange={v => update({ fpsAvg: v })} type="number" placeholder="60" />
@@ -357,8 +357,8 @@ function Step2({ data, update }: { data: ReportData; update: (p: Partial<ReportD
           options={[['', 'Select...'], ['stable', 'Stable'], ['mostly_stable', 'Mostly Stable'], ['unstable', 'Unstable']]} />
       </div>
 
-      <hr className="border-[#292524]" />
-      <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider">Graphics Settings</h3>
+      <hr className="border-[#2A2D35]" />
+      <h3 className="text-sm font-semibold text-[#9CA3AF]">Graphics Settings</h3>
 
       <div className="grid grid-cols-2 gap-4">
         <Field label="Resolution" value={data.resolution} onChange={v => update({ resolution: v })} placeholder="1280x800" />
@@ -369,12 +369,12 @@ function Step2({ data, update }: { data: ReportData; update: (p: Partial<ReportD
       <div className="flex items-center gap-3">
         <label className="flex items-center gap-2 cursor-pointer">
           <input type="checkbox" checked={data.fsrEnabled} onChange={e => update({ fsrEnabled: e.target.checked })}
-            className="rounded border-gray-600 bg-[#292524] text-[#C9956B] focus:ring-[#D4A574] focus:ring-offset-0" />
+            className="rounded border-gray-600 bg-[#2A2D35] text-[#60A5FA] focus:ring-[#60A5FA] focus:ring-offset-0" />
           <span className="text-sm text-gray-300">FSR/DLSS/XeSS enabled</span>
         </label>
         {data.fsrEnabled && (
           <select value={data.fsrMode} onChange={e => update({ fsrMode: e.target.value })}
-            className="rounded-lg border border-[#44403C] bg-[#292524] px-3 py-1.5 text-sm text-gray-300 focus:border-[#D4A574] focus:outline-none">
+            className="rounded-lg border border-[#3A3D45] bg-[#2A2D35] px-3 py-1.5 text-sm text-gray-300 focus:border-[#60A5FA] focus:outline-none">
             <option value="">Mode...</option>
             <option value="quality">Quality</option>
             <option value="balanced">Balanced</option>
@@ -384,8 +384,8 @@ function Step2({ data, update }: { data: ReportData; update: (p: Partial<ReportD
         )}
       </div>
 
-      <hr className="border-[#292524]" />
-      <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider">Power</h3>
+      <hr className="border-[#2A2D35]" />
+      <h3 className="text-sm font-semibold text-[#9CA3AF]">Power</h3>
 
       <div className="grid grid-cols-2 gap-4">
         <Field label="TDP Limit (W)" value={data.tdpLimitWatts} onChange={v => update({ tdpLimitWatts: v })} type="number" placeholder="15" />
@@ -407,7 +407,7 @@ function Step3({ data, update }: { data: ReportData; update: (p: Partial<ReportD
   ];
 
   const ratingColors: Record<string, string> = {
-    copper: 'border-[#D4A574] bg-[#D4A574]/10 text-[#D4A574]',
+    copper: 'border-[#60A5FA] bg-[#60A5FA]/10 text-[#60A5FA]',
     green: 'border-green-500 bg-green-500/10 text-green-400',
     yellow: 'border-yellow-500 bg-yellow-500/10 text-yellow-400',
     orange: 'border-orange-500 bg-orange-500/10 text-orange-400',
@@ -426,11 +426,11 @@ function Step3({ data, update }: { data: ReportData; update: (p: Partial<ReportD
               className={`w-full rounded-lg border px-4 py-3 text-left transition-colors ${
                 data.overallRating === r.value
                   ? ratingColors[r.color]
-                  : 'border-[#44403C] bg-[#292524] hover:border-[#57534E]'
+                  : 'border-[#3A3D45] bg-[#2A2D35] hover:border-[#4B5563]'
               }`}
             >
               <span className={`font-medium ${data.overallRating === r.value ? '' : 'text-gray-300'}`}>{r.label}</span>
-              <span className={`block text-xs mt-0.5 ${data.overallRating === r.value ? 'opacity-80' : 'text-gray-500'}`}>{r.desc}</span>
+              <span className={`block text-xs mt-0.5 ${data.overallRating === r.value ? 'opacity-80' : 'text-[#6B7280]'}`}>{r.desc}</span>
             </button>
           ))}
         </div>
@@ -459,52 +459,52 @@ function Step3({ data, update }: { data: ReportData; update: (p: Partial<ReportD
 
 function Step4({ data, update }: { data: ReportData; update: (p: Partial<ReportData>) => void }) {
   const ratingEmoji: Record<string, string> = {
-    excellent: 'text-[#D4A574]', good: 'text-green-400', fair: 'text-yellow-400',
+    excellent: 'text-[#60A5FA]', good: 'text-green-400', fair: 'text-yellow-400',
     poor: 'text-orange-400', unplayable: 'text-red-400',
   };
 
   return (
     <div className="space-y-6">
       {/* Summary */}
-      <div className="rounded-lg border border-[#292524] bg-[#292524]/50 p-4 space-y-2">
+      <div className="rounded-lg border border-[#2A2D35] bg-[#2A2D35]/50 p-4 space-y-2">
         <div className="flex justify-between text-sm">
-          <span className="text-gray-500">Game</span>
+          <span className="text-[#6B7280]">Game</span>
           <span className="text-white font-medium">{data.gameName}</span>
         </div>
         <div className="flex justify-between text-sm">
-          <span className="text-gray-500">Device</span>
+          <span className="text-[#6B7280]">Device</span>
           <span className="text-white">{data.deviceName}</span>
         </div>
         <div className="flex justify-between text-sm">
-          <span className="text-gray-500">Average FPS</span>
+          <span className="text-[#6B7280]">Average FPS</span>
           <span className="text-white font-medium">{data.fpsAvg}</span>
         </div>
         {data.fpsLow && (
           <div className="flex justify-between text-sm">
-            <span className="text-gray-500">1% Low</span>
+            <span className="text-[#6B7280]">1% Low</span>
             <span className="text-gray-300">{data.fpsLow}</span>
           </div>
         )}
         {data.resolution && (
           <div className="flex justify-between text-sm">
-            <span className="text-gray-500">Resolution</span>
+            <span className="text-[#6B7280]">Resolution</span>
             <span className="text-gray-300">{data.resolution}</span>
           </div>
         )}
         {data.preset && (
           <div className="flex justify-between text-sm">
-            <span className="text-gray-500">Preset</span>
+            <span className="text-[#6B7280]">Preset</span>
             <span className="text-gray-300">{data.preset}</span>
           </div>
         )}
         {data.tdpLimitWatts && (
           <div className="flex justify-between text-sm">
-            <span className="text-gray-500">TDP</span>
+            <span className="text-[#6B7280]">TDP</span>
             <span className="text-gray-300">{data.tdpLimitWatts}W</span>
           </div>
         )}
         <div className="flex justify-between text-sm">
-          <span className="text-gray-500">Rating</span>
+          <span className="text-[#6B7280]">Rating</span>
           <span className={`font-medium capitalize ${ratingEmoji[data.overallRating] ?? 'text-gray-300'}`}>{data.overallRating}</span>
         </div>
       </div>
@@ -518,7 +518,7 @@ function Step4({ data, update }: { data: ReportData; update: (p: Partial<ReportD
           maxLength={2000}
           rows={4}
           placeholder="Any tips, issues, or observations about playing this game on this device..."
-          className="w-full rounded-lg border border-[#44403C] bg-[#292524] py-2.5 px-4 text-sm text-white placeholder-gray-500 focus:border-[#D4A574] focus:outline-none focus:ring-1 focus:ring-[#D4A574] resize-none"
+          className="w-full rounded-lg border border-[#3A3D45] bg-[#2A2D35] py-2.5 px-4 text-sm text-white placeholder-[#6B7280] focus:border-[#60A5FA] focus:outline-none focus:ring-1 focus:ring-[#60A5FA] resize-none"
         />
         <p className="mt-1 text-xs text-gray-600">{data.notes.length}/2000</p>
       </div>
@@ -538,14 +538,14 @@ function Field({ label, value, onChange, type = 'text', placeholder }: {
 }) {
   return (
     <div>
-      <label className="block text-xs font-medium text-gray-400 mb-1.5">{label}</label>
+      <label className="block text-xs font-medium text-[#9CA3AF] mb-1.5">{label}</label>
       <input
         type={type}
         value={value}
         onChange={e => onChange(e.target.value)}
         placeholder={placeholder}
         step={type === 'number' ? 'any' : undefined}
-        className="w-full rounded-lg border border-[#44403C] bg-[#292524] py-2 px-3 text-sm text-white placeholder-gray-500 focus:border-[#D4A574] focus:outline-none focus:ring-1 focus:ring-[#D4A574]"
+        className="w-full rounded-lg border border-[#3A3D45] bg-[#2A2D35] py-2 px-3 text-sm text-white placeholder-[#6B7280] focus:border-[#60A5FA] focus:outline-none focus:ring-1 focus:ring-[#60A5FA]"
       />
     </div>
   );
@@ -556,11 +556,11 @@ function Select({ label, value, onChange, options }: {
 }) {
   return (
     <div>
-      <label className="block text-xs font-medium text-gray-400 mb-1.5">{label}</label>
+      <label className="block text-xs font-medium text-[#9CA3AF] mb-1.5">{label}</label>
       <select
         value={value}
         onChange={e => onChange(e.target.value)}
-        className="w-full rounded-lg border border-[#44403C] bg-[#292524] py-2 px-3 text-sm text-gray-300 focus:border-[#D4A574] focus:outline-none"
+        className="w-full rounded-lg border border-[#3A3D45] bg-[#2A2D35] py-2 px-3 text-sm text-gray-300 focus:border-[#60A5FA] focus:outline-none"
       >
         {options.map(([val, lbl]) => (
           <option key={val} value={val}>{lbl}</option>

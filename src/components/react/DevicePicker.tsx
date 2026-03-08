@@ -110,11 +110,11 @@ export default function DevicePicker({ userDeviceIds: initialDeviceIds }: Device
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <svg className="h-6 w-6 animate-spin text-[#C9956B]" viewBox="0 0 24 24" fill="none">
+        <svg className="h-6 w-6 animate-spin text-[#60A5FA]" viewBox="0 0 24 24" fill="none">
           <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
           <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
         </svg>
-        <span className="ml-3 text-gray-400">Loading devices...</span>
+        <span className="ml-3 text-[#9CA3AF]">Loading devices...</span>
       </div>
     );
   }
@@ -124,7 +124,7 @@ export default function DevicePicker({ userDeviceIds: initialDeviceIds }: Device
       {/* Search Filter */}
       <div className="mb-4">
         <div className="relative">
-          <svg className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+          <svg className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#6B7280]" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z" />
           </svg>
           <input
@@ -132,7 +132,7 @@ export default function DevicePicker({ userDeviceIds: initialDeviceIds }: Device
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
             placeholder="Filter devices..."
-            className="w-full rounded-lg border border-[#44403C] bg-[#1C1917] py-2 pl-10 pr-4 text-sm text-white placeholder-gray-500 focus:border-[#D4A574] focus:outline-none focus:ring-1 focus:ring-[#D4A574]"
+            className="w-full rounded-lg border border-[#3A3D45] bg-[#16181D] py-2 pl-10 pr-4 text-sm text-white placeholder-[#6B7280] focus:border-[#60A5FA] focus:outline-none focus:ring-1 focus:ring-[#60A5FA]"
           />
         </div>
       </div>
@@ -148,11 +148,11 @@ export default function DevicePicker({ userDeviceIds: initialDeviceIds }: Device
       {/* Confirmation dialog */}
       {showConfirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-          <div className="w-full max-w-sm rounded-xl border border-[#44403C] bg-[#1C1917] p-6 shadow-2xl">
+          <div className="w-full max-w-sm rounded-xl border border-[#3A3D45] bg-[#16181D] p-6 shadow-2xl">
             <h3 className="text-lg font-semibold text-white">
               {showConfirm.action === 'add' ? 'Add Device' : 'Remove Device'}
             </h3>
-            <p className="mt-2 text-sm text-gray-400">
+            <p className="mt-2 text-sm text-[#9CA3AF]">
               {showConfirm.action === 'add'
                 ? `Add ${showConfirm.deviceName} to your setup?`
                 : `Remove ${showConfirm.deviceName} from your setup?`}
@@ -161,7 +161,7 @@ export default function DevicePicker({ userDeviceIds: initialDeviceIds }: Device
               <button
                 onClick={() => setShowConfirm(null)}
                 disabled={actionLoading !== null}
-                className="rounded-lg border border-gray-600 px-4 py-2 text-sm text-gray-300 hover:border-[#57534E] hover:text-white transition-colors disabled:opacity-50"
+                className="rounded-lg border border-gray-600 px-4 py-2 text-sm text-gray-300 hover:border-[#4B5563] hover:text-white transition-colors disabled:opacity-50"
               >
                 Cancel
               </button>
@@ -173,7 +173,7 @@ export default function DevicePicker({ userDeviceIds: initialDeviceIds }: Device
                 disabled={actionLoading !== null}
                 className={`rounded-lg px-4 py-2 text-sm font-medium text-white transition-colors disabled:opacity-50 ${
                   showConfirm.action === 'add'
-                    ? 'bg-[#C9956B] hover:bg-[#D4A574]'
+                    ? 'bg-[#60A5FA] hover:bg-[#60A5FA]'
                     : 'bg-red-600 hover:bg-red-500'
                 }`}
               >
@@ -203,14 +203,14 @@ export default function DevicePicker({ userDeviceIds: initialDeviceIds }: Device
               key={device.id}
               className={`relative rounded-lg border p-4 transition-all ${
                 isOwned
-                  ? 'border-[#D4A574]/40 bg-[#D4A574]/5'
-                  : 'border-[#292524] bg-[#1C1917] hover:border-[#57534E]'
+                  ? 'border-[#60A5FA]/40 bg-[#60A5FA]/5'
+                  : 'border-[#2A2D35] bg-[#16181D] hover:border-[#4B5563]'
               }`}
             >
               {/* Owned indicator */}
               {isOwned && (
                 <div className="absolute top-2 right-2">
-                  <span className="inline-flex items-center gap-1 rounded-full bg-[#D4A574]/20 px-2 py-0.5 text-xs font-medium text-[#D4A574] border border-[#D4A574]/30">
+                  <span className="inline-flex items-center gap-1 rounded-full bg-[#60A5FA]/20 px-2 py-0.5 text-xs font-medium text-[#60A5FA] border border-[#60A5FA]/30">
                     <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                     </svg>
@@ -221,7 +221,7 @@ export default function DevicePicker({ userDeviceIds: initialDeviceIds }: Device
 
               <div className="flex items-start gap-3">
                 {/* Device image */}
-                <div className="flex-shrink-0 w-14 h-14 rounded-lg bg-[#292524] flex items-center justify-center overflow-hidden">
+                <div className="flex-shrink-0 w-14 h-14 rounded-lg bg-[#2A2D35] flex items-center justify-center overflow-hidden">
                   {device.image ? (
                     <img src={device.image} alt={device.name} className="h-full w-full object-cover" loading="lazy" />
                   ) : (
@@ -234,9 +234,9 @@ export default function DevicePicker({ userDeviceIds: initialDeviceIds }: Device
 
                 {/* Device info */}
                 <div className="flex-1 min-w-0 pr-16">
-                  <p className="text-xs text-gray-500 uppercase tracking-wider">{device.manufacturer}</p>
+                  <p className="text-xs text-[#6B7280] uppercase tracking-wider">{device.manufacturer}</p>
                   <h4 className="font-medium text-white text-sm truncate">{device.name}</h4>
-                  <div className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-gray-500">
+                  <div className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-[#6B7280]">
                     {device.chip && <span>{device.chip}</span>}
                     {device.screen_size && <span>{device.screen_size}"</span>}
                     {device.battery_wh && <span>{device.battery_wh} Wh</span>}
@@ -258,7 +258,7 @@ export default function DevicePicker({ userDeviceIds: initialDeviceIds }: Device
                   <button
                     onClick={() => setShowConfirm({ deviceId: device.id, action: 'add', deviceName: device.name })}
                     disabled={isActioning}
-                    className="w-full rounded-lg border border-[#D4A574]/30 bg-[#D4A574]/10 px-3 py-1.5 text-xs font-medium text-[#D4A574] hover:bg-[#D4A574]/20 hover:border-[#D4A574]/50 transition-colors disabled:opacity-50"
+                    className="w-full rounded-lg border border-[#60A5FA]/30 bg-[#60A5FA]/10 px-3 py-1.5 text-xs font-medium text-[#60A5FA] hover:bg-[#60A5FA]/20 hover:border-[#60A5FA]/50 transition-colors disabled:opacity-50"
                   >
                     Add to Setup
                   </button>
@@ -269,7 +269,7 @@ export default function DevicePicker({ userDeviceIds: initialDeviceIds }: Device
         })}
 
         {filtered.length === 0 && (
-          <div className="col-span-full py-8 text-center text-gray-500 text-sm">
+          <div className="col-span-full py-8 text-center text-[#6B7280] text-sm">
             {searchQuery ? 'No devices match your search.' : 'No devices available.'}
           </div>
         )}

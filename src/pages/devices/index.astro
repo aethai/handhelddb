@@ -62,9 +62,9 @@ const sortedManufacturers = [...devicesByManufacturer.keys()].sort();
 
     <!-- Page Heading -->
     <div class="mb-10">
-      <h1 class="text-4xl font-bold text-white font-heading">Devices</h1>
-      <div class="mt-3 h-0.5 w-24 bg-gradient-to-r from-[#D4A574] to-[#DAA520]"></div>
-      <p class="mt-3 text-stone-400 text-lg">{devices.length} handheld gaming devices tracked</p>
+      <h1 class="text-4xl font-bold text-white">Devices</h1>
+      <div class="mt-3 h-0.5 w-24 bg-gradient-to-r from-[#60A5FA] to-[#60A5FA]"></div>
+      <p class="mt-3 text-[#9CA3AF] text-lg">{devices.length} handheld gaming devices tracked</p>
     </div>
 
     <!-- Featured Devices -->
@@ -77,9 +77,9 @@ const sortedManufacturers = [...devicesByManufacturer.keys()].sort();
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           {featuredDevices.map((device) => (
-            <div class="luxury-card group rounded-2xl border border-[#292524] bg-[#1C1917] overflow-hidden">
+            <div class="luxury-card group rounded-2xl border border-[#2A2D35] bg-[#16181D] overflow-hidden">
               <!-- Device Image -->
-              <div class="h-48 bg-gradient-to-br from-[#292524] to-[#1C1917] flex items-center justify-center p-6">
+              <div class="h-48 bg-gradient-to-br from-[#2A2D35] to-[#16181D] flex items-center justify-center p-6">
                 {device.image ? (
                   <img
                     src={device.image}
@@ -88,7 +88,7 @@ const sortedManufacturers = [...devicesByManufacturer.keys()].sort();
                     loading="eager"
                   />
                 ) : (
-                  <svg class="h-24 w-24 text-[#44403C]" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <svg class="h-24 w-24 text-[#3A3D45]" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <rect x="4" y="8" width="24" height="16" rx="4" stroke="currentColor" stroke-width="1.5" />
                     <circle cx="11" cy="16" r="2" fill="currentColor" />
                     <circle cx="21" cy="14" r="1.5" fill="currentColor" />
@@ -102,27 +102,27 @@ const sortedManufacturers = [...devicesByManufacturer.keys()].sort();
               <!-- Card Content -->
               <div class="p-6">
                 <p class="editorial-label mb-1">{device.manufacturer}</p>
-                <h2 class="text-2xl font-heading font-bold text-white group-hover:text-[#D4A574] transition-colors">
+                <h2 class="text-2xl font-bold text-white group-hover:text-[#60A5FA] transition-colors">
                   {device.name}
                 </h2>
 
                 <!-- Spec Row -->
                 <div class="mt-4 flex flex-wrap gap-2">
                   {device.chip && (
-                    <span class="inline-flex items-center gap-1.5 rounded-lg bg-[#292524] border border-[#44403C] px-3 py-1.5 text-xs text-stone-300">
-                      <svg class="h-3 w-3 text-[#D4A574]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 3v1.5M4.5 8.25H3m18 0h-1.5M4.5 12H3m18 0h-1.5m-15 3.75H3m18 0h-1.5M8.25 19.5V21M12 3v1.5m0 15V21m3.75-18v1.5m0 15V21m-9-1.5h10.5a2.25 2.25 0 002.25-2.25V6.75a2.25 2.25 0 00-2.25-2.25H6.75A2.25 2.25 0 004.5 6.75v10.5a2.25 2.25 0 002.25 2.25z" /></svg>
+                    <span class="inline-flex items-center gap-1.5 rounded-lg bg-[#2A2D35] border border-[#3A3D45] px-3 py-1.5 text-xs text-[#9CA3AF]">
+                      <svg class="h-3 w-3 text-[#60A5FA]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 3v1.5M4.5 8.25H3m18 0h-1.5M4.5 12H3m18 0h-1.5m-15 3.75H3m18 0h-1.5M8.25 19.5V21M12 3v1.5m0 15V21m3.75-18v1.5m0 15V21m-9-1.5h10.5a2.25 2.25 0 002.25-2.25V6.75a2.25 2.25 0 00-2.25-2.25H6.75A2.25 2.25 0 004.5 6.75v10.5a2.25 2.25 0 002.25 2.25z" /></svg>
                       {device.chip}
                     </span>
                   )}
                   {device.batteryWh && (
-                    <span class="inline-flex items-center gap-1.5 rounded-lg bg-[#292524] border border-[#44403C] px-3 py-1.5 text-xs text-stone-300">
-                      <svg class="h-3 w-3 text-[#D4A574]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 10.5h.375c.621 0 1.125.504 1.125 1.125v2.25c0 .621-.504 1.125-1.125 1.125H21M3.75 18h15A2.25 2.25 0 0021 15.75v-6a2.25 2.25 0 00-2.25-2.25h-15A2.25 2.25 0 001.5 9.75v6A2.25 2.25 0 003.75 18z" /></svg>
+                    <span class="inline-flex items-center gap-1.5 rounded-lg bg-[#2A2D35] border border-[#3A3D45] px-3 py-1.5 text-xs text-[#9CA3AF]">
+                      <svg class="h-3 w-3 text-[#60A5FA]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 10.5h.375c.621 0 1.125.504 1.125 1.125v2.25c0 .621-.504 1.125-1.125 1.125H21M3.75 18h15A2.25 2.25 0 0021 15.75v-6a2.25 2.25 0 00-2.25-2.25h-15A2.25 2.25 0 001.5 9.75v6A2.25 2.25 0 003.75 18z" /></svg>
                       {device.batteryWh} Wh
                     </span>
                   )}
                   {device.screenSize && (
-                    <span class="inline-flex items-center gap-1.5 rounded-lg bg-[#292524] border border-[#44403C] px-3 py-1.5 text-xs text-stone-300">
-                      <svg class="h-3 w-3 text-[#D4A574]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17.25v1.007a3 3 0 01-.879 2.122L7.5 21h9l-.621-.621A3 3 0 0115 18.257V17.25m6-12V15a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 15V5.25A2.25 2.25 0 015.25 3h13.5A2.25 2.25 0 0121 5.25z" /></svg>
+                    <span class="inline-flex items-center gap-1.5 rounded-lg bg-[#2A2D35] border border-[#3A3D45] px-3 py-1.5 text-xs text-[#9CA3AF]">
+                      <svg class="h-3 w-3 text-[#60A5FA]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17.25v1.007a3 3 0 01-.879 2.122L7.5 21h9l-.621-.621A3 3 0 0115 18.257V17.25m6-12V15a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 15V5.25A2.25 2.25 0 015.25 3h13.5A2.25 2.25 0 0121 5.25z" /></svg>
                       {device.screenSize}"
                     </span>
                   )}
@@ -138,13 +138,13 @@ const sortedManufacturers = [...devicesByManufacturer.keys()].sort();
                   <div class="flex items-center gap-3">
                     <a
                       href={`/devices/${device.slug}`}
-                      class="text-sm text-[#D4A574] hover:text-[#E8C5A0] transition-colors font-medium"
+                      class="text-sm text-[#60A5FA] hover:text-[#93C5FD] transition-colors font-medium"
                     >
                       View details &rarr;
                     </a>
                     <a
                       href={`/compare/${featuredDevices[0]?.slug}/${featuredDevices[1]?.slug}`}
-                      class="text-sm text-stone-500 hover:text-stone-300 transition-colors"
+                      class="text-sm text-[#6B7280] hover:text-[#9CA3AF] transition-colors"
                     >
                       Compare &rarr;
                     </a>

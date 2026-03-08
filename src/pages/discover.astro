@@ -132,18 +132,18 @@ const { curations, topGenres, devices, deviceReportMap, topRatedAll } = cached;
 const genreColors: Record<string, string> = {
   'Action': 'border-red-500/30 text-red-400 hover:bg-red-500/10',
   'RPG': 'border-purple-500/30 text-purple-400 hover:bg-purple-500/10',
-  'Indie': 'border-[#D4A574]/30 text-[#D4A574] hover:bg-[#D4A574]/10',
-  'Adventure': 'border-[#D4A574]/30 text-[#D4A574] hover:bg-[#D4A574]/10',
+  'Indie': 'border-[#60A5FA]/30 text-[#60A5FA] hover:bg-[#60A5FA]/10',
+  'Adventure': 'border-[#60A5FA]/30 text-[#60A5FA] hover:bg-[#60A5FA]/10',
   'Strategy': 'border-blue-500/30 text-blue-400 hover:bg-blue-500/10',
   'Simulation': 'border-green-500/30 text-green-400 hover:bg-green-500/10',
   'Casual': 'border-yellow-500/30 text-yellow-400 hover:bg-yellow-500/10',
   'Puzzle': 'border-pink-500/30 text-pink-400 hover:bg-pink-500/10',
   'Shooter': 'border-orange-500/30 text-orange-400 hover:bg-orange-500/10',
   'Platformer': 'border-teal-500/30 text-teal-400 hover:bg-teal-500/10',
-  'Horror': 'border-gray-500/30 text-gray-400 hover:bg-gray-500/10',
+  'Horror': 'border-[#6B7280]/30 text-[#9CA3AF] hover:bg-[#6B7280]/10',
   'Racing': 'border-amber-500/30 text-amber-400 hover:bg-amber-500/10',
 };
-const defaultColor = 'border-gray-500/30 text-gray-400 hover:bg-gray-500/10';
+const defaultColor = 'border-[#6B7280]/30 text-[#9CA3AF] hover:bg-[#6B7280]/10';
 
 // Deck badge helper for compact list
 const deckBadgeMap: Record<string, { label: string; class: string }> = {
@@ -160,8 +160,8 @@ const deckBadgeMap: Record<string, { label: string; class: string }> = {
     <!-- PAGE HEADING                               -->
     <!-- ═══════════════════════════════════════════ -->
     <div class="mb-12">
-      <h1 class="text-4xl sm:text-5xl font-bold text-white font-heading tracking-tight">What Should I Play?</h1>
-      <p class="mt-3 text-lg text-stone-400 max-w-2xl">Discover games perfect for handheld gaming — curated by the community, tested on real devices.</p>
+      <h1 class="text-4xl sm:text-5xl font-bold text-white tracking-tight">What Should I Play?</h1>
+      <p class="mt-3 text-lg text-[#9CA3AF] max-w-2xl">Discover games perfect for handheld gaming — curated by the community, tested on real devices.</p>
     </div>
 
     <!-- ═══════════════════════════════════════════ -->
@@ -169,7 +169,7 @@ const deckBadgeMap: Record<string, { label: string; class: string }> = {
     <!-- ═══════════════════════════════════════════ -->
     {topGenres.length > 0 && (
       <div class="mb-14">
-        <h2 class="text-xs font-semibold text-stone-500 uppercase tracking-wider mb-4 font-heading">Browse by Genre</h2>
+        <h2 class="text-xs font-semibold text-[#6B7280] mb-4">Browse by Genre</h2>
         <div class="flex scroll-strip snap-x gap-2 pb-2">
           {topGenres.map(([genre, count]) => (
             <a
@@ -230,27 +230,27 @@ const deckBadgeMap: Record<string, { label: string; class: string }> = {
 
           {/* ─── Layout 2: COMPACT LIST (Free to Play) ─── */}
           {idx === 2 && (
-            <div class="rounded-xl border border-[#292524] bg-[#1C1917] divide-y divide-[#292524]">
+            <div class="rounded-xl border border-[#2A2D35] bg-[#16181D] divide-y divide-[#2A2D35]">
               {list.games.map((game) => {
                 const badge = deckBadgeMap[game.deckCompatibility ?? ''];
                 return (
                   <a
                     href={`/games/${game.slug}`}
-                    class="flex items-center justify-between px-5 py-4 hover:bg-[#292524]/50 transition-colors group"
+                    class="flex items-center justify-between px-5 py-4 hover:bg-[#2A2D35]/50 transition-colors group"
                   >
                     <div class="flex items-center gap-3 min-w-0">
-                      <span class="font-semibold text-white group-hover:text-[#D4A574] transition-colors truncate">
+                      <span class="font-semibold text-white group-hover:text-[#60A5FA] transition-colors truncate">
                         {game.name}
                       </span>
                       {game.genres.length > 0 && (
-                        <span class="text-xs text-stone-600 flex-shrink-0 hidden sm:inline">{game.genres[0]}</span>
+                        <span class="text-xs text-[#4B5563] flex-shrink-0 hidden sm:inline">{game.genres[0]}</span>
                       )}
                     </div>
                     <div class="flex items-center gap-3 flex-shrink-0">
                       {badge && (
                         <span class={`text-xs font-medium ${badge.class}`}>{badge.label}</span>
                       )}
-                      <svg class="h-4 w-4 text-stone-600 group-hover:text-stone-400 transition-colors" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                      <svg class="h-4 w-4 text-[#4B5563] group-hover:text-[#9CA3AF] transition-colors" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
                       </svg>
                     </div>
@@ -297,18 +297,18 @@ const deckBadgeMap: Record<string, { label: string; class: string }> = {
           {devices.map((device) => (
             <a
               href={`/devices/${device.slug}`}
-              class="group rounded-xl border border-[#292524] bg-[#1C1917] p-8 text-center hover:border-[#D4A574]/30 hover:bg-[#1C1917]/80 transition-all"
+              class="group rounded-xl border border-[#2A2D35] bg-[#16181D] p-8 text-center hover:border-[#60A5FA]/30 hover:bg-[#16181D]/80 transition-all"
             >
-              <div class="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-[#292524] group-hover:bg-[#44403C] transition-colors">
-                <svg class="h-6 w-6 text-stone-400" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+              <div class="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-[#2A2D35] group-hover:bg-[#3A3D45] transition-colors">
+                <svg class="h-6 w-6 text-[#9CA3AF]" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 1.5H8.25A2.25 2.25 0 006 3.75v16.5a2.25 2.25 0 002.25 2.25h7.5A2.25 2.25 0 0018 20.25V3.75a2.25 2.25 0 00-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 18.75h3" />
                 </svg>
               </div>
-              <p class="text-xs text-stone-500 uppercase tracking-wider">{device.manufacturer}</p>
-              <p class="text-xl font-bold text-white group-hover:text-[#D4A574] transition-colors mt-1">
+              <p class="text-xs text-[#6B7280]">{device.manufacturer}</p>
+              <p class="text-xl font-bold text-white group-hover:text-[#60A5FA] transition-colors mt-1">
                 {device.name}
               </p>
-              <p class="mt-2 text-sm text-stone-400">
+              <p class="mt-2 text-sm text-[#9CA3AF]">
                 {deviceReportMap[device.id] ?? 0} reports
               </p>
             </a>

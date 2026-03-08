@@ -27,7 +27,7 @@ function formatDate(dateStr: string | null): string {
   <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
     <div class="mb-8">
       <h1 class="text-2xl font-bold text-white">Devices Management</h1>
-      <p class="mt-1 text-sm text-gray-400">{devices?.length ?? 0} devices registered</p>
+      <p class="mt-1 text-sm text-[#9CA3AF]">{devices?.length ?? 0} devices registered</p>
     </div>
 
     <div class="flex flex-col lg:flex-row gap-8">
@@ -35,129 +35,129 @@ function formatDate(dateStr: string | null): string {
 
       <div class="flex-1 min-w-0">
         <!-- Add Device Form -->
-        <div class="rounded-xl border border-gray-800 bg-gray-900 p-5 mb-8">
+        <div class="rounded-xl border border-[#2A2D35] bg-[#16181D] p-5 mb-8">
           <h2 class="text-sm font-semibold text-white mb-4">Add New Device</h2>
           <form id="add-device-form" class="space-y-4">
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               <div>
-                <label for="dev-name" class="block text-xs font-medium text-gray-400 mb-1">Name *</label>
-                <input type="text" id="dev-name" required class="w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white placeholder-gray-500 focus:border-[#D4A574] focus:ring-1 focus:ring-[#D4A574] focus:outline-none" placeholder="Steam Deck OLED" />
+                <label for="dev-name" class="block text-xs font-medium text-[#9CA3AF] mb-1">Name *</label>
+                <input type="text" id="dev-name" required class="w-full rounded-lg border border-[#3A3D45] bg-[#2A2D35] px-3 py-2 text-sm text-white placeholder-[#6B7280] focus:border-[#60A5FA] focus:ring-1 focus:ring-[#60A5FA] focus:outline-none" placeholder="Steam Deck OLED" />
               </div>
               <div>
-                <label for="dev-slug" class="block text-xs font-medium text-gray-400 mb-1">Slug</label>
-                <input type="text" id="dev-slug" class="w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white placeholder-gray-500 focus:border-[#D4A574] focus:ring-1 focus:ring-[#D4A574] focus:outline-none" placeholder="steam-deck-oled" />
+                <label for="dev-slug" class="block text-xs font-medium text-[#9CA3AF] mb-1">Slug</label>
+                <input type="text" id="dev-slug" class="w-full rounded-lg border border-[#3A3D45] bg-[#2A2D35] px-3 py-2 text-sm text-white placeholder-[#6B7280] focus:border-[#60A5FA] focus:ring-1 focus:ring-[#60A5FA] focus:outline-none" placeholder="steam-deck-oled" />
               </div>
               <div>
-                <label for="dev-manufacturer" class="block text-xs font-medium text-gray-400 mb-1">Manufacturer *</label>
-                <input type="text" id="dev-manufacturer" required class="w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white placeholder-gray-500 focus:border-[#D4A574] focus:ring-1 focus:ring-[#D4A574] focus:outline-none" placeholder="Valve" />
+                <label for="dev-manufacturer" class="block text-xs font-medium text-[#9CA3AF] mb-1">Manufacturer *</label>
+                <input type="text" id="dev-manufacturer" required class="w-full rounded-lg border border-[#3A3D45] bg-[#2A2D35] px-3 py-2 text-sm text-white placeholder-[#6B7280] focus:border-[#60A5FA] focus:ring-1 focus:ring-[#60A5FA] focus:outline-none" placeholder="Valve" />
               </div>
               <div>
-                <label for="dev-chip" class="block text-xs font-medium text-gray-400 mb-1">Chip</label>
-                <input type="text" id="dev-chip" class="w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white placeholder-gray-500 focus:border-[#D4A574] focus:ring-1 focus:ring-[#D4A574] focus:outline-none" placeholder="AMD Custom APU" />
+                <label for="dev-chip" class="block text-xs font-medium text-[#9CA3AF] mb-1">Chip</label>
+                <input type="text" id="dev-chip" class="w-full rounded-lg border border-[#3A3D45] bg-[#2A2D35] px-3 py-2 text-sm text-white placeholder-[#6B7280] focus:border-[#60A5FA] focus:ring-1 focus:ring-[#60A5FA] focus:outline-none" placeholder="AMD Custom APU" />
               </div>
               <div>
-                <label for="dev-gpu" class="block text-xs font-medium text-gray-400 mb-1">GPU</label>
-                <input type="text" id="dev-gpu" class="w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white placeholder-gray-500 focus:border-[#D4A574] focus:ring-1 focus:ring-[#D4A574] focus:outline-none" placeholder="RDNA 2" />
+                <label for="dev-gpu" class="block text-xs font-medium text-[#9CA3AF] mb-1">GPU</label>
+                <input type="text" id="dev-gpu" class="w-full rounded-lg border border-[#3A3D45] bg-[#2A2D35] px-3 py-2 text-sm text-white placeholder-[#6B7280] focus:border-[#60A5FA] focus:ring-1 focus:ring-[#60A5FA] focus:outline-none" placeholder="RDNA 2" />
               </div>
               <div>
-                <label for="dev-ram" class="block text-xs font-medium text-gray-400 mb-1">RAM (GB)</label>
-                <input type="number" id="dev-ram" class="w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white placeholder-gray-500 focus:border-[#D4A574] focus:ring-1 focus:ring-[#D4A574] focus:outline-none" placeholder="16" />
+                <label for="dev-ram" class="block text-xs font-medium text-[#9CA3AF] mb-1">RAM (GB)</label>
+                <input type="number" id="dev-ram" class="w-full rounded-lg border border-[#3A3D45] bg-[#2A2D35] px-3 py-2 text-sm text-white placeholder-[#6B7280] focus:border-[#60A5FA] focus:ring-1 focus:ring-[#60A5FA] focus:outline-none" placeholder="16" />
               </div>
               <div>
-                <label for="dev-screen-res" class="block text-xs font-medium text-gray-400 mb-1">Screen Resolution</label>
-                <input type="text" id="dev-screen-res" class="w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white placeholder-gray-500 focus:border-[#D4A574] focus:ring-1 focus:ring-[#D4A574] focus:outline-none" placeholder="1280x800" />
+                <label for="dev-screen-res" class="block text-xs font-medium text-[#9CA3AF] mb-1">Screen Resolution</label>
+                <input type="text" id="dev-screen-res" class="w-full rounded-lg border border-[#3A3D45] bg-[#2A2D35] px-3 py-2 text-sm text-white placeholder-[#6B7280] focus:border-[#60A5FA] focus:ring-1 focus:ring-[#60A5FA] focus:outline-none" placeholder="1280x800" />
               </div>
               <div>
-                <label for="dev-screen-size" class="block text-xs font-medium text-gray-400 mb-1">Screen Size (inches)</label>
-                <input type="number" step="0.1" id="dev-screen-size" class="w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white placeholder-gray-500 focus:border-[#D4A574] focus:ring-1 focus:ring-[#D4A574] focus:outline-none" placeholder="7.4" />
+                <label for="dev-screen-size" class="block text-xs font-medium text-[#9CA3AF] mb-1">Screen Size (inches)</label>
+                <input type="number" step="0.1" id="dev-screen-size" class="w-full rounded-lg border border-[#3A3D45] bg-[#2A2D35] px-3 py-2 text-sm text-white placeholder-[#6B7280] focus:border-[#60A5FA] focus:ring-1 focus:ring-[#60A5FA] focus:outline-none" placeholder="7.4" />
               </div>
               <div>
-                <label for="dev-battery" class="block text-xs font-medium text-gray-400 mb-1">Battery (Wh)</label>
-                <input type="number" step="0.1" id="dev-battery" class="w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white placeholder-gray-500 focus:border-[#D4A574] focus:ring-1 focus:ring-[#D4A574] focus:outline-none" placeholder="50" />
+                <label for="dev-battery" class="block text-xs font-medium text-[#9CA3AF] mb-1">Battery (Wh)</label>
+                <input type="number" step="0.1" id="dev-battery" class="w-full rounded-lg border border-[#3A3D45] bg-[#2A2D35] px-3 py-2 text-sm text-white placeholder-[#6B7280] focus:border-[#60A5FA] focus:ring-1 focus:ring-[#60A5FA] focus:outline-none" placeholder="50" />
               </div>
               <div>
-                <label for="dev-tdp-min" class="block text-xs font-medium text-gray-400 mb-1">TDP Min (W)</label>
-                <input type="number" step="0.1" id="dev-tdp-min" class="w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white placeholder-gray-500 focus:border-[#D4A574] focus:ring-1 focus:ring-[#D4A574] focus:outline-none" placeholder="3" />
+                <label for="dev-tdp-min" class="block text-xs font-medium text-[#9CA3AF] mb-1">TDP Min (W)</label>
+                <input type="number" step="0.1" id="dev-tdp-min" class="w-full rounded-lg border border-[#3A3D45] bg-[#2A2D35] px-3 py-2 text-sm text-white placeholder-[#6B7280] focus:border-[#60A5FA] focus:ring-1 focus:ring-[#60A5FA] focus:outline-none" placeholder="3" />
               </div>
               <div>
-                <label for="dev-tdp-max" class="block text-xs font-medium text-gray-400 mb-1">TDP Max (W)</label>
-                <input type="number" step="0.1" id="dev-tdp-max" class="w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white placeholder-gray-500 focus:border-[#D4A574] focus:ring-1 focus:ring-[#D4A574] focus:outline-none" placeholder="15" />
+                <label for="dev-tdp-max" class="block text-xs font-medium text-[#9CA3AF] mb-1">TDP Max (W)</label>
+                <input type="number" step="0.1" id="dev-tdp-max" class="w-full rounded-lg border border-[#3A3D45] bg-[#2A2D35] px-3 py-2 text-sm text-white placeholder-[#6B7280] focus:border-[#60A5FA] focus:ring-1 focus:ring-[#60A5FA] focus:outline-none" placeholder="15" />
               </div>
               <div>
-                <label for="dev-msrp" class="block text-xs font-medium text-gray-400 mb-1">MSRP (USD)</label>
-                <input type="number" step="0.01" id="dev-msrp" class="w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white placeholder-gray-500 focus:border-[#D4A574] focus:ring-1 focus:ring-[#D4A574] focus:outline-none" placeholder="549" />
+                <label for="dev-msrp" class="block text-xs font-medium text-[#9CA3AF] mb-1">MSRP (USD)</label>
+                <input type="number" step="0.01" id="dev-msrp" class="w-full rounded-lg border border-[#3A3D45] bg-[#2A2D35] px-3 py-2 text-sm text-white placeholder-[#6B7280] focus:border-[#60A5FA] focus:ring-1 focus:ring-[#60A5FA] focus:outline-none" placeholder="549" />
               </div>
               <div>
-                <label for="dev-os" class="block text-xs font-medium text-gray-400 mb-1">Default OS</label>
-                <input type="text" id="dev-os" class="w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white placeholder-gray-500 focus:border-[#D4A574] focus:ring-1 focus:ring-[#D4A574] focus:outline-none" placeholder="SteamOS 3.x" />
+                <label for="dev-os" class="block text-xs font-medium text-[#9CA3AF] mb-1">Default OS</label>
+                <input type="text" id="dev-os" class="w-full rounded-lg border border-[#3A3D45] bg-[#2A2D35] px-3 py-2 text-sm text-white placeholder-[#6B7280] focus:border-[#60A5FA] focus:ring-1 focus:ring-[#60A5FA] focus:outline-none" placeholder="SteamOS 3.x" />
               </div>
               <div>
-                <label for="dev-image" class="block text-xs font-medium text-gray-400 mb-1">Image URL</label>
-                <input type="url" id="dev-image" class="w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white placeholder-gray-500 focus:border-[#D4A574] focus:ring-1 focus:ring-[#D4A574] focus:outline-none" placeholder="https://..." />
+                <label for="dev-image" class="block text-xs font-medium text-[#9CA3AF] mb-1">Image URL</label>
+                <input type="url" id="dev-image" class="w-full rounded-lg border border-[#3A3D45] bg-[#2A2D35] px-3 py-2 text-sm text-white placeholder-[#6B7280] focus:border-[#60A5FA] focus:ring-1 focus:ring-[#60A5FA] focus:outline-none" placeholder="https://..." />
               </div>
               <div>
-                <label for="dev-weight" class="block text-xs font-medium text-gray-400 mb-1">Weight (grams)</label>
-                <input type="number" id="dev-weight" class="w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white placeholder-gray-500 focus:border-[#D4A574] focus:ring-1 focus:ring-[#D4A574] focus:outline-none" placeholder="640" />
+                <label for="dev-weight" class="block text-xs font-medium text-[#9CA3AF] mb-1">Weight (grams)</label>
+                <input type="number" id="dev-weight" class="w-full rounded-lg border border-[#3A3D45] bg-[#2A2D35] px-3 py-2 text-sm text-white placeholder-[#6B7280] focus:border-[#60A5FA] focus:ring-1 focus:ring-[#60A5FA] focus:outline-none" placeholder="640" />
               </div>
             </div>
             <div class="flex items-center gap-3 pt-2">
-              <button type="submit" class="rounded-lg bg-[#C9956B] px-4 py-2 text-sm font-medium text-white hover:bg-[#D4A574] transition-colors">
+              <button type="submit" class="rounded-lg bg-[#60A5FA] px-4 py-2 text-sm font-medium text-white hover:bg-[#3B82F6] transition-colors">
                 Add Device
               </button>
-              <div id="device-status" class="text-sm text-gray-500 hidden"></div>
+              <div id="device-status" class="text-sm text-[#6B7280] hidden"></div>
             </div>
           </form>
         </div>
 
         <!-- Devices Table -->
-        <div class="rounded-xl border border-gray-800 bg-gray-900 overflow-hidden">
+        <div class="rounded-xl border border-[#2A2D35] bg-[#16181D] overflow-hidden">
           <div class="overflow-x-auto">
             <table class="w-full text-sm">
               <thead>
-                <tr class="border-b border-gray-800 bg-gray-900/50">
-                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Device</th>
-                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Manufacturer</th>
-                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Chip</th>
-                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Screen</th>
-                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">MSRP</th>
-                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                  <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                <tr class="border-b border-[#2A2D35] bg-[#16181D]/50">
+                  <th class="px-4 py-3 text-left text-xs font-medium text-[#6B7280]">Device</th>
+                  <th class="px-4 py-3 text-left text-xs font-medium text-[#6B7280]">Manufacturer</th>
+                  <th class="px-4 py-3 text-left text-xs font-medium text-[#6B7280]">Chip</th>
+                  <th class="px-4 py-3 text-left text-xs font-medium text-[#6B7280]">Screen</th>
+                  <th class="px-4 py-3 text-left text-xs font-medium text-[#6B7280]">MSRP</th>
+                  <th class="px-4 py-3 text-left text-xs font-medium text-[#6B7280]">Status</th>
+                  <th class="px-4 py-3 text-right text-xs font-medium text-[#6B7280]">Actions</th>
                 </tr>
               </thead>
-              <tbody class="divide-y divide-gray-800">
+              <tbody class="divide-y divide-[#2A2D35]">
                 {(!devices || devices.length === 0) ? (
                   <tr>
-                    <td colspan="7" class="px-4 py-8 text-center text-gray-500">No devices found.</td>
+                    <td colspan="7" class="px-4 py-8 text-center text-[#6B7280]">No devices found.</td>
                   </tr>
                 ) : (
                   devices.map(device => (
-                    <tr class="hover:bg-gray-800/50 transition-colors" data-device-id={device.id}>
+                    <tr class="hover:bg-[#2A2D35]/50 transition-colors" data-device-id={device.id}>
                       <td class="px-4 py-3">
                         <div class="flex items-center gap-3">
                           {device.image ? (
                             <img src={device.image} alt="" class="h-8 w-12 rounded object-cover" />
                           ) : (
-                            <div class="h-8 w-12 rounded bg-gray-700 flex items-center justify-center text-xs text-gray-500">N/A</div>
+                            <div class="h-8 w-12 rounded bg-[#3A3D45] flex items-center justify-center text-xs text-[#6B7280]">N/A</div>
                           )}
                           <div>
                             <p class="font-medium text-white">{device.name}</p>
-                            <p class="text-xs text-gray-500">{device.slug}</p>
+                            <p class="text-xs text-[#6B7280]">{device.slug}</p>
                           </div>
                         </div>
                       </td>
-                      <td class="px-4 py-3 text-gray-400">{device.manufacturer}</td>
-                      <td class="px-4 py-3 text-gray-400">{device.chip ?? '-'}</td>
-                      <td class="px-4 py-3 text-gray-400 whitespace-nowrap">
+                      <td class="px-4 py-3 text-[#9CA3AF]">{device.manufacturer}</td>
+                      <td class="px-4 py-3 text-[#9CA3AF]">{device.chip ?? '-'}</td>
+                      <td class="px-4 py-3 text-[#9CA3AF] whitespace-nowrap">
                         {device.screen_resolution ?? '-'} {device.screen_size ? `(${device.screen_size}")` : ''}
                       </td>
-                      <td class="px-4 py-3 text-gray-300">
+                      <td class="px-4 py-3 text-[#9CA3AF]">
                         {device.msrp_usd ? `$${device.msrp_usd}` : '-'}
                       </td>
                       <td class="px-4 py-3">
                         {device.is_active ? (
-                          <span class="inline-flex rounded-md px-2 py-0.5 text-xs font-medium bg-[#D4A574]/20 text-[#D4A574]">Active</span>
+                          <span class="inline-flex rounded-md px-2 py-0.5 text-xs font-medium bg-[#60A5FA]/20 text-[#60A5FA]">Active</span>
                         ) : (
-                          <span class="inline-flex rounded-md px-2 py-0.5 text-xs font-medium bg-gray-500/20 text-gray-400">Inactive</span>
+                          <span class="inline-flex rounded-md px-2 py-0.5 text-xs font-medium bg-[#6B7280]/20 text-[#9CA3AF]">Inactive</span>
                         )}
                         {device.discontinued && (
                           <span class="ml-1 inline-flex rounded-md px-2 py-0.5 text-xs font-medium bg-red-500/20 text-red-400">Discontinued</span>
@@ -172,7 +172,7 @@ function formatDate(dateStr: string | null): string {
                             class:list={[
                               device.is_active
                                 ? 'border-amber-700 text-amber-400 hover:bg-amber-900/30'
-                                : 'border-[#D4A574] text-[#D4A574] hover:bg-[#D4A574]/10',
+                                : 'border-[#60A5FA] text-[#60A5FA] hover:bg-[#60A5FA]/10',
                             ]}
                           >
                             {device.is_active ? 'Deactivate' : 'Activate'}
@@ -254,7 +254,7 @@ function formatDate(dateStr: string | null): string {
       };
 
       statusDiv.textContent = 'Saving...';
-      statusDiv.classList.remove('hidden', 'text-red-400', 'text-[#D4A574]');
+      statusDiv.classList.remove('hidden', 'text-red-400', 'text-[#60A5FA]');
 
       try {
         const res = await fetch('/api/admin/devices', {
@@ -271,7 +271,7 @@ function formatDate(dateStr: string | null): string {
         }
 
         statusDiv.textContent = 'Device added!';
-        statusDiv.classList.add('text-[#D4A574]');
+        statusDiv.classList.add('text-[#60A5FA]');
         setTimeout(() => window.location.reload(), 1000);
       } catch {
         statusDiv.textContent = 'Network error';

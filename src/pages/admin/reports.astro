@@ -104,21 +104,21 @@ function formatDate(dateStr: string): string {
 
 function ratingBadgeColor(rating: string): string {
   switch (rating) {
-    case 'excellent': return 'bg-[#D4A574]/20 text-[#D4A574]';
+    case 'excellent': return 'bg-[#60A5FA]/20 text-[#60A5FA]';
     case 'good': return 'bg-green-500/20 text-green-400';
     case 'fair': return 'bg-yellow-500/20 text-yellow-400';
     case 'poor': return 'bg-orange-500/20 text-orange-400';
     case 'unplayable': return 'bg-red-500/20 text-red-400';
-    default: return 'bg-gray-500/20 text-gray-400';
+    default: return 'bg-[#6B7280]/20 text-[#9CA3AF]';
   }
 }
 
 function statusBadgeColor(status: string): string {
   switch (status) {
-    case 'approved': return 'bg-[#D4A574]/20 text-[#D4A574]';
+    case 'approved': return 'bg-[#60A5FA]/20 text-[#60A5FA]';
     case 'pending': return 'bg-amber-500/20 text-amber-400';
     case 'rejected': return 'bg-red-500/20 text-red-400';
-    default: return 'bg-gray-500/20 text-gray-400';
+    default: return 'bg-[#6B7280]/20 text-[#9CA3AF]';
   }
 }
 ---
@@ -127,7 +127,7 @@ function statusBadgeColor(status: string): string {
   <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
     <div class="mb-8">
       <h1 class="text-2xl font-bold text-white">Reports Moderation</h1>
-      <p class="mt-1 text-sm text-gray-400">{total} reports total</p>
+      <p class="mt-1 text-sm text-[#9CA3AF]">{total} reports total</p>
     </div>
 
     <div class="flex flex-col lg:flex-row gap-8">
@@ -141,8 +141,8 @@ function statusBadgeColor(status: string): string {
             class:list={[
               'rounded-lg px-3 py-1.5 text-sm font-medium transition-colors',
               !filter
-                ? 'bg-[#D4A574]/20 text-[#D4A574] border border-[#D4A574]/30'
-                : 'text-gray-400 hover:text-white border border-gray-700 hover:bg-gray-800',
+                ? 'bg-[#60A5FA]/20 text-[#60A5FA] border border-[#60A5FA]/30'
+                : 'text-[#9CA3AF] hover:text-white border border-[#3A3D45] hover:bg-[#2A2D35]',
             ]}
           >
             All
@@ -153,7 +153,7 @@ function statusBadgeColor(status: string): string {
               'rounded-lg px-3 py-1.5 text-sm font-medium transition-colors',
               filter === 'pending'
                 ? 'bg-amber-600/20 text-amber-400 border border-amber-500/30'
-                : 'text-gray-400 hover:text-white border border-gray-700 hover:bg-gray-800',
+                : 'text-[#9CA3AF] hover:text-white border border-[#3A3D45] hover:bg-[#2A2D35]',
             ]}
           >
             Pending
@@ -163,8 +163,8 @@ function statusBadgeColor(status: string): string {
             class:list={[
               'rounded-lg px-3 py-1.5 text-sm font-medium transition-colors',
               filter === 'approved'
-                ? 'bg-[#D4A574]/20 text-[#D4A574] border border-[#D4A574]/30'
-                : 'text-gray-400 hover:text-white border border-gray-700 hover:bg-gray-800',
+                ? 'bg-[#60A5FA]/20 text-[#60A5FA] border border-[#60A5FA]/30'
+                : 'text-[#9CA3AF] hover:text-white border border-[#3A3D45] hover:bg-[#2A2D35]',
             ]}
           >
             Approved
@@ -175,7 +175,7 @@ function statusBadgeColor(status: string): string {
               'rounded-lg px-3 py-1.5 text-sm font-medium transition-colors',
               filter === 'rejected'
                 ? 'bg-red-600/20 text-red-400 border border-red-500/30'
-                : 'text-gray-400 hover:text-white border border-gray-700 hover:bg-gray-800',
+                : 'text-[#9CA3AF] hover:text-white border border-[#3A3D45] hover:bg-[#2A2D35]',
             ]}
           >
             Rejected
@@ -185,15 +185,15 @@ function statusBadgeColor(status: string): string {
         <!-- Reports List -->
         <div class="space-y-3">
           {enrichedReports.length === 0 ? (
-            <div class="rounded-xl border border-gray-800 bg-gray-900 p-8 text-center text-gray-500">
+            <div class="rounded-xl border border-[#2A2D35] bg-[#16181D] p-8 text-center text-[#6B7280]">
               No reports found.
             </div>
           ) : (
             enrichedReports.map(report => (
               <div
                 class:list={[
-                  'rounded-xl border bg-gray-900 p-4 transition-colors',
-                  report.moderationStatus === 'pending' ? 'border-amber-700/50' : report.moderationStatus === 'rejected' ? 'border-red-700/50' : 'border-gray-800',
+                  'rounded-xl border bg-[#16181D] p-4 transition-colors',
+                  report.moderationStatus === 'pending' ? 'border-amber-700/50' : report.moderationStatus === 'rejected' ? 'border-red-700/50' : 'border-[#2A2D35]',
                 ]}
                 data-report-id={report.id}
               >
@@ -212,11 +212,11 @@ function statusBadgeColor(status: string): string {
                   <div class="flex-1 min-w-0">
                     <!-- Header: Game + Device + Status -->
                     <div class="flex flex-wrap items-center gap-2 mb-1">
-                      <a href={`/games/${report.gameSlug}`} class="text-sm font-medium text-[#D4A574] hover:text-[#E8C5A0] transition-colors truncate">
+                      <a href={`/games/${report.gameSlug}`} class="text-sm font-medium text-[#60A5FA] hover:text-[#93C5FD] transition-colors truncate">
                         {report.gameName}
                       </a>
-                      <span class="text-xs text-gray-600">on</span>
-                      <a href={`/devices/${report.deviceSlug}`} class="text-sm text-gray-300 hover:text-white transition-colors truncate">
+                      <span class="text-xs text-[#4B5563]">on</span>
+                      <a href={`/devices/${report.deviceSlug}`} class="text-sm text-[#9CA3AF] hover:text-white transition-colors truncate">
                         {report.deviceName}
                       </a>
                       <span class:list={[
@@ -234,33 +234,33 @@ function statusBadgeColor(status: string): string {
                     </div>
 
                     <!-- Submitter -->
-                    <p class="text-xs text-gray-500 mb-2">Submitted by {report.submitterName}</p>
+                    <p class="text-xs text-[#6B7280] mb-2">Submitted by {report.submitterName}</p>
 
                     <!-- Stats Row -->
-                    <div class="flex flex-wrap items-center gap-4 text-xs text-gray-400">
+                    <div class="flex flex-wrap items-center gap-4 text-xs text-[#9CA3AF]">
                       <span class="inline-flex items-center gap-1">
-                        <span class="text-gray-500">FPS:</span>
+                        <span class="text-[#6B7280]">FPS:</span>
                         <span class="text-white font-medium">{report.fpsAvg}</span>
                       </span>
                       {report.tdpWatts && (
                         <span class="inline-flex items-center gap-1">
-                          <span class="text-gray-500">TDP:</span>
+                          <span class="text-[#6B7280]">TDP:</span>
                           <span class="text-white font-medium">{report.tdpWatts}W</span>
                         </span>
                       )}
                       {report.preset && (
                         <span class="inline-flex items-center gap-1">
-                          <span class="text-gray-500">Preset:</span>
+                          <span class="text-[#6B7280]">Preset:</span>
                           <span class="text-white font-medium capitalize">{report.preset}</span>
                         </span>
                       )}
                       {report.resolution && (
                         <span class="inline-flex items-center gap-1">
-                          <span class="text-gray-500">Res:</span>
+                          <span class="text-[#6B7280]">Res:</span>
                           <span class="text-white font-medium">{report.resolution}</span>
                         </span>
                       )}
-                      <span class="text-gray-600">{formatDate(report.createdAt)}</span>
+                      <span class="text-[#4B5563]">{formatDate(report.createdAt)}</span>
                     </div>
                   </div>
 
@@ -269,7 +269,7 @@ function statusBadgeColor(status: string): string {
                     {report.moderationStatus === 'pending' && (
                       <>
                         <button
-                          class="admin-report-approve rounded-md border border-[#D4A574] px-2.5 py-1 text-xs font-medium text-[#D4A574] hover:bg-[#D4A574]/10 transition-colors"
+                          class="admin-report-approve rounded-md border border-[#60A5FA] px-2.5 py-1 text-xs font-medium text-[#60A5FA] hover:bg-[#60A5FA]/10 transition-colors"
                           data-report-id={report.id}
                         >
                           Approve
@@ -298,14 +298,14 @@ function statusBadgeColor(status: string): string {
         <!-- Pagination -->
         {totalPages > 1 && (
           <div class="mt-6 flex items-center justify-between">
-            <p class="text-sm text-gray-500">
+            <p class="text-sm text-[#6B7280]">
               Showing {offset + 1}–{Math.min(offset + PER_PAGE, total)} of {total}
             </p>
             <div class="flex gap-2">
               {page > 1 && (
                 <a
                   href={`/admin/reports?page=${page - 1}${filter ? `&filter=${filter}` : ''}`}
-                  class="rounded-lg border border-gray-700 px-3 py-1.5 text-sm text-gray-300 hover:bg-gray-800 transition-colors"
+                  class="rounded-lg border border-[#3A3D45] px-3 py-1.5 text-sm text-[#9CA3AF] hover:bg-[#2A2D35] transition-colors"
                 >
                   Previous
                 </a>
@@ -313,7 +313,7 @@ function statusBadgeColor(status: string): string {
               {page < totalPages && (
                 <a
                   href={`/admin/reports?page=${page + 1}${filter ? `&filter=${filter}` : ''}`}
-                  class="rounded-lg border border-gray-700 px-3 py-1.5 text-sm text-gray-300 hover:bg-gray-800 transition-colors"
+                  class="rounded-lg border border-[#3A3D45] px-3 py-1.5 text-sm text-[#9CA3AF] hover:bg-[#2A2D35] transition-colors"
                 >
                   Next
                 </a>

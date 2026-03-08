@@ -67,7 +67,7 @@ const pageNumbers = buildPageNumbers(page, totalPages);
   <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
     <div class="mb-8">
       <h1 class="text-2xl font-bold text-white">Users Management</h1>
-      <p class="mt-1 text-sm text-gray-400">{total.toLocaleString()} total users</p>
+      <p class="mt-1 text-sm text-[#9CA3AF]">{total.toLocaleString()} total users</p>
     </div>
 
     <div class="flex flex-col lg:flex-row gap-8">
@@ -82,11 +82,11 @@ const pageNumbers = buildPageNumbers(page, totalPages);
               name="q"
               value={search}
               placeholder="Search by name or email..."
-              class="flex-1 rounded-lg border border-gray-700 bg-gray-900 px-4 py-2 text-sm text-white placeholder-gray-500 focus:border-[#D4A574] focus:ring-1 focus:ring-[#D4A574] focus:outline-none"
+              class="flex-1 rounded-lg border border-[#3A3D45] bg-[#16181D] px-4 py-2 text-sm text-white placeholder-[#6B7280] focus:border-[#60A5FA] focus:ring-1 focus:ring-[#60A5FA] focus:outline-none"
             />
             <button
               type="submit"
-              class="rounded-lg bg-[#C9956B] px-4 py-2 text-sm font-medium text-white hover:bg-[#D4A574] transition-colors"
+              class="rounded-lg bg-[#60A5FA] px-4 py-2 text-sm font-medium text-white hover:bg-[#3B82F6] transition-colors"
             >
               Search
             </button>
@@ -94,51 +94,51 @@ const pageNumbers = buildPageNumbers(page, totalPages);
         </form>
 
         <!-- Users Table -->
-        <div class="rounded-xl border border-gray-800 bg-gray-900 overflow-hidden">
+        <div class="rounded-xl border border-[#2A2D35] bg-[#16181D] overflow-hidden">
           <div class="overflow-x-auto">
             <table class="w-full text-sm">
               <thead>
-                <tr class="border-b border-gray-800 bg-gray-900/50">
-                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
-                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
-                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Points</th>
-                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Level</th>
-                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Joined</th>
-                  <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                <tr class="border-b border-[#2A2D35] bg-[#16181D]/50">
+                  <th class="px-4 py-3 text-left text-xs font-medium text-[#6B7280]">User</th>
+                  <th class="px-4 py-3 text-left text-xs font-medium text-[#6B7280]">Email</th>
+                  <th class="px-4 py-3 text-left text-xs font-medium text-[#6B7280]">Points</th>
+                  <th class="px-4 py-3 text-left text-xs font-medium text-[#6B7280]">Level</th>
+                  <th class="px-4 py-3 text-left text-xs font-medium text-[#6B7280]">Status</th>
+                  <th class="px-4 py-3 text-left text-xs font-medium text-[#6B7280]">Joined</th>
+                  <th class="px-4 py-3 text-right text-xs font-medium text-[#6B7280]">Actions</th>
                 </tr>
               </thead>
-              <tbody class="divide-y divide-gray-800">
+              <tbody class="divide-y divide-[#2A2D35]">
                 {(!users || users.length === 0) ? (
                   <tr>
-                    <td colspan="7" class="px-4 py-8 text-center text-gray-500">No users found.</td>
+                    <td colspan="7" class="px-4 py-8 text-center text-[#6B7280]">No users found.</td>
                   </tr>
                 ) : (
                   users.map(user => (
-                    <tr class="hover:bg-gray-800/50 transition-colors" data-user-id={user.id}>
+                    <tr class="hover:bg-[#2A2D35]/50 transition-colors" data-user-id={user.id}>
                       <td class="px-4 py-3">
                         <div class="flex items-center gap-3">
                           {user.avatar_url ? (
                             <img src={user.avatar_url} alt="" class="h-8 w-8 rounded-full" />
                           ) : (
-                            <div class="h-8 w-8 rounded-full bg-gray-700 flex items-center justify-center text-xs font-bold text-gray-300">
+                            <div class="h-8 w-8 rounded-full bg-[#3A3D45] flex items-center justify-center text-xs font-bold text-[#9CA3AF]">
                               {(user.display_name ?? '?').charAt(0).toUpperCase()}
                             </div>
                           )}
                           <span class="font-medium text-white">{user.display_name ?? 'No name'}</span>
                         </div>
                       </td>
-                      <td class="px-4 py-3 text-gray-400">{user.email ?? '-'}</td>
-                      <td class="px-4 py-3 text-gray-300">{user.points ?? 0}</td>
+                      <td class="px-4 py-3 text-[#9CA3AF]">{user.email ?? '-'}</td>
+                      <td class="px-4 py-3 text-[#9CA3AF]">{user.points ?? 0}</td>
                       <td class="px-4 py-3">
-                        <span class="inline-flex rounded-md px-2 py-0.5 text-xs font-medium bg-gray-700/50 text-gray-300">
+                        <span class="inline-flex rounded-md px-2 py-0.5 text-xs font-medium bg-[#3A3D45]/50 text-[#9CA3AF]">
                           {levelLabel(user.level)}
                         </span>
                       </td>
                       <td class="px-4 py-3">
                         <div class="flex flex-wrap gap-1">
                           {user.is_admin && (
-                            <span class="inline-flex rounded-md px-2 py-0.5 text-xs font-medium bg-[#D4A574]/20 text-[#D4A574]">Admin</span>
+                            <span class="inline-flex rounded-md px-2 py-0.5 text-xs font-medium bg-[#60A5FA]/20 text-[#60A5FA]">Admin</span>
                           )}
                           {user.is_banned && (
                             <span class="inline-flex rounded-md px-2 py-0.5 text-xs font-medium bg-red-500/20 text-red-400">Banned</span>
@@ -147,11 +147,11 @@ const pageNumbers = buildPageNumbers(page, totalPages);
                             <span class="inline-flex rounded-md px-2 py-0.5 text-xs font-medium bg-blue-500/20 text-blue-400">Verified</span>
                           )}
                           {!user.is_admin && !user.is_banned && !user.is_verified_tester && (
-                            <span class="text-xs text-gray-600">Normal</span>
+                            <span class="text-xs text-[#4B5563]">Normal</span>
                           )}
                         </div>
                       </td>
-                      <td class="px-4 py-3 text-gray-500 whitespace-nowrap">{formatDate(user.created_at)}</td>
+                      <td class="px-4 py-3 text-[#6B7280] whitespace-nowrap">{formatDate(user.created_at)}</td>
                       <td class="px-4 py-3 text-right">
                         <div class="flex items-center justify-end gap-2">
                           <button
@@ -173,7 +173,7 @@ const pageNumbers = buildPageNumbers(page, totalPages);
                             class:list={[
                               user.is_admin
                                 ? 'border-amber-700 text-amber-400 hover:bg-amber-900/30'
-                                : 'border-[#D4A574] text-[#D4A574] hover:bg-[#D4A574]/10',
+                                : 'border-[#60A5FA] text-[#60A5FA] hover:bg-[#60A5FA]/10',
                             ]}
                           >
                             {user.is_admin ? 'Remove Admin' : 'Make Admin'}
@@ -191,14 +191,14 @@ const pageNumbers = buildPageNumbers(page, totalPages);
         <!-- Pagination -->
         {totalPages > 1 && (
           <div class="mt-6 flex items-center justify-between">
-            <p class="text-sm text-gray-500">
+            <p class="text-sm text-[#6B7280]">
               Showing {offset + 1}–{Math.min(offset + PER_PAGE, total)} of {total}
             </p>
             <div class="flex gap-2">
               {page > 1 && (
                 <a
                   href={`/admin/users?page=${page - 1}${search ? `&q=${encodeURIComponent(search)}` : ''}`}
-                  class="rounded-lg border border-gray-700 px-3 py-1.5 text-sm text-gray-300 hover:bg-gray-800 transition-colors"
+                  class="rounded-lg border border-[#3A3D45] px-3 py-1.5 text-sm text-[#9CA3AF] hover:bg-[#2A2D35] transition-colors"
                 >
                   Previous
                 </a>
@@ -209,8 +209,8 @@ const pageNumbers = buildPageNumbers(page, totalPages);
                   class:list={[
                     'rounded-lg px-3 py-1.5 text-sm font-medium transition-colors',
                     pageNum === page
-                      ? 'bg-[#C9956B] text-white'
-                      : 'border border-gray-700 text-gray-400 hover:bg-gray-800 hover:text-white',
+                      ? 'bg-[#60A5FA] text-white'
+                      : 'border border-[#3A3D45] text-[#9CA3AF] hover:bg-[#2A2D35] hover:text-white',
                   ]}
                 >
                   {pageNum}
@@ -219,7 +219,7 @@ const pageNumbers = buildPageNumbers(page, totalPages);
               {page < totalPages && (
                 <a
                   href={`/admin/users?page=${page + 1}${search ? `&q=${encodeURIComponent(search)}` : ''}`}
-                  class="rounded-lg border border-gray-700 px-3 py-1.5 text-sm text-gray-300 hover:bg-gray-800 transition-colors"
+                  class="rounded-lg border border-[#3A3D45] px-3 py-1.5 text-sm text-[#9CA3AF] hover:bg-[#2A2D35] transition-colors"
                 >
                   Next
                 </a>

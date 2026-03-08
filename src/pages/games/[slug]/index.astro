@@ -32,16 +32,16 @@ const deckStatusColors: Record<string, { label: string; class: string }> = {
   verified: { label: 'Verified', class: 'bg-green-500/20 text-green-400 border-green-500/30' },
   playable: { label: 'Playable', class: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30' },
   unsupported: { label: 'Unsupported', class: 'bg-red-500/20 text-red-400 border-red-500/30' },
-  unknown: { label: 'Unknown', class: 'bg-gray-500/20 text-gray-400 border-gray-500/30' },
+  unknown: { label: 'Unknown', class: 'bg-[#6B7280]/20 text-[#9CA3AF] border-[#6B7280]/30' },
 };
 
 const protonColors: Record<string, { label: string; class: string }> = {
   platinum: { label: 'Platinum', class: 'bg-blue-500/20 text-blue-300' },
   gold: { label: 'Gold', class: 'bg-yellow-500/20 text-yellow-400' },
-  silver: { label: 'Silver', class: 'bg-gray-400/20 text-gray-300' },
+  silver: { label: 'Silver', class: 'bg-[#9CA3AF]/20 text-[#9CA3AF]' },
   bronze: { label: 'Bronze', class: 'bg-orange-500/20 text-orange-400' },
   borked: { label: 'Borked', class: 'bg-red-500/20 text-red-400' },
-  pending: { label: 'Pending', class: 'bg-gray-500/20 text-gray-400' },
+  pending: { label: 'Pending', class: 'bg-[#6B7280]/20 text-[#9CA3AF]' },
 };
 
 const genres = (game.genres as string[]) ?? [];
@@ -94,12 +94,12 @@ const priceDisplay = game.price_usd != null ? (game.is_free_to_play ? 'Free' : `
 
   <!-- Breadcrumb -->
   <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-6 pb-2">
-    <nav class="text-sm text-gray-500">
+    <nav class="text-sm text-[#6B7280]">
       <a href="/" class="hover:text-white transition-colors">Home</a>
       <span class="mx-2">/</span>
       <a href="/games" class="hover:text-white transition-colors">Games</a>
       <span class="mx-2">/</span>
-      <span class="text-gray-300">{game.name}</span>
+      <span class="text-[#9CA3AF]">{game.name}</span>
     </nav>
   </div>
 
@@ -116,30 +116,30 @@ const priceDisplay = game.price_usd != null ? (game.is_free_to_play ? 'Free' : `
         />
       </div>
     ) : (
-      <div class="aspect-[21/9] w-full bg-gradient-to-br from-[#292524] via-[#1C1917] to-[#0C0A09] flex items-center justify-center">
-        <span class="text-6xl font-bold text-gray-700/30 font-heading">{game.name}</span>
+      <div class="aspect-[21/9] w-full bg-gradient-to-br from-[#2A2D35] via-[#16181D] to-[#0F1115] flex items-center justify-center">
+        <span class="text-6xl font-bold text-gray-700/30">{game.name}</span>
       </div>
     )}
     <!-- Gradient overlay: transparent at top, solid at bottom -->
-    <div class="absolute inset-0 bg-gradient-to-t from-[#0C0A09] via-[#0C0A09]/60 to-transparent"></div>
+    <div class="absolute inset-0 bg-gradient-to-t from-[#0F1115] via-[#0F1115]/60 to-transparent"></div>
 
     <!-- Overlaid content at bottom -->
     <div class="absolute bottom-0 inset-x-0">
       <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pb-8">
         <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
           <div class="min-w-0">
-            <h1 class="text-3xl sm:text-4xl lg:text-5xl font-bold text-white font-heading leading-tight truncate">
+            <h1 class="text-3xl sm:text-4xl lg:text-5xl font-bold text-white leading-tight truncate">
               {game.name}
             </h1>
             <div class="mt-3 flex items-center gap-3 flex-wrap">
               {developers[0] && (
-                <span class="text-sm text-stone-300">{developers[0]}</span>
+                <span class="text-sm text-[#9CA3AF]">{developers[0]}</span>
               )}
               {genres.length > 0 && (
                 <>
-                  <span class="text-[#44403C]">&middot;</span>
+                  <span class="text-[#3A3D45]">&middot;</span>
                   {genres.map(genre => (
-                    <span class="rounded-full bg-white/10 backdrop-blur-sm px-3 py-0.5 text-xs font-medium text-stone-200">
+                    <span class="rounded-full bg-white/10 backdrop-blur-sm px-3 py-0.5 text-xs font-medium text-[#E8EAED]">
                       {genre}
                     </span>
                   ))}
@@ -166,7 +166,7 @@ const priceDisplay = game.price_usd != null ? (game.is_free_to_play ? 'Free' : `
             />
             <a
               href="/report/new"
-              class="inline-flex items-center gap-1.5 rounded-lg bg-[#C9956B] px-4 py-2 text-sm font-medium text-white hover:bg-[#D4A574] transition-colors"
+              class="inline-flex items-center gap-1.5 rounded-lg bg-[#60A5FA] px-4 py-2 text-sm font-medium text-white hover:bg-[#3B82F6] transition-colors"
             >
               <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" /></svg>
               Report
@@ -180,38 +180,38 @@ const priceDisplay = game.price_usd != null ? (game.is_free_to_play ? 'Free' : `
   <!-- ═══════════════════════════════════════════ -->
   <!-- STICKY QUICK STATS BAR                     -->
   <!-- ═══════════════════════════════════════════ -->
-  <div class="sticky top-16 z-30 bg-[#0C0A09]/95 backdrop-blur-md border-y border-[#292524]">
+  <div class="sticky top-16 z-30 bg-[#0F1115]/95 backdrop-blur-md border-y border-[#2A2D35]">
     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-      <div class="flex items-center divide-x divide-[#292524] overflow-x-auto scroll-strip">
+      <div class="flex items-center divide-x divide-[#2A2D35] overflow-x-auto scroll-strip">
         {game.metacritic_score && (
           <div class="flex items-center gap-2 px-5 py-3 flex-shrink-0">
             <span class={`text-lg font-bold font-mono ${game.metacritic_score >= 75 ? 'text-green-400' : game.metacritic_score >= 50 ? 'text-yellow-400' : 'text-red-400'}`}>
               {game.metacritic_score}
             </span>
-            <span class="text-xs text-stone-500 uppercase tracking-wider">Metacritic</span>
+            <span class="text-xs text-[#6B7280]">Metacritic</span>
           </div>
         )}
         {game.steam_review_score && (
           <div class="flex items-center gap-2 px-5 py-3 flex-shrink-0">
             <span class="text-lg font-bold font-mono text-blue-400">{game.steam_review_score}%</span>
-            <span class="text-xs text-stone-500 uppercase tracking-wider">Steam</span>
+            <span class="text-xs text-[#6B7280]">Steam</span>
           </div>
         )}
         {game.hltb_main_hours && (
           <div class="flex items-center gap-2 px-5 py-3 flex-shrink-0">
-            <span class="text-lg font-bold font-mono text-[#D4A574]">{game.hltb_main_hours}h</span>
-            <span class="text-xs text-stone-500 uppercase tracking-wider">Main Story</span>
+            <span class="text-lg font-bold font-mono text-[#60A5FA]">{game.hltb_main_hours}h</span>
+            <span class="text-xs text-[#6B7280]">Main Story</span>
           </div>
         )}
         {priceDisplay && (
           <div class="flex items-center gap-2 px-5 py-3 flex-shrink-0">
             <span class="text-lg font-bold font-mono text-white">{priceDisplay}</span>
-            <span class="text-xs text-stone-500 uppercase tracking-wider">Price</span>
+            <span class="text-xs text-[#6B7280]">Price</span>
           </div>
         )}
         <div class="flex items-center gap-2 px-5 py-3 flex-shrink-0">
           <span class={`rounded-md border px-2 py-0.5 text-xs font-medium ${deckInfo.class}`}>{deckInfo.label}</span>
-          <span class="text-xs text-stone-500 uppercase tracking-wider">Deck</span>
+          <span class="text-xs text-[#6B7280]">Deck</span>
         </div>
       </div>
     </div>
@@ -222,7 +222,7 @@ const priceDisplay = game.price_usd != null ? (game.is_free_to_play ? 'Free' : `
   <!-- ═══════════════════════════════════════════ -->
   {cleanDescription && (
     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-6">
-      <p class="text-stone-400 leading-relaxed max-w-3xl">{cleanDescription}</p>
+      <p class="text-[#9CA3AF] leading-relaxed max-w-3xl">{cleanDescription}</p>
     </div>
   )}
 
@@ -231,7 +231,7 @@ const priceDisplay = game.price_usd != null ? (game.is_free_to_play ? 'Free' : `
   <!-- ═══════════════════════════════════════════ -->
   <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-8 pb-16">
     <!-- Tab Buttons -->
-    <div class="flex gap-1 border-b border-[#292524] mb-8" role="tablist">
+    <div class="flex gap-1 border-b border-[#2A2D35] mb-8" role="tablist">
       <button
         data-tab-btn="performance"
         role="tab"
@@ -239,63 +239,63 @@ const priceDisplay = game.price_usd != null ? (game.is_free_to_play ? 'Free' : `
         class="tab-btn relative px-5 py-3 text-sm font-medium text-white transition-colors"
       >
         Performance
-        <span class="tab-indicator absolute bottom-0 inset-x-0 h-0.5 bg-[#C9956B] rounded-full"></span>
+        <span class="tab-indicator absolute bottom-0 inset-x-0 h-0.5 bg-[#60A5FA] rounded-full"></span>
       </button>
       <button
         data-tab-btn="details"
         role="tab"
         aria-selected="false"
-        class="tab-btn relative px-5 py-3 text-sm font-medium text-stone-500 hover:text-stone-300 transition-colors"
+        class="tab-btn relative px-5 py-3 text-sm font-medium text-[#6B7280] hover:text-[#9CA3AF] transition-colors"
       >
         Details
-        <span class="tab-indicator absolute bottom-0 inset-x-0 h-0.5 bg-[#C9956B] rounded-full hidden"></span>
+        <span class="tab-indicator absolute bottom-0 inset-x-0 h-0.5 bg-[#60A5FA] rounded-full hidden"></span>
       </button>
       {hasScreenshots && (
         <button
           data-tab-btn="screenshots"
           role="tab"
           aria-selected="false"
-          class="tab-btn relative px-5 py-3 text-sm font-medium text-stone-500 hover:text-stone-300 transition-colors"
+          class="tab-btn relative px-5 py-3 text-sm font-medium text-[#6B7280] hover:text-[#9CA3AF] transition-colors"
         >
           Screenshots
-          <span class="tab-indicator absolute bottom-0 inset-x-0 h-0.5 bg-[#C9956B] rounded-full hidden"></span>
+          <span class="tab-indicator absolute bottom-0 inset-x-0 h-0.5 bg-[#60A5FA] rounded-full hidden"></span>
         </button>
       )}
       <button
         data-tab-btn="discussion"
         role="tab"
         aria-selected="false"
-        class="tab-btn relative px-5 py-3 text-sm font-medium text-stone-500 hover:text-stone-300 transition-colors"
+        class="tab-btn relative px-5 py-3 text-sm font-medium text-[#6B7280] hover:text-[#9CA3AF] transition-colors"
       >
         Discussion
-        <span class="tab-indicator absolute bottom-0 inset-x-0 h-0.5 bg-[#C9956B] rounded-full hidden"></span>
+        <span class="tab-indicator absolute bottom-0 inset-x-0 h-0.5 bg-[#60A5FA] rounded-full hidden"></span>
       </button>
     </div>
 
     <!-- ─── Performance Tab (default) ─── -->
     <div data-tab-panel="performance">
-      <h2 class="text-xl font-bold text-white font-heading mb-6">Performance by Device</h2>
+      <h2 class="text-xl font-bold text-white mb-6">Performance by Device</h2>
 
       {devicesData && devicesData.length > 0 ? (
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {devicesData.map(d => (
             <a
               href={`/games/${slug}/${d.slug}`}
-              class="group rounded-xl border border-[#292524] bg-[#1C1917] p-5 hover:border-[#44403C] hover:bg-[#1C1917]/80 transition-all"
+              class="group rounded-xl border border-[#2A2D35] bg-[#16181D] p-5 hover:border-[#3A3D45] hover:bg-[#16181D]/80 transition-all"
             >
               <div class="flex items-center justify-between">
                 <div class="flex items-center gap-3">
-                  <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-[#292524] group-hover:bg-[#44403C] transition-colors">
-                    <svg class="h-5 w-5 text-stone-400" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                  <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-[#2A2D35] group-hover:bg-[#3A3D45] transition-colors">
+                    <svg class="h-5 w-5 text-[#9CA3AF]" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 1.5H8.25A2.25 2.25 0 006 3.75v16.5a2.25 2.25 0 002.25 2.25h7.5A2.25 2.25 0 0018 20.25V3.75a2.25 2.25 0 00-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 18.75h3" />
                     </svg>
                   </div>
                   <div>
-                    <p class="font-semibold text-white group-hover:text-[#D4A574] transition-colors">{d.name}</p>
-                    <p class="text-xs text-stone-500">0 reports</p>
+                    <p class="font-semibold text-white group-hover:text-[#60A5FA] transition-colors">{d.name}</p>
+                    <p class="text-xs text-[#6B7280]">0 reports</p>
                   </div>
                 </div>
-                <svg class="h-5 w-5 text-stone-600 group-hover:text-stone-400 transition-colors" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                <svg class="h-5 w-5 text-[#4B5563] group-hover:text-[#9CA3AF] transition-colors" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
                 </svg>
               </div>
@@ -303,17 +303,17 @@ const priceDisplay = game.price_usd != null ? (game.is_free_to_play ? 'Free' : `
           ))}
         </div>
       ) : (
-        <div class="rounded-xl border border-[#292524] bg-[#1C1917] p-12 text-center">
-          <div class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-[#292524]">
-            <svg class="h-8 w-8 text-stone-600" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+        <div class="rounded-xl border border-[#2A2D35] bg-[#16181D] p-12 text-center">
+          <div class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-[#2A2D35]">
+            <svg class="h-8 w-8 text-[#4B5563]" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3v11.25A2.25 2.25 0 006 16.5h2.25M3.75 3h-1.5m1.5 0h16.5m0 0h1.5m-1.5 0v11.25A2.25 2.25 0 0118 16.5h-2.25m-7.5 0h7.5m-7.5 0l-1 3m8.5-3l1 3m0 0l.5 1.5m-.5-1.5h-9.5m0 0l-.5 1.5" />
             </svg>
           </div>
           <h3 class="text-lg font-semibold text-white">No performance data yet</h3>
-          <p class="mt-2 text-sm text-stone-400">Be the first to report how {game.name} runs on your handheld!</p>
+          <p class="mt-2 text-sm text-[#9CA3AF]">Be the first to report how {game.name} runs on your handheld!</p>
           <a
             href="/report/new"
-            class="mt-4 inline-flex items-center gap-2 rounded-lg bg-[#C9956B] px-4 py-2 text-sm font-medium text-white hover:bg-[#D4A574] transition-colors"
+            class="mt-4 inline-flex items-center gap-2 rounded-lg bg-[#60A5FA] px-4 py-2 text-sm font-medium text-white hover:bg-[#3B82F6] transition-colors"
           >
             <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" /></svg>
             Submit First Report
@@ -326,37 +326,37 @@ const priceDisplay = game.price_usd != null ? (game.is_free_to_play ? 'Free' : `
     <div data-tab-panel="details" class="hidden">
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <!-- Game Info -->
-        <div class="rounded-xl border border-[#292524] bg-[#1C1917] p-6">
-          <h3 class="text-xs font-semibold uppercase tracking-wider mb-4 font-heading text-[#D4A574]">Game Info</h3>
+        <div class="rounded-xl border border-[#2A2D35] bg-[#16181D] p-6">
+          <h3 class="text-xs font-semibold mb-4 text-[#60A5FA]">Game Info</h3>
           <dl class="space-y-3 text-sm">
             {developers[0] && (
               <div class="flex justify-between">
-                <dt class="text-stone-500">Developer</dt>
-                <dd class="text-stone-300">{developers[0]}</dd>
+                <dt class="text-[#6B7280]">Developer</dt>
+                <dd class="text-[#9CA3AF]">{developers[0]}</dd>
               </div>
             )}
             {publishers[0] && (
               <div class="flex justify-between">
-                <dt class="text-stone-500">Publisher</dt>
-                <dd class="text-stone-300">{publishers[0]}</dd>
+                <dt class="text-[#6B7280]">Publisher</dt>
+                <dd class="text-[#9CA3AF]">{publishers[0]}</dd>
               </div>
             )}
             {releaseDate && (
               <div class="flex justify-between">
-                <dt class="text-stone-500">Released</dt>
-                <dd class="text-stone-300">{releaseDate}</dd>
+                <dt class="text-[#6B7280]">Released</dt>
+                <dd class="text-[#9CA3AF]">{releaseDate}</dd>
               </div>
             )}
             {game.price_usd != null && (
               <div class="flex justify-between">
-                <dt class="text-stone-500">Price</dt>
-                <dd class="text-stone-300">{game.is_free_to_play ? 'Free to Play' : `$${game.price_usd.toFixed(2)}`}</dd>
+                <dt class="text-[#6B7280]">Price</dt>
+                <dd class="text-[#9CA3AF]">{game.is_free_to_play ? 'Free to Play' : `$${game.price_usd.toFixed(2)}`}</dd>
               </div>
             )}
             {genres.length > 0 && (
               <div class="flex justify-between">
-                <dt class="text-stone-500">Genres</dt>
-                <dd class="text-stone-300 text-right">{genres.join(', ')}</dd>
+                <dt class="text-[#6B7280]">Genres</dt>
+                <dd class="text-[#9CA3AF] text-right">{genres.join(', ')}</dd>
               </div>
             )}
           </dl>
@@ -364,21 +364,21 @@ const priceDisplay = game.price_usd != null ? (game.is_free_to_play ? 'Free' : `
 
         <!-- Scores -->
         {hasScores && (
-          <div class="rounded-xl border border-[#292524] bg-[#1C1917] p-6">
-            <h3 class="text-xs font-semibold uppercase tracking-wider mb-4 font-heading text-[#D4A574]">Scores</h3>
+          <div class="rounded-xl border border-[#2A2D35] bg-[#16181D] p-6">
+            <h3 class="text-xs font-semibold mb-4 text-[#60A5FA]">Scores</h3>
             <div class="grid grid-cols-2 gap-4">
               {game.metacritic_score && (
-                <div class="rounded-lg bg-[#292524] p-4 text-center">
+                <div class="rounded-lg bg-[#2A2D35] p-4 text-center">
                   <p class={`text-2xl font-bold font-mono ${game.metacritic_score >= 75 ? 'text-green-400' : game.metacritic_score >= 50 ? 'text-yellow-400' : 'text-red-400'}`}>
                     {game.metacritic_score}
                   </p>
-                  <p class="text-xs text-stone-500 mt-1">Metacritic</p>
+                  <p class="text-xs text-[#6B7280] mt-1">Metacritic</p>
                 </div>
               )}
               {game.steam_review_score && (
-                <div class="rounded-lg bg-[#292524] p-4 text-center">
+                <div class="rounded-lg bg-[#2A2D35] p-4 text-center">
                   <p class="text-2xl font-bold font-mono text-blue-400">{game.steam_review_score}%</p>
-                  <p class="text-xs text-stone-500 mt-1">Steam Reviews</p>
+                  <p class="text-xs text-[#6B7280] mt-1">Steam Reviews</p>
                 </div>
               )}
             </div>
@@ -386,23 +386,23 @@ const priceDisplay = game.price_usd != null ? (game.is_free_to_play ? 'Free' : `
         )}
 
         <!-- Compatibility -->
-        <div class="rounded-xl border border-[#292524] bg-[#1C1917] p-6">
-          <h3 class="text-xs font-semibold uppercase tracking-wider mb-4 font-heading text-[#D4A574]">Compatibility</h3>
+        <div class="rounded-xl border border-[#2A2D35] bg-[#16181D] p-6">
+          <h3 class="text-xs font-semibold mb-4 text-[#60A5FA]">Compatibility</h3>
           <dl class="space-y-3 text-sm">
             <div class="flex justify-between items-center">
-              <dt class="text-stone-500">Deck Status</dt>
+              <dt class="text-[#6B7280]">Deck Status</dt>
               <dd class={`rounded-md border px-2 py-0.5 text-xs font-medium ${deckInfo.class}`}>{deckInfo.label}</dd>
             </div>
             {game.protondb_tier && game.protondb_tier !== 'pending' && (
               <div class="flex justify-between items-center">
-                <dt class="text-stone-500">ProtonDB</dt>
+                <dt class="text-[#6B7280]">ProtonDB</dt>
                 <dd class={`rounded-md px-2 py-0.5 text-xs font-medium ${protonInfo.class}`}>{protonInfo.label}</dd>
               </div>
             )}
             {game.anticheat_engine && (
               <div class="flex justify-between items-center">
-                <dt class="text-stone-500">Anti-Cheat</dt>
-                <dd class="text-stone-300 text-xs">{game.anticheat_engine}</dd>
+                <dt class="text-[#6B7280]">Anti-Cheat</dt>
+                <dd class="text-[#9CA3AF] text-xs">{game.anticheat_engine}</dd>
               </div>
             )}
           </dl>
@@ -410,39 +410,39 @@ const priceDisplay = game.price_usd != null ? (game.is_free_to_play ? 'Free' : `
 
         <!-- HLTB -->
         {hasHltb && (
-          <div class="rounded-xl border border-[#292524] bg-[#1C1917] p-6">
-            <h3 class="text-xs font-semibold uppercase tracking-wider mb-4 font-heading text-[#D4A574]">Time to Beat</h3>
+          <div class="rounded-xl border border-[#2A2D35] bg-[#16181D] p-6">
+            <h3 class="text-xs font-semibold mb-4 text-[#60A5FA]">Time to Beat</h3>
             <div class="space-y-3">
               {game.hltb_main_hours && (
                 <div>
                   <div class="flex justify-between items-center mb-1">
-                    <span class="text-sm text-stone-500">Main Story</span>
-                    <span class="text-sm font-medium text-stone-300">{game.hltb_main_hours}h</span>
+                    <span class="text-sm text-[#6B7280]">Main Story</span>
+                    <span class="text-sm font-medium text-[#9CA3AF]">{game.hltb_main_hours}h</span>
                   </div>
-                  <div class="h-1.5 rounded-full bg-[#292524] overflow-hidden">
-                    <div class="h-full rounded-full bg-[#D4A574]/60" style={`width: ${Math.min((game.hltb_main_hours / (game.hltb_completionist_hours || game.hltb_main_hours)) * 100, 100)}%`}></div>
+                  <div class="h-1.5 rounded-full bg-[#2A2D35] overflow-hidden">
+                    <div class="h-full rounded-full bg-[#60A5FA]/60" style={`width: ${Math.min((game.hltb_main_hours / (game.hltb_completionist_hours || game.hltb_main_hours)) * 100, 100)}%`}></div>
                   </div>
                 </div>
               )}
               {game.hltb_extra_hours && (
                 <div>
                   <div class="flex justify-between items-center mb-1">
-                    <span class="text-sm text-stone-500">Main + Extra</span>
-                    <span class="text-sm font-medium text-stone-300">{game.hltb_extra_hours}h</span>
+                    <span class="text-sm text-[#6B7280]">Main + Extra</span>
+                    <span class="text-sm font-medium text-[#9CA3AF]">{game.hltb_extra_hours}h</span>
                   </div>
-                  <div class="h-1.5 rounded-full bg-[#292524] overflow-hidden">
-                    <div class="h-full rounded-full bg-[#D4A574]/60" style={`width: ${Math.min((game.hltb_extra_hours / (game.hltb_completionist_hours || game.hltb_extra_hours)) * 100, 100)}%`}></div>
+                  <div class="h-1.5 rounded-full bg-[#2A2D35] overflow-hidden">
+                    <div class="h-full rounded-full bg-[#60A5FA]/60" style={`width: ${Math.min((game.hltb_extra_hours / (game.hltb_completionist_hours || game.hltb_extra_hours)) * 100, 100)}%`}></div>
                   </div>
                 </div>
               )}
               {game.hltb_completionist_hours && (
                 <div>
                   <div class="flex justify-between items-center mb-1">
-                    <span class="text-sm text-stone-500">Completionist</span>
-                    <span class="text-sm font-medium text-stone-300">{game.hltb_completionist_hours}h</span>
+                    <span class="text-sm text-[#6B7280]">Completionist</span>
+                    <span class="text-sm font-medium text-[#9CA3AF]">{game.hltb_completionist_hours}h</span>
                   </div>
-                  <div class="h-1.5 rounded-full bg-[#292524] overflow-hidden">
-                    <div class="h-full rounded-full bg-[#D4A574]/60" style="width: 100%"></div>
+                  <div class="h-1.5 rounded-full bg-[#2A2D35] overflow-hidden">
+                    <div class="h-full rounded-full bg-[#60A5FA]/60" style="width: 100%"></div>
                   </div>
                 </div>
               )}
@@ -457,7 +457,7 @@ const priceDisplay = game.price_usd != null ? (game.is_free_to_play ? 'Free' : `
               href={`https://store.steampowered.com/app/${game.steam_appid}`}
               target="_blank"
               rel="noopener noreferrer"
-              class="flex items-center justify-center gap-2 rounded-xl border border-[#44403C] bg-[#1C1917] p-4 text-sm font-medium text-stone-300 hover:border-[#57534E] hover:text-white transition-colors"
+              class="flex items-center justify-center gap-2 rounded-xl border border-[#3A3D45] bg-[#16181D] p-4 text-sm font-medium text-[#9CA3AF] hover:border-[#4B5563] hover:text-white transition-colors"
             >
               <svg class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15h-2v-2h2v2zm0-4h-2V7h2v6z" /></svg>
               View on Steam
@@ -472,7 +472,7 @@ const priceDisplay = game.price_usd != null ? (game.is_free_to_play ? 'Free' : `
       <div data-tab-panel="screenshots" class="hidden">
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {screenshots.map((url) => (
-            <div class="aspect-video rounded-xl overflow-hidden bg-[#292524] border border-[#292524]">
+            <div class="aspect-video rounded-xl overflow-hidden bg-[#2A2D35] border border-[#2A2D35]">
               <img
                 src={url}
                 alt={`${game.name} screenshot`}
@@ -511,7 +511,7 @@ const priceDisplay = game.price_usd != null ? (game.is_free_to_play ? 'Free' : `
             const isActive = b.getAttribute('data-tab-btn') === target;
             b.setAttribute('aria-selected', String(isActive));
             b.classList.toggle('text-white', isActive);
-            b.classList.toggle('text-stone-500', !isActive);
+            b.classList.toggle('text-[#6B7280]', !isActive);
             const indicator = b.querySelector('.tab-indicator');
             if (indicator) {
               indicator.classList.toggle('hidden', !isActive);

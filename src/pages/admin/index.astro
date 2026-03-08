@@ -91,12 +91,12 @@ function formatDate(dateStr: string): string {
 
 function ratingBadgeColor(rating: string): string {
   switch (rating) {
-    case 'excellent': return 'bg-[#D4A574]/20 text-[#D4A574]';
+    case 'excellent': return 'bg-[#60A5FA]/20 text-[#60A5FA]';
     case 'good': return 'bg-green-500/20 text-green-400';
     case 'fair': return 'bg-yellow-500/20 text-yellow-400';
     case 'poor': return 'bg-orange-500/20 text-orange-400';
     case 'unplayable': return 'bg-red-500/20 text-red-400';
-    default: return 'bg-gray-500/20 text-gray-400';
+    default: return 'bg-[#6B7280]/20 text-[#9CA3AF]';
   }
 }
 ---
@@ -106,7 +106,7 @@ function ratingBadgeColor(rating: string): string {
     <!-- Header -->
     <div class="mb-8">
       <h1 class="text-2xl font-bold text-white">Admin Dashboard</h1>
-      <p class="mt-1 text-sm text-gray-400">Overview of your Handheld GameDB instance.</p>
+      <p class="mt-1 text-sm text-[#9CA3AF]">Overview of your Handheld GameDB instance.</p>
     </div>
 
     <div class="flex flex-col lg:flex-row gap-8">
@@ -116,15 +116,15 @@ function ratingBadgeColor(rating: string): string {
         <!-- Stats Grid -->
         <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-8">
           {stats.map(stat => (
-            <div class="rounded-xl border border-gray-800 bg-gray-900 p-4">
-              <p class="text-xs font-medium text-gray-500 uppercase tracking-wider">{stat.label}</p>
+            <div class="rounded-xl border border-[#2A2D35] bg-[#16181D] p-4">
+              <p class="text-xs font-medium text-[#6B7280]">{stat.label}</p>
               <p class:list={[
                 'mt-2 text-2xl font-bold',
-                stat.color === 'copper' && 'text-[#D4A574]',
+                stat.color === 'copper' && 'text-[#60A5FA]',
                 stat.color === 'blue' && 'text-blue-400',
                 stat.color === 'purple' && 'text-purple-400',
                 stat.color === 'amber' && 'text-amber-400',
-                stat.color === 'copper' && 'text-[#D4A574]',
+                stat.color === 'copper' && 'text-[#60A5FA]',
                 stat.color === 'rose' && 'text-rose-400',
               ]}>
                 {stat.value.toLocaleString()}
@@ -136,13 +136,13 @@ function ratingBadgeColor(rating: string): string {
         <!-- Recent Content -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <!-- Recent Users -->
-          <div class="rounded-xl border border-gray-800 bg-gray-900 p-5">
+          <div class="rounded-xl border border-[#2A2D35] bg-[#16181D] p-5">
             <div class="flex items-center justify-between mb-4">
               <h2 class="text-sm font-semibold text-white">Recent Registrations</h2>
-              <a href="/admin/users" class="text-xs text-[#D4A574] hover:text-[#E8C5A0]">View all</a>
+              <a href="/admin/users" class="text-xs text-[#60A5FA] hover:text-[#93C5FD]">View all</a>
             </div>
             {(!recentUsers || recentUsers.length === 0) ? (
-              <p class="text-sm text-gray-500">No users yet.</p>
+              <p class="text-sm text-[#6B7280]">No users yet.</p>
             ) : (
               <div class="space-y-3">
                 {recentUsers.map(user => (
@@ -150,15 +150,15 @@ function ratingBadgeColor(rating: string): string {
                     {user.avatar_url ? (
                       <img src={user.avatar_url} alt="" class="h-8 w-8 rounded-full" />
                     ) : (
-                      <div class="h-8 w-8 rounded-full bg-gray-700 flex items-center justify-center text-xs font-bold text-gray-300">
+                      <div class="h-8 w-8 rounded-full bg-[#3A3D45] flex items-center justify-center text-xs font-bold text-[#9CA3AF]">
                         {(user.display_name ?? user.email ?? '?').charAt(0).toUpperCase()}
                       </div>
                     )}
                     <div class="min-w-0 flex-1">
                       <p class="text-sm font-medium text-white truncate">{user.display_name ?? 'No name'}</p>
-                      <p class="text-xs text-gray-500 truncate">{user.email ?? 'No email'}</p>
+                      <p class="text-xs text-[#6B7280] truncate">{user.email ?? 'No email'}</p>
                     </div>
-                    <span class="text-xs text-gray-600 whitespace-nowrap">{formatDate(user.created_at)}</span>
+                    <span class="text-xs text-[#4B5563] whitespace-nowrap">{formatDate(user.created_at)}</span>
                   </div>
                 ))}
               </div>
@@ -166,20 +166,20 @@ function ratingBadgeColor(rating: string): string {
           </div>
 
           <!-- Recent Reports -->
-          <div class="rounded-xl border border-gray-800 bg-gray-900 p-5">
+          <div class="rounded-xl border border-[#2A2D35] bg-[#16181D] p-5">
             <div class="flex items-center justify-between mb-4">
               <h2 class="text-sm font-semibold text-white">Recent Reports</h2>
-              <span class="text-xs text-gray-500">{totalReports ?? 0} total</span>
+              <span class="text-xs text-[#6B7280]">{totalReports ?? 0} total</span>
             </div>
             {reportDetails.length === 0 ? (
-              <p class="text-sm text-gray-500">No reports yet.</p>
+              <p class="text-sm text-[#6B7280]">No reports yet.</p>
             ) : (
               <div class="space-y-3">
                 {reportDetails.map(report => (
                   <div class="flex items-center gap-3">
                     <div class="min-w-0 flex-1">
                       <p class="text-sm font-medium text-white truncate">{report.gameName}</p>
-                      <p class="text-xs text-gray-500">{report.deviceName} &middot; {report.fpsAvg} FPS</p>
+                      <p class="text-xs text-[#6B7280]">{report.deviceName} &middot; {report.fpsAvg} FPS</p>
                     </div>
                     <span class:list={[
                       'inline-flex rounded-md px-2 py-0.5 text-xs font-medium capitalize',
@@ -195,22 +195,22 @@ function ratingBadgeColor(rating: string): string {
         </div>
 
         <!-- System Status -->
-        <div class="mt-6 rounded-xl border border-gray-800 bg-gray-900 p-5">
+        <div class="mt-6 rounded-xl border border-[#2A2D35] bg-[#16181D] p-5">
           <h2 class="text-sm font-semibold text-white mb-3">System Status</h2>
           <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
             <div>
-              <span class="text-gray-500">Database</span>
-              <span class="ml-2 inline-flex items-center gap-1 text-[#D4A574]">
-                <span class="h-1.5 w-1.5 rounded-full bg-[#D4A574]"></span>
+              <span class="text-[#6B7280]">Database</span>
+              <span class="ml-2 inline-flex items-center gap-1 text-[#60A5FA]">
+                <span class="h-1.5 w-1.5 rounded-full bg-[#60A5FA]"></span>
                 Connected
               </span>
             </div>
             <div>
-              <span class="text-gray-500">Games imported</span>
+              <span class="text-[#6B7280]">Games imported</span>
               <span class="ml-2 text-white">{(totalGames ?? 0).toLocaleString()}</span>
             </div>
             <div>
-              <span class="text-gray-500">Active devices</span>
+              <span class="text-[#6B7280]">Active devices</span>
               <span class="ml-2 text-white">{(totalDevices ?? 0).toLocaleString()}</span>
             </div>
           </div>

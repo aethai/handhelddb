@@ -35,14 +35,14 @@ const categoryLabels: Record<string, string> = {
 
 const categoryColors: Record<string, string> = {
   device_launch: 'bg-blue-500/20 text-blue-400',
-  device_update: 'bg-[#D4A574]/20 text-[#D4A574]',
+  device_update: 'bg-[#60A5FA]/20 text-[#60A5FA]',
   os_update: 'bg-purple-500/20 text-purple-400',
   driver_update: 'bg-indigo-500/20 text-indigo-400',
   game_patch: 'bg-orange-500/20 text-orange-400',
   game_launch: 'bg-green-500/20 text-green-400',
   sale_event: 'bg-yellow-500/20 text-yellow-400',
-  performance_analysis: 'bg-[#D4A574]/20 text-[#D4A574]',
-  industry: 'bg-gray-500/20 text-gray-400',
+  performance_analysis: 'bg-[#60A5FA]/20 text-[#60A5FA]',
+  industry: 'bg-[#6B7280]/20 text-[#9CA3AF]',
   editorial: 'bg-pink-500/20 text-pink-400',
 };
 
@@ -112,7 +112,7 @@ function formatDateShort(d: string): string {
 
     <!-- Back Link -->
     <div class="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 mb-8">
-      <a href="/news" class="inline-flex items-center gap-2 text-sm text-stone-400 hover:text-[#D4A574] transition-colors">
+      <a href="/news" class="inline-flex items-center gap-2 text-sm text-[#9CA3AF] hover:text-[#60A5FA] transition-colors">
         <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
         </svg>
@@ -123,19 +123,19 @@ function formatDateShort(d: string): string {
     <!-- Article Header (Centered) -->
     <header class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center mb-10">
       <div class="flex items-center justify-center gap-3 mb-5">
-        <span class={`rounded-full px-3 py-1 text-xs font-medium ${categoryColors[article.category] ?? 'bg-gray-500/20 text-gray-400'}`}>
+        <span class={`rounded-full px-3 py-1 text-xs font-medium ${categoryColors[article.category] ?? 'bg-[#6B7280]/20 text-[#9CA3AF]'}`}>
           {categoryLabels[article.category] ?? article.category}
         </span>
-        {publishedDate && <span class="text-sm text-stone-500">{publishedDate}</span>}
+        {publishedDate && <span class="text-sm text-[#6B7280]">{publishedDate}</span>}
         {article.ai_generated && (
           <span class="rounded-full bg-purple-500/20 text-purple-400 px-2.5 py-0.5 text-[10px] font-medium">AI Assisted</span>
         )}
       </div>
-      <h1 class="text-3xl sm:text-4xl lg:text-5xl font-heading font-bold text-white leading-tight">
+      <h1 class="text-3xl sm:text-4xl lg:text-5xl font-bold text-white leading-tight">
         {article.title}
       </h1>
       {article.lead && (
-        <p class="mt-6 text-lg sm:text-xl text-stone-400 leading-relaxed max-w-2xl mx-auto">
+        <p class="mt-6 text-lg sm:text-xl text-[#9CA3AF] leading-relaxed max-w-2xl mx-auto">
           {article.lead}
         </p>
       )}
@@ -158,19 +158,19 @@ function formatDateShort(d: string): string {
     <!-- Article Body (Centered, narrower) -->
     <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
       <div
-        class="prose prose-invert prose-luxury max-w-none prose-headings:text-white prose-headings:font-heading prose-p:text-stone-300 prose-p:leading-relaxed prose-a:text-[#D4A574] prose-a:no-underline hover:prose-a:underline prose-strong:text-white prose-code:text-[#E8C5A0] prose-code:bg-[#292524] prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-pre:bg-[#1C1917] prose-pre:border prose-pre:border-[#292524] prose-img:rounded-xl prose-blockquote:border-l-[#D4A574] prose-blockquote:text-stone-400 prose-li:text-stone-300"
+        class="prose prose-invert prose-luxury max-w-none prose-headings:text-white prose-p:text-[#9CA3AF] prose-p:leading-relaxed prose-a:text-[#60A5FA] prose-a:no-underline hover:prose-a:underline prose-strong:text-white prose-code:text-[#93C5FD] prose-code:bg-[#2A2D35] prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-pre:bg-[#16181D] prose-pre:border prose-pre:border-[#2A2D35] prose-img:rounded-xl prose-blockquote:border-l-[#60A5FA] prose-blockquote:text-[#9CA3AF] prose-li:text-[#9CA3AF]"
         set:html={article.body_html}
       />
 
       <!-- Related Devices -->
       {devices.length > 0 && (
-        <div class="mt-10 pt-6 border-t border-[#292524]">
+        <div class="mt-10 pt-6 border-t border-[#2A2D35]">
           <p class="editorial-label mb-3">Related Devices</p>
           <div class="flex flex-wrap gap-2">
             {devices.map(d => (
               <a
                 href={`/devices/${d}`}
-                class="rounded-full border border-[#D4A574]/30 text-[#D4A574] px-4 py-2 text-sm hover:bg-[#D4A574]/10 hover:border-[#D4A574]/50 transition-all"
+                class="rounded-full border border-[#60A5FA]/30 text-[#60A5FA] px-4 py-2 text-sm hover:bg-[#60A5FA]/10 hover:border-[#60A5FA]/50 transition-all"
               >
                 {d}
               </a>
@@ -181,10 +181,10 @@ function formatDateShort(d: string): string {
 
       <!-- Tags (Centered) -->
       {tags.length > 0 && (
-        <div class="mt-8 pt-6 border-t border-[#292524] text-center">
+        <div class="mt-8 pt-6 border-t border-[#2A2D35] text-center">
           <div class="flex flex-wrap justify-center gap-2">
             {tags.map(tag => (
-              <span class="rounded-full border border-[#44403C] px-3 py-1 text-xs text-stone-400 hover:border-stone-500 transition-colors">
+              <span class="rounded-full border border-[#3A3D45] px-3 py-1 text-xs text-[#9CA3AF] hover:border-[#6B7280] transition-colors">
                 {tag}
               </span>
             ))}
@@ -206,7 +206,7 @@ function formatDateShort(d: string): string {
           {relatedArticles.map(a => (
             <a
               href={`/news/${a.slug}`}
-              class="group rounded-xl border border-[#292524] bg-[#1C1917] overflow-hidden hover:border-[#44403C] transition-colors"
+              class="group rounded-xl border border-[#2A2D35] bg-[#16181D] overflow-hidden hover:border-[#3A3D45] transition-colors"
             >
               {(a as any).cover_image ? (
                 <div class="aspect-[16/9] overflow-hidden">
@@ -218,18 +218,18 @@ function formatDateShort(d: string): string {
                   />
                 </div>
               ) : (
-                <div class="aspect-[16/9] bg-gradient-to-br from-[#292524] to-[#1C1917] flex items-center justify-center">
-                  <span class="text-sm font-bold text-stone-700/30 text-center px-4">{a.title}</span>
+                <div class="aspect-[16/9] bg-gradient-to-br from-[#2A2D35] to-[#16181D] flex items-center justify-center">
+                  <span class="text-sm font-bold text-[#3A3D45]/30 text-center px-4">{a.title}</span>
                 </div>
               )}
               <div class="p-4">
                 <div class="flex items-center gap-2 mb-1.5">
-                  <span class={`rounded-full px-2 py-0.5 text-[10px] font-medium ${categoryColors[a.category] ?? 'bg-gray-500/20 text-gray-400'}`}>
+                  <span class={`rounded-full px-2 py-0.5 text-[10px] font-medium ${categoryColors[a.category] ?? 'bg-[#6B7280]/20 text-[#9CA3AF]'}`}>
                     {categoryLabels[a.category] ?? a.category}
                   </span>
-                  <span class="text-xs text-stone-500">{formatDateShort(a.published_at!)}</span>
+                  <span class="text-xs text-[#6B7280]">{formatDateShort(a.published_at!)}</span>
                 </div>
-                <h3 class="text-sm font-bold text-white group-hover:text-[#D4A574] transition-colors line-clamp-2">
+                <h3 class="text-sm font-bold text-white group-hover:text-[#60A5FA] transition-colors line-clamp-2">
                   {a.title}
                 </h3>
               </div>
@@ -252,7 +252,7 @@ function formatDateShort(d: string): string {
           {recentArticles.map(a => (
             <a
               href={`/news/${a.slug}`}
-              class="group flex-shrink-0 w-64 rounded-xl border border-[#292524] bg-[#1C1917] overflow-hidden hover:border-[#44403C] transition-colors"
+              class="group flex-shrink-0 w-64 rounded-xl border border-[#2A2D35] bg-[#16181D] overflow-hidden hover:border-[#3A3D45] transition-colors"
             >
               {(a as any).cover_image ? (
                 <div class="aspect-[16/9] overflow-hidden">
@@ -264,18 +264,18 @@ function formatDateShort(d: string): string {
                   />
                 </div>
               ) : (
-                <div class="aspect-[16/9] bg-gradient-to-br from-[#292524] to-[#1C1917] flex items-center justify-center">
-                  <span class="text-xs font-bold text-stone-700/30 text-center px-3">{a.title}</span>
+                <div class="aspect-[16/9] bg-gradient-to-br from-[#2A2D35] to-[#16181D] flex items-center justify-center">
+                  <span class="text-xs font-bold text-[#3A3D45]/30 text-center px-3">{a.title}</span>
                 </div>
               )}
               <div class="p-3">
                 <div class="flex items-center gap-2 mb-1">
-                  <span class={`rounded-full px-2 py-0.5 text-[10px] font-medium ${categoryColors[a.category] ?? 'bg-gray-500/20 text-gray-400'}`}>
+                  <span class={`rounded-full px-2 py-0.5 text-[10px] font-medium ${categoryColors[a.category] ?? 'bg-[#6B7280]/20 text-[#9CA3AF]'}`}>
                     {categoryLabels[a.category] ?? a.category}
                   </span>
-                  <span class="text-[10px] text-stone-500">{formatDateShort(a.published_at!)}</span>
+                  <span class="text-[10px] text-[#6B7280]">{formatDateShort(a.published_at!)}</span>
                 </div>
-                <h3 class="text-xs font-bold text-white group-hover:text-[#D4A574] transition-colors line-clamp-2">
+                <h3 class="text-xs font-bold text-white group-hover:text-[#60A5FA] transition-colors line-clamp-2">
                   {a.title}
                 </h3>
               </div>

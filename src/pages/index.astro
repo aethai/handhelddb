@@ -53,7 +53,7 @@ const restGames = games.slice(1);
   <!-- ══════ HERO ══════ -->
   <section class="relative min-h-[70vh] flex items-center overflow-hidden">
     <!-- Atmospheric background -->
-    <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_20%_50%,rgba(212,165,116,0.08),transparent_60%),radial-gradient(ellipse_at_80%_80%,rgba(218,165,32,0.04),transparent_50%)]"></div>
+    <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_20%_50%,rgba(96,165,250,0.06),transparent_60%),radial-gradient(ellipse_at_80%_80%,rgba(96,165,250,0.03),transparent_50%)]"></div>
 
     <div class="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-20 w-full">
       <div class="grid grid-cols-1 lg:grid-cols-5 gap-8 lg:gap-12 items-center">
@@ -62,11 +62,11 @@ const restGames = games.slice(1);
         <div class="lg:col-span-3">
           <p class="editorial-label mb-4">Performance Database</p>
 
-          <h1 class="text-5xl sm:text-6xl lg:text-7xl xl:text-8xl font-bold text-stone-50 tracking-tight leading-[0.95] font-heading uppercase">
+          <h1 class="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold text-[#E8EAED] tracking-tight leading-[0.95]">
             Find the <span class="text-gradient-copper">best settings</span> for every game on your handheld
           </h1>
 
-          <p class="mt-6 max-w-lg text-lg text-stone-400 leading-relaxed">
+          <p class="mt-6 max-w-lg text-lg text-[#9CA3AF] leading-relaxed">
             Community-driven performance data for Steam Deck, ROG Ally, Legion Go and more. Optimal settings, FPS benchmarks, battery life.
           </p>
 
@@ -78,18 +78,18 @@ const restGames = games.slice(1);
           <!-- Inline Stats -->
           <div class="mt-10 flex items-center gap-8 sm:gap-12">
             <div>
-              <span class="text-3xl sm:text-4xl font-bold text-[#DAA520] font-mono">{gameCount.toLocaleString()}</span>
-              <span class="block text-xs text-stone-500 uppercase tracking-wider mt-1">Games</span>
+              <span class="text-3xl sm:text-4xl font-bold text-[#60A5FA] font-mono">{gameCount.toLocaleString()}</span>
+              <span class="block text-xs text-[#6B7280] mt-1">Games</span>
             </div>
-            <div class="h-8 w-px bg-[#292524]"></div>
+            <div class="h-8 w-px bg-[#2A2D35]"></div>
             <div>
-              <span class="text-3xl sm:text-4xl font-bold text-[#DAA520] font-mono">{deviceCount}</span>
-              <span class="block text-xs text-stone-500 uppercase tracking-wider mt-1">Devices</span>
+              <span class="text-3xl sm:text-4xl font-bold text-[#60A5FA] font-mono">{deviceCount}</span>
+              <span class="block text-xs text-[#6B7280] mt-1">Devices</span>
             </div>
-            <div class="h-8 w-px bg-[#292524]"></div>
+            <div class="h-8 w-px bg-[#2A2D35]"></div>
             <div>
-              <span class="text-3xl sm:text-4xl font-bold text-[#DAA520] font-mono">0</span>
-              <span class="block text-xs text-stone-500 uppercase tracking-wider mt-1">Reports</span>
+              <span class="text-3xl sm:text-4xl font-bold text-[#60A5FA] font-mono">0</span>
+              <span class="block text-xs text-[#6B7280] mt-1">Reports</span>
             </div>
           </div>
         </div>
@@ -98,11 +98,11 @@ const restGames = games.slice(1);
         {featuredGame && (
           <div class="lg:col-span-2 hidden lg:block">
             <div class="relative">
-              <div class="absolute -inset-4 bg-[radial-gradient(circle,rgba(212,165,116,0.06),transparent_70%)]"></div>
-              <div class="relative rounded-xl overflow-hidden border border-[#292524] shadow-elevated aspect-[460/400]">
+              <div class="absolute -inset-4 bg-[radial-gradient(circle,rgba(96,165,250,0.04),transparent_70%)]"></div>
+              <div class="relative rounded-xl overflow-hidden border border-[#2A2D35] shadow-elevated aspect-[460/400]">
                 <GameCardFeatured {...featuredGame} />
               </div>
-              <p class="text-center mt-3 text-xs text-stone-600 uppercase tracking-wider">Featured Game</p>
+              <p class="text-center mt-3 text-xs text-[#4B5563]">Featured Game</p>
             </div>
           </div>
         )}
@@ -143,27 +143,27 @@ const restGames = games.slice(1);
           {devices.map((device) => (
             <a
               href={`/devices/${device.slug}`}
-              class="luxury-card flex-shrink-0 w-64 sm:w-72 snap-center rounded-xl border border-[#292524] bg-[#1C1917] overflow-hidden group"
+              class="luxury-card flex-shrink-0 w-64 sm:w-72 snap-center rounded-xl border border-[#2A2D35] bg-[#16181D] overflow-hidden group"
             >
-              <div class="h-36 bg-[#292524] flex items-center justify-center p-4 overflow-hidden">
+              <div class="h-36 bg-[#1E2128] flex items-center justify-center p-4 overflow-hidden">
                 {device.image ? (
                   <img src={device.image} alt={device.name} class="h-full w-full object-contain transition-transform group-hover:scale-105" loading="lazy" />
                 ) : (
-                  <svg class="h-16 w-16 text-stone-700" fill="none" stroke="currentColor" stroke-width="1" viewBox="0 0 24 24">
+                  <svg class="h-16 w-16 text-[#3A3D45]" fill="none" stroke="currentColor" stroke-width="1" viewBox="0 0 24 24">
                     <rect x="2" y="6" width="20" height="12" rx="3" />
                   </svg>
                 )}
               </div>
               <div class="p-4">
-                <p class="text-[10px] text-stone-500 uppercase tracking-wider">{device.manufacturer}</p>
-                <p class="font-heading text-lg font-semibold text-white group-hover:text-[#D4A574] transition-colors">{device.name}</p>
-                <div class="mt-2 flex items-center gap-3 text-xs text-stone-500">
+                <p class="text-[10px] text-[#6B7280]">{device.manufacturer}</p>
+                <p class="text-lg font-semibold text-white group-hover:text-[#60A5FA] transition-colors">{device.name}</p>
+                <div class="mt-2 flex items-center gap-3 text-xs text-[#6B7280]">
                   <span>{device.chip}</span>
-                  <span class="text-[#292524]">·</span>
+                  <span class="text-[#2A2D35]">·</span>
                   <span>{device.batteryWh}Wh</span>
                   {device.msrpUsd && (
                     <>
-                      <span class="text-[#292524]">·</span>
+                      <span class="text-[#2A2D35]">·</span>
                       <span>${device.msrpUsd}</span>
                     </>
                   )}
@@ -187,7 +187,7 @@ const restGames = games.slice(1);
           <blockquote class="pull-quote">
             The community tells the truth. Real performance data from real gamers, not marketing specs.
           </blockquote>
-          <p class="mt-6 text-stone-400 leading-relaxed max-w-md">
+          <p class="mt-6 text-[#9CA3AF] leading-relaxed max-w-md">
             Every report is submitted by a real user, voted on by the community, and aggregated into consensus recommendations you can trust.
           </p>
         </div>
@@ -197,8 +197,8 @@ const restGames = games.slice(1);
           <div class="flex gap-5">
             <span class="step-number">01</span>
             <div>
-              <h3 class="text-lg font-semibold text-white font-heading">Search Your Game</h3>
-              <p class="mt-1 text-sm text-stone-400 leading-relaxed">
+              <h3 class="text-lg font-semibold text-white">Search Your Game</h3>
+              <p class="mt-1 text-sm text-[#9CA3AF] leading-relaxed">
                 Instant search across {gameCount.toLocaleString()}+ games. Filter by device, genre, or compatibility.
               </p>
             </div>
@@ -206,8 +206,8 @@ const restGames = games.slice(1);
           <div class="flex gap-5">
             <span class="step-number">02</span>
             <div>
-              <h3 class="text-lg font-semibold text-white font-heading">Get Best Settings</h3>
-              <p class="mt-1 text-sm text-stone-400 leading-relaxed">
+              <h3 class="text-lg font-semibold text-white">Get Best Settings</h3>
+              <p class="mt-1 text-sm text-[#9CA3AF] leading-relaxed">
                 3 TDP profiles per game: Battery Saver, Balanced, Performance. With FPS, thermal, and battery data.
               </p>
             </div>
@@ -215,8 +215,8 @@ const restGames = games.slice(1);
           <div class="flex gap-5">
             <span class="step-number">03</span>
             <div>
-              <h3 class="text-lg font-semibold text-white font-heading">Share Your Results</h3>
-              <p class="mt-1 text-sm text-stone-400 leading-relaxed">
+              <h3 class="text-lg font-semibold text-white">Share Your Results</h3>
+              <p class="mt-1 text-sm text-[#9CA3AF] leading-relaxed">
                 Submit performance reports, earn points, climb the leaderboard. Every report helps the community.
               </p>
             </div>
@@ -231,27 +231,27 @@ const restGames = games.slice(1);
     <div class="grid grid-cols-1 lg:grid-cols-2 min-h-[300px]">
       <!-- Left: atmospheric -->
       <div class="flex items-center justify-center p-12 lg:p-16 relative overflow-hidden">
-        <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(212,165,116,0.04),transparent_70%)]"></div>
+        <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(96,165,250,0.03),transparent_70%)]"></div>
         <div class="relative text-center lg:text-right">
-          <h2 class="text-4xl sm:text-5xl font-bold text-white font-heading uppercase tracking-wider leading-tight">
+          <h2 class="text-4xl sm:text-5xl font-bold text-white leading-tight">
             Got a<br />handheld?
           </h2>
-          <p class="mt-4 text-stone-500 text-lg">
+          <p class="mt-4 text-[#6B7280] text-lg">
             Your data matters to the community.
           </p>
         </div>
       </div>
 
-      <!-- Right: copper tinted -->
-      <div class="flex items-center justify-center p-12 lg:p-16 bg-gradient-to-br from-[#D4A574]/8 to-[#DAA520]/4 border-l border-[#292524]">
+      <!-- Right: accent tinted -->
+      <div class="flex items-center justify-center p-12 lg:p-16 bg-gradient-to-br from-[#60A5FA]/5 to-[#3B82F6]/3 border-l border-[#2A2D35]">
         <div class="text-center lg:text-left">
-          <p class="text-stone-300 mb-6 max-w-sm">
+          <p class="text-[#9CA3AF] mb-6 max-w-sm">
             Every performance report helps thousands of gamers optimize their experience. Be one of the first testers.
           </p>
           <div class="flex flex-col sm:flex-row gap-3 justify-center lg:justify-start">
             <a
               href="/report/new"
-              class="inline-flex items-center justify-center gap-2 rounded-xl bg-[#C9956B] px-8 py-3.5 text-sm font-semibold text-white hover:bg-[#D4A574] transition-colors"
+              class="inline-flex items-center justify-center gap-2 rounded-xl bg-[#60A5FA] px-8 py-3.5 text-sm font-semibold text-[#0F1115] hover:bg-[#93C5FD] transition-colors"
             >
               <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
@@ -260,7 +260,7 @@ const restGames = games.slice(1);
             </a>
             <a
               href="/auth/login"
-              class="inline-flex items-center justify-center gap-2 rounded-xl border border-[#44403C] px-8 py-3.5 text-sm font-semibold text-stone-400 hover:border-stone-500 hover:text-white transition-colors"
+              class="inline-flex items-center justify-center gap-2 rounded-xl border border-[#3A3D45] px-8 py-3.5 text-sm font-semibold text-[#9CA3AF] hover:border-[#60A5FA] hover:text-white transition-colors"
             >
               Sign in with Steam
             </a>

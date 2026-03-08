@@ -31,10 +31,10 @@ interface SearchBarProps {
 const DEBOUNCE_MS = 200;
 
 const deckBadge: Record<string, { label: string; class: string }> = {
-  verified: { label: 'Verified', class: 'bg-[#D4A574]/20 text-[#D4A574] border-[#D4A574]/30' },
+  verified: { label: 'Verified', class: 'bg-[#60A5FA]/20 text-[#60A5FA] border-[#60A5FA]/30' },
   playable: { label: 'Playable', class: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30' },
   unsupported: { label: 'Unsupported', class: 'bg-red-500/20 text-red-400 border-red-500/30' },
-  unknown: { label: 'Unknown', class: 'bg-gray-500/20 text-gray-400 border-gray-500/30' },
+  unknown: { label: 'Unknown', class: 'bg-[#6B7280]/20 text-[#9CA3AF] border-[#6B7280]/30' },
 };
 
 export default function SearchBar({
@@ -140,11 +140,11 @@ export default function SearchBar({
     <div ref={containerRef} className={`relative ${isHero ? 'w-full' : ''}`}>
       <div className={`relative ${isHero ? 'group' : ''}`}>
         {isHero && (
-          <div className="absolute -inset-0.5 bg-gradient-to-r from-[#D4A574]/20 to-[#DAA520]/20 rounded-2xl blur opacity-0 group-focus-within:opacity-100 transition-opacity" />
+          <div className="absolute -inset-0.5 bg-gradient-to-r from-[#60A5FA]/20 to-[#60A5FA]/20 rounded-2xl blur opacity-0 group-focus-within:opacity-100 transition-opacity" />
         )}
         <div className="relative flex items-center">
           <svg
-            className={`absolute ${isHero ? 'left-5 h-5 w-5' : 'left-3 h-4 w-4'} text-gray-500`}
+            className={`absolute ${isHero ? 'left-5 h-5 w-5' : 'left-3 h-4 w-4'} text-[#6B7280]`}
             fill="none"
             stroke="currentColor"
             strokeWidth="2"
@@ -168,14 +168,14 @@ export default function SearchBar({
             autoFocus={autoFocus}
             className={
               isHero
-                ? 'w-full rounded-xl border border-[#44403C] bg-[#1C1917]/90 py-4 pl-14 pr-32 text-white placeholder-gray-500 focus:border-[#D4A574] focus:outline-none focus:ring-1 focus:ring-[#D4A574] transition-all'
-                : 'w-64 rounded-lg border border-[#44403C] bg-[#1C1917]/90 py-1.5 pl-9 pr-16 text-sm text-white placeholder-gray-500 focus:border-[#D4A574] focus:outline-none focus:ring-1 focus:ring-[#D4A574] transition-all'
+                ? 'w-full rounded-xl border border-[#3A3D45] bg-[#16181D]/90 py-4 pl-14 pr-32 text-white placeholder-[#6B7280] focus:border-[#60A5FA] focus:outline-none focus:ring-1 focus:ring-[#60A5FA] transition-all'
+                : 'w-64 rounded-lg border border-[#3A3D45] bg-[#16181D]/90 py-1.5 pl-9 pr-16 text-sm text-white placeholder-[#6B7280] focus:border-[#60A5FA] focus:outline-none focus:ring-1 focus:ring-[#60A5FA] transition-all'
             }
           />
 
           <div className={`absolute ${isHero ? 'right-3' : 'right-2'} flex items-center gap-2`}>
             {isLoading && (
-              <svg className="h-4 w-4 animate-spin text-gray-500" viewBox="0 0 24 24" fill="none">
+              <svg className="h-4 w-4 animate-spin text-[#6B7280]" viewBox="0 0 24 24" fill="none">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                 <path
                   className="opacity-75"
@@ -185,14 +185,14 @@ export default function SearchBar({
               </svg>
             )}
             <kbd
-              className={`hidden sm:inline-flex items-center rounded-md border border-[#44403C] bg-[#292524] px-2 py-0.5 text-xs text-gray-500`}
+              className={`hidden sm:inline-flex items-center rounded-md border border-[#3A3D45] bg-[#2A2D35] px-2 py-0.5 text-xs text-[#6B7280]`}
             >
               Ctrl+K
             </kbd>
             {isHero && (
               <a
                 href="/games"
-                className="rounded-lg bg-[#C9956B] px-4 py-2 text-sm font-medium text-white hover:bg-[#D4A574] transition-colors"
+                className="rounded-lg bg-[#60A5FA] px-4 py-2 text-sm font-medium text-white hover:bg-[#60A5FA] transition-colors"
               >
                 Browse
               </a>
@@ -204,17 +204,17 @@ export default function SearchBar({
       {/* Dropdown */}
       {isOpen && (
         <div
-          className={`absolute z-50 mt-2 w-full rounded-xl border border-[#44403C] bg-[#1C1917] shadow-2xl shadow-black/50 overflow-hidden ${isHero ? '' : 'min-w-80'}`}
+          className={`absolute z-50 mt-2 w-full rounded-xl border border-[#3A3D45] bg-[#16181D] shadow-2xl shadow-black/50 overflow-hidden ${isHero ? '' : 'min-w-80'}`}
         >
-          <ul className="max-h-96 overflow-y-auto divide-y divide-[#292524]">
+          <ul className="max-h-96 overflow-y-auto divide-y divide-[#2A2D35]">
             {results.map((hit, i) => {
               const badge = deckBadge[hit.deck_compatibility ?? 'unknown'];
               return (
                 <li key={hit.id}>
                   <a
                     href={`/games/${hit.slug}`}
-                    className={`flex items-center gap-3 px-4 py-3 hover:bg-[#292524]/80 transition-colors ${
-                      i === selectedIndex ? 'bg-[#292524]/80' : ''
+                    className={`flex items-center gap-3 px-4 py-3 hover:bg-[#2A2D35]/80 transition-colors ${
+                      i === selectedIndex ? 'bg-[#2A2D35]/80' : ''
                     }`}
                     onMouseEnter={() => setSelectedIndex(i)}
                   >
@@ -230,7 +230,7 @@ export default function SearchBar({
                       <p className="text-sm font-medium text-white truncate">{hit.name}</p>
                       <div className="flex items-center gap-2 mt-0.5">
                         {hit.genres && hit.genres.length > 0 && (
-                          <span className="text-xs text-gray-500 truncate">
+                          <span className="text-xs text-[#6B7280] truncate">
                             {hit.genres.slice(0, 2).join(', ')}
                           </span>
                         )}
@@ -247,7 +247,7 @@ export default function SearchBar({
                       <span
                         className={`flex-shrink-0 text-xs font-bold rounded px-1.5 py-0.5 ${
                           hit.metacritic_score >= 75
-                            ? 'bg-[#D4A574]/20 text-[#D4A574]'
+                            ? 'bg-[#60A5FA]/20 text-[#60A5FA]'
                             : hit.metacritic_score >= 50
                               ? 'bg-yellow-500/20 text-yellow-400'
                               : 'bg-red-500/20 text-red-400'
@@ -261,11 +261,11 @@ export default function SearchBar({
               );
             })}
           </ul>
-          <div className="border-t border-[#292524] px-4 py-2 flex items-center justify-between">
-            <span className="text-xs text-gray-500">
+          <div className="border-t border-[#2A2D35] px-4 py-2 flex items-center justify-between">
+            <span className="text-xs text-[#6B7280]">
               {results.length} result{results.length !== 1 ? 's' : ''}
             </span>
-            <a href={`/games?q=${encodeURIComponent(query)}`} className="text-xs text-[#D4A574] hover:text-[#E8C5A0]">
+            <a href={`/games?q=${encodeURIComponent(query)}`} className="text-xs text-[#60A5FA] hover:text-[#93C5FD]">
               View all results →
             </a>
           </div>

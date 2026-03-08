@@ -129,7 +129,7 @@ const points = profile.points ?? 0;
 const totalReports = reportCount ?? 0;
 
 const ratingColors: Record<string, string> = {
-  excellent: 'bg-[#D4A574]/20 text-[#D4A574] border-[#D4A574]/30',
+  excellent: 'bg-[#60A5FA]/20 text-[#60A5FA] border-[#60A5FA]/30',
   good: 'bg-green-500/20 text-green-400 border-green-500/30',
   fair: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30',
   poor: 'bg-orange-500/20 text-orange-400 border-orange-500/30',
@@ -142,7 +142,7 @@ const ratingColors: Record<string, string> = {
   <!-- ═══════════════════════════════════════════
        FULL-BLEED PROFILE HERO
        ═══════════════════════════════════════════ -->
-  <section class="bg-gradient-to-b from-[#1C1917] to-[#0C0A09] py-12 border-b border-[#292524]">
+  <section class="bg-gradient-to-b from-[#16181D] to-[#0F1115] py-12 border-b border-[#2A2D35]">
     <div class="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
       <div class="flex flex-col sm:flex-row items-center sm:items-start gap-6">
         <!-- Avatar -->
@@ -151,10 +151,10 @@ const ratingColors: Record<string, string> = {
             <img
               src={avatarUrl}
               alt={displayName}
-              class="h-24 w-24 rounded-2xl border-2 border-[#292524] object-cover ring-2 ring-[#D4A574]/20 ring-offset-2 ring-offset-[#0C0A09]"
+              class="h-24 w-24 rounded-2xl border-2 border-[#2A2D35] object-cover ring-2 ring-[#60A5FA]/20 ring-offset-2 ring-offset-[#0F1115]"
             />
           ) : (
-            <div class="h-24 w-24 rounded-2xl border-2 border-[#292524] bg-gradient-to-br from-[#D4A574] to-[#C9956B] flex items-center justify-center text-3xl font-bold text-white ring-2 ring-[#D4A574]/20 ring-offset-2 ring-offset-[#0C0A09]">
+            <div class="h-24 w-24 rounded-2xl border-2 border-[#2A2D35] bg-gradient-to-br from-[#60A5FA] to-[#60A5FA] flex items-center justify-center text-3xl font-bold text-white ring-2 ring-[#60A5FA]/20 ring-offset-2 ring-offset-[#0F1115]">
               {displayName.charAt(0).toUpperCase()}
             </div>
           )}
@@ -162,12 +162,12 @@ const ratingColors: Record<string, string> = {
 
         <!-- Identity block -->
         <div class="flex-1 text-center sm:text-left">
-          <h1 class="text-3xl font-bold text-white font-heading">{displayName}</h1>
+          <h1 class="text-3xl font-bold text-white">{displayName}</h1>
           <div class="flex flex-wrap items-center justify-center sm:justify-start gap-2 mt-1.5">
             {profile.username && (
-              <span class="text-sm text-gray-500">@{profile.username}</span>
+              <span class="text-sm text-[#6B7280]">@{profile.username}</span>
             )}
-            <span class="inline-flex items-center gap-1 rounded-full bg-[#D4A574]/15 border border-[#D4A574]/25 px-2.5 py-0.5 text-xs font-semibold text-[#D4A574]">
+            <span class="inline-flex items-center gap-1 rounded-full bg-[#60A5FA]/15 border border-[#60A5FA]/25 px-2.5 py-0.5 text-xs font-semibold text-[#60A5FA]">
               <svg class="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
                 <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707l-3-3a1 1 0 00-1.414 0l-3 3a1 1 0 001.414 1.414L9 9.414V13a1 1 0 102 0V9.414l1.293 1.293a1 1 0 001.414-1.414z" clip-rule="evenodd" />
               </svg>
@@ -182,7 +182,7 @@ const ratingColors: Record<string, string> = {
               </span>
             )}
           </div>
-          <p class="mt-2 text-sm text-gray-500">
+          <p class="mt-2 text-sm text-[#6B7280]">
             Member since {memberSince}
           </p>
 
@@ -190,19 +190,19 @@ const ratingColors: Record<string, string> = {
           <div class="mt-6 flex flex-wrap justify-center sm:justify-start gap-8">
             <div class="text-center sm:text-left">
               <p class="text-2xl font-bold text-white font-mono tracking-tight">{totalReports}</p>
-              <p class="text-xs text-gray-500 uppercase tracking-wider mt-0.5">Reports</p>
+              <p class="text-xs text-[#6B7280] mt-0.5">Reports</p>
             </div>
             <div class="text-center sm:text-left">
               <p class="text-2xl font-bold text-white font-mono tracking-tight">{userDevices.length}</p>
-              <p class="text-xs text-gray-500 uppercase tracking-wider mt-0.5">Devices</p>
+              <p class="text-xs text-[#6B7280] mt-0.5">Devices</p>
             </div>
             <div class="text-center sm:text-left">
               <p class="text-2xl font-bold text-white font-mono tracking-tight">{points}</p>
-              <p class="text-xs text-gray-500 uppercase tracking-wider mt-0.5">Points</p>
+              <p class="text-xs text-[#6B7280] mt-0.5">Points</p>
             </div>
             <div class="text-center sm:text-left">
               <p class="text-2xl font-bold text-white font-mono tracking-tight">{followedGames.length}</p>
-              <p class="text-xs text-gray-500 uppercase tracking-wider mt-0.5">Following</p>
+              <p class="text-xs text-[#6B7280] mt-0.5">Following</p>
             </div>
           </div>
         </div>
@@ -211,7 +211,7 @@ const ratingColors: Record<string, string> = {
         <div class="flex-shrink-0">
           <button
             id="edit-profile-btn"
-            class="inline-flex items-center gap-2 rounded-lg border border-[#44403C] bg-[#1C1917] px-4 py-2.5 text-sm font-medium text-gray-300 hover:border-[#D4A574]/40 hover:text-white transition-all"
+            class="inline-flex items-center gap-2 rounded-lg border border-[#3A3D45] bg-[#16181D] px-4 py-2.5 text-sm font-medium text-[#9CA3AF] hover:border-[#60A5FA]/40 hover:text-white transition-all"
           >
             <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125" />
@@ -222,20 +222,20 @@ const ratingColors: Record<string, string> = {
       </div>
 
       <!-- Edit profile form (slides open below hero) -->
-      <div id="edit-profile-form" class="hidden mt-8 pt-8 border-t border-[#292524] animate-slideDown">
+      <div id="edit-profile-form" class="hidden mt-8 pt-8 border-t border-[#2A2D35] animate-slideDown">
         <form class="flex flex-col sm:flex-row gap-4 items-end">
           <div class="flex-1">
-            <label for="edit-display-name" class="block text-sm font-medium text-gray-400 mb-1.5">Display Name</label>
+            <label for="edit-display-name" class="block text-sm font-medium text-[#9CA3AF] mb-1.5">Display Name</label>
             <input
               id="edit-display-name"
               type="text"
               value={profile.display_name ?? ''}
               maxlength="50"
-              class="w-full rounded-lg border border-[#44403C] bg-[#0C0A09] px-3.5 py-2.5 text-sm text-white placeholder-gray-500 focus:border-[#D4A574] focus:outline-none focus:ring-1 focus:ring-[#D4A574] transition-colors"
+              class="w-full rounded-lg border border-[#3A3D45] bg-[#0F1115] px-3.5 py-2.5 text-sm text-white placeholder-[#6B7280] focus:border-[#60A5FA] focus:outline-none focus:ring-1 focus:ring-[#60A5FA] transition-colors"
             />
           </div>
           <div class="flex-1">
-            <label for="edit-username" class="block text-sm font-medium text-gray-400 mb-1.5">Username</label>
+            <label for="edit-username" class="block text-sm font-medium text-[#9CA3AF] mb-1.5">Username</label>
             <input
               id="edit-username"
               type="text"
@@ -243,28 +243,28 @@ const ratingColors: Record<string, string> = {
               maxlength="24"
               pattern="[a-z0-9_]{3,24}"
               placeholder="lowercase, 3-24 chars"
-              class="w-full rounded-lg border border-[#44403C] bg-[#0C0A09] px-3.5 py-2.5 text-sm text-white placeholder-gray-500 focus:border-[#D4A574] focus:outline-none focus:ring-1 focus:ring-[#D4A574] transition-colors"
+              class="w-full rounded-lg border border-[#3A3D45] bg-[#0F1115] px-3.5 py-2.5 text-sm text-white placeholder-[#6B7280] focus:border-[#60A5FA] focus:outline-none focus:ring-1 focus:ring-[#60A5FA] transition-colors"
             />
           </div>
           <div class="flex gap-2">
             <button
               type="button"
               id="save-profile-btn"
-              class="rounded-lg bg-[#C9956B] px-5 py-2.5 text-sm font-medium text-white hover:bg-[#D4A574] transition-colors"
+              class="rounded-lg bg-[#60A5FA] px-5 py-2.5 text-sm font-medium text-white hover:bg-[#3B82F6] transition-colors"
             >
               Save
             </button>
             <button
               type="button"
               id="cancel-profile-btn"
-              class="rounded-lg border border-[#44403C] px-4 py-2.5 text-sm font-medium text-gray-300 hover:border-gray-500 hover:text-white transition-colors"
+              class="rounded-lg border border-[#3A3D45] px-4 py-2.5 text-sm font-medium text-[#9CA3AF] hover:border-[#6B7280] hover:text-white transition-colors"
             >
               Cancel
             </button>
           </div>
         </form>
         <p id="edit-profile-error" class="hidden mt-3 text-sm text-red-400"></p>
-        <p id="edit-profile-success" class="hidden mt-3 text-sm text-[#D4A574]"></p>
+        <p id="edit-profile-success" class="hidden mt-3 text-sm text-[#60A5FA]"></p>
       </div>
     </div>
   </section>
@@ -279,12 +279,12 @@ const ratingColors: Record<string, string> = {
       <section class="lg:col-span-2">
         <div class="flex items-center justify-between mb-4">
           <div>
-            <h2 class="text-lg font-bold text-white font-heading uppercase tracking-wide">My Devices</h2>
-            <p class="mt-0.5 text-xs text-gray-500">Handhelds in your collection</p>
+            <h2 class="text-lg font-bold text-white ">My Devices</h2>
+            <p class="mt-0.5 text-xs text-[#6B7280]">Handhelds in your collection</p>
           </div>
           <button
             id="toggle-device-picker"
-            class="inline-flex items-center gap-1.5 rounded-lg bg-[#C9956B] px-3 py-1.5 text-sm font-medium text-white hover:bg-[#D4A574] transition-colors"
+            class="inline-flex items-center gap-1.5 rounded-lg bg-[#60A5FA] px-3 py-1.5 text-sm font-medium text-white hover:bg-[#3B82F6] transition-colors"
           >
             <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
@@ -296,31 +296,31 @@ const ratingColors: Record<string, string> = {
         {userDevices.length > 0 ? (
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {userDevices.map((ud: any) => (
-              <div class="rounded-xl border border-[#292524] bg-[#1C1917] p-4 group relative hover:border-[#44403C] transition-colors">
+              <div class="rounded-xl border border-[#2A2D35] bg-[#16181D] p-4 group relative hover:border-[#3A3D45] transition-colors">
                 {ud.isPrimary && (
-                  <span class="absolute top-3 right-3 inline-flex items-center rounded-full bg-[#D4A574]/20 px-2 py-0.5 text-[10px] font-semibold text-[#D4A574] border border-[#D4A574]/30 uppercase tracking-wider">
+                  <span class="absolute top-3 right-3 inline-flex items-center rounded-full bg-[#60A5FA]/20 px-2 py-0.5 text-[10px] font-semibold text-[#60A5FA] border border-[#60A5FA]/30">
                     Primary
                   </span>
                 )}
                 <div class="flex items-start gap-3">
-                  <div class="flex-shrink-0 w-16 h-16 rounded-lg bg-[#0C0A09] border border-[#292524] flex items-center justify-center overflow-hidden">
+                  <div class="flex-shrink-0 w-16 h-16 rounded-lg bg-[#0F1115] border border-[#2A2D35] flex items-center justify-center overflow-hidden">
                     {ud.device?.image ? (
                       <img src={ud.device.image} alt={ud.device?.name} class="h-full w-full object-cover" loading="lazy" />
                     ) : (
-                      <svg class="h-7 w-7 text-gray-600" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                      <svg class="h-7 w-7 text-[#4B5563]" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
                         <rect x="5" y="3" width="14" height="18" rx="3" />
                         <line x1="9" y1="18" x2="15" y2="18" />
                       </svg>
                     )}
                   </div>
                   <div class="flex-1 min-w-0">
-                    <p class="text-[10px] text-gray-500 uppercase tracking-widest">{ud.device?.manufacturer}</p>
+                    <p class="text-[10px] text-[#6B7280] ">{ud.device?.manufacturer}</p>
                     <h3 class="font-semibold text-white text-sm mt-0.5">
-                      <a href={`/devices/${ud.device?.slug}`} class="hover:text-[#D4A574] transition-colors">
+                      <a href={`/devices/${ud.device?.slug}`} class="hover:text-[#60A5FA] transition-colors">
                         {ud.device?.name ?? 'Unknown Device'}
                       </a>
                     </h3>
-                    <div class="mt-1.5 flex flex-wrap gap-x-3 text-xs text-gray-500">
+                    <div class="mt-1.5 flex flex-wrap gap-x-3 text-xs text-[#6B7280]">
                       {ud.device?.chip && <span>{ud.device.chip}</span>}
                       {ud.device?.screen_size && <span>{ud.device.screen_size}"</span>}
                     </div>
@@ -328,7 +328,7 @@ const ratingColors: Record<string, string> = {
                 </div>
                 <button
                   data-remove-device={ud.deviceId}
-                  class="mt-3 w-full rounded-lg border border-[#292524] px-3 py-1.5 text-xs font-medium text-gray-500 hover:border-red-500/30 hover:bg-red-500/10 hover:text-red-400 transition-colors"
+                  class="mt-3 w-full rounded-lg border border-[#2A2D35] px-3 py-1.5 text-xs font-medium text-[#6B7280] hover:border-red-500/30 hover:bg-red-500/10 hover:text-red-400 transition-colors"
                 >
                   Remove
                 </button>
@@ -336,22 +336,22 @@ const ratingColors: Record<string, string> = {
             ))}
           </div>
         ) : (
-          <div class="rounded-xl border border-dashed border-[#44403C] bg-[#1C1917]/50 p-10 text-center">
-            <svg class="mx-auto h-10 w-10 text-gray-600 mb-3" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+          <div class="rounded-xl border border-dashed border-[#3A3D45] bg-[#16181D]/50 p-10 text-center">
+            <svg class="mx-auto h-10 w-10 text-[#4B5563] mb-3" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
               <rect x="5" y="3" width="14" height="18" rx="3" />
               <line x1="9" y1="18" x2="15" y2="18" />
             </svg>
-            <p class="text-gray-400 text-sm">No devices in your setup yet.</p>
-            <p class="text-gray-500 text-xs mt-1">Click "Add Device" above to get started.</p>
+            <p class="text-[#9CA3AF] text-sm">No devices in your setup yet.</p>
+            <p class="text-[#6B7280] text-xs mt-1">Click "Add Device" above to get started.</p>
           </div>
         )}
 
         <!-- Device Picker (hidden by default) -->
         <div id="device-picker-container" class="hidden mt-4">
-          <div class="rounded-xl border border-[#44403C] bg-[#0C0A09] p-6">
+          <div class="rounded-xl border border-[#3A3D45] bg-[#0F1115] p-6">
             <div class="flex items-center justify-between mb-4">
               <h3 class="text-lg font-semibold text-white">Choose a Device</h3>
-              <button id="close-device-picker" class="text-gray-400 hover:text-white transition-colors">
+              <button id="close-device-picker" class="text-[#9CA3AF] hover:text-white transition-colors">
                 <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
                 </svg>
@@ -368,10 +368,10 @@ const ratingColors: Record<string, string> = {
       <!-- ─── BADGES (1/3 width) ─── -->
       <section class="lg:col-span-1">
         <div class="mb-4">
-          <h2 class="text-lg font-bold text-white font-heading uppercase tracking-wide">Badges</h2>
-          <p class="mt-0.5 text-xs text-gray-500">Achievements earned through contributions</p>
+          <h2 class="text-lg font-bold text-white ">Badges</h2>
+          <p class="mt-0.5 text-xs text-[#6B7280]">Achievements earned through contributions</p>
         </div>
-        <div class="rounded-xl border border-[#292524] bg-[#1C1917] p-5">
+        <div class="rounded-xl border border-[#2A2D35] bg-[#16181D] p-5">
           <BadgeGrid client:visible badges={badgesForGrid} />
         </div>
       </section>
@@ -380,12 +380,12 @@ const ratingColors: Record<string, string> = {
       <section class="lg:col-span-3">
         <div class="flex items-center justify-between mb-4">
           <div>
-            <h2 class="text-lg font-bold text-white font-heading uppercase tracking-wide">My Reports</h2>
-            <p class="mt-0.5 text-xs text-gray-500">Your recent performance submissions</p>
+            <h2 class="text-lg font-bold text-white ">My Reports</h2>
+            <p class="mt-0.5 text-xs text-[#6B7280]">Your recent performance submissions</p>
           </div>
           <a
             href="/report/new"
-            class="inline-flex items-center gap-1.5 rounded-lg bg-[#C9956B] px-3 py-1.5 text-sm font-medium text-white hover:bg-[#D4A574] transition-colors"
+            class="inline-flex items-center gap-1.5 rounded-lg bg-[#60A5FA] px-3 py-1.5 text-sm font-medium text-white hover:bg-[#3B82F6] transition-colors"
           >
             <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
@@ -406,15 +406,15 @@ const ratingColors: Record<string, string> = {
               return (
                 <a
                   href={report.gameSlug ? `/games/${report.gameSlug}` : '#'}
-                  class="flex items-center gap-4 rounded-xl border border-[#292524] bg-[#1C1917] p-4 hover:border-[#44403C] hover:bg-[#1C1917]/80 transition-all group"
+                  class="flex items-center gap-4 rounded-xl border border-[#2A2D35] bg-[#16181D] p-4 hover:border-[#3A3D45] hover:bg-[#16181D]/80 transition-all group"
                 >
                   {/* Game image */}
-                  <div class="flex-shrink-0 w-16 h-10 rounded-lg bg-[#0C0A09] border border-[#292524] overflow-hidden">
+                  <div class="flex-shrink-0 w-16 h-10 rounded-lg bg-[#0F1115] border border-[#2A2D35] overflow-hidden">
                     {report.gameImage ? (
                       <img src={report.gameImage} alt="" class="h-full w-full object-cover" loading="lazy" />
                     ) : (
                       <div class="h-full w-full flex items-center justify-center">
-                        <svg class="h-5 w-5 text-gray-600" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                        <svg class="h-5 w-5 text-[#4B5563]" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
                           <path stroke-linecap="round" stroke-linejoin="round" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
                           <path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
@@ -424,10 +424,10 @@ const ratingColors: Record<string, string> = {
 
                   {/* Report info */}
                   <div class="flex-1 min-w-0">
-                    <h4 class="text-sm font-medium text-white group-hover:text-[#D4A574] transition-colors truncate">
+                    <h4 class="text-sm font-medium text-white group-hover:text-[#60A5FA] transition-colors truncate">
                       {report.gameName}
                     </h4>
-                    <p class="text-xs text-gray-500 mt-0.5">
+                    <p class="text-xs text-[#6B7280] mt-0.5">
                       {report.deviceName} &middot; {report.fpsAvg ? `${report.fpsAvg} FPS` : 'No FPS data'}
                     </p>
                   </div>
@@ -438,12 +438,12 @@ const ratingColors: Record<string, string> = {
                   </span>
 
                   {/* Date */}
-                  <span class="flex-shrink-0 text-xs text-gray-500 hidden sm:block font-mono">
+                  <span class="flex-shrink-0 text-xs text-[#6B7280] hidden sm:block font-mono">
                     {date}
                   </span>
 
                   {/* Arrow */}
-                  <svg class="flex-shrink-0 h-4 w-4 text-gray-600 group-hover:text-[#D4A574] transition-colors" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <svg class="flex-shrink-0 h-4 w-4 text-[#4B5563] group-hover:text-[#60A5FA] transition-colors" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
                   </svg>
                 </a>
@@ -451,13 +451,13 @@ const ratingColors: Record<string, string> = {
             })}
           </div>
         ) : (
-          <div class="rounded-xl border border-dashed border-[#44403C] bg-[#1C1917]/50 p-10 text-center">
-            <svg class="mx-auto h-10 w-10 text-gray-600 mb-3" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+          <div class="rounded-xl border border-dashed border-[#3A3D45] bg-[#16181D]/50 p-10 text-center">
+            <svg class="mx-auto h-10 w-10 text-[#4B5563] mb-3" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
-            <p class="text-gray-400 text-sm">No performance reports yet.</p>
-            <p class="text-gray-500 text-xs mt-1">
-              <a href="/report/new" class="text-[#D4A574] hover:text-[#E8C5A0] transition-colors">Submit your first report</a> to help the community.
+            <p class="text-[#9CA3AF] text-sm">No performance reports yet.</p>
+            <p class="text-[#6B7280] text-xs mt-1">
+              <a href="/report/new" class="text-[#60A5FA] hover:text-[#93C5FD] transition-colors">Submit your first report</a> to help the community.
             </p>
           </div>
         )}
@@ -467,11 +467,11 @@ const ratingColors: Record<string, string> = {
       <section class="lg:col-span-2">
         <div class="flex items-center justify-between mb-4">
           <div>
-            <h2 class="text-lg font-bold text-white font-heading uppercase tracking-wide">Followed Games</h2>
-            <p class="mt-0.5 text-xs text-gray-500">Games you're tracking for updates</p>
+            <h2 class="text-lg font-bold text-white ">Followed Games</h2>
+            <p class="mt-0.5 text-xs text-[#6B7280]">Games you're tracking for updates</p>
           </div>
           {followedGames.length > 0 && (
-            <span class="text-xs text-gray-500 font-mono">{followedGames.length} games</span>
+            <span class="text-xs text-[#6B7280] font-mono">{followedGames.length} games</span>
           )}
         </div>
 
@@ -480,14 +480,14 @@ const ratingColors: Record<string, string> = {
             {followedGames.map(game => (
               <a
                 href={game.slug ? `/games/${game.slug}` : '#'}
-                class="group rounded-xl border border-[#292524] bg-[#1C1917] overflow-hidden hover:border-[#44403C] transition-all"
+                class="group rounded-xl border border-[#2A2D35] bg-[#16181D] overflow-hidden hover:border-[#3A3D45] transition-all"
               >
-                <div class="aspect-[460/215] bg-[#0C0A09] overflow-hidden">
+                <div class="aspect-[460/215] bg-[#0F1115] overflow-hidden">
                   {game.image ? (
                     <img src={game.image} alt={game.name} class="h-full w-full object-cover group-hover:scale-105 transition-transform duration-300" loading="lazy" />
                   ) : (
                     <div class="h-full w-full flex items-center justify-center">
-                      <svg class="h-8 w-8 text-gray-600" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                      <svg class="h-8 w-8 text-[#4B5563]" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
                         <path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
@@ -495,19 +495,19 @@ const ratingColors: Record<string, string> = {
                   )}
                 </div>
                 <div class="p-2.5">
-                  <p class="text-xs font-medium text-white truncate group-hover:text-[#D4A574] transition-colors">{game.name}</p>
+                  <p class="text-xs font-medium text-white truncate group-hover:text-[#60A5FA] transition-colors">{game.name}</p>
                 </div>
               </a>
             ))}
           </div>
         ) : (
-          <div class="rounded-xl border border-dashed border-[#44403C] bg-[#1C1917]/50 p-10 text-center">
-            <svg class="mx-auto h-10 w-10 text-gray-600 mb-3" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+          <div class="rounded-xl border border-dashed border-[#3A3D45] bg-[#16181D]/50 p-10 text-center">
+            <svg class="mx-auto h-10 w-10 text-[#4B5563] mb-3" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z" />
             </svg>
-            <p class="text-gray-400 text-sm">No followed games yet.</p>
-            <p class="text-gray-500 text-xs mt-1">
-              <a href="/games" class="text-[#D4A574] hover:text-[#E8C5A0] transition-colors">Browse games</a> and follow the ones you play.
+            <p class="text-[#9CA3AF] text-sm">No followed games yet.</p>
+            <p class="text-[#6B7280] text-xs mt-1">
+              <a href="/games" class="text-[#60A5FA] hover:text-[#93C5FD] transition-colors">Browse games</a> and follow the ones you play.
             </p>
           </div>
         )}
@@ -516,10 +516,10 @@ const ratingColors: Record<string, string> = {
       <!-- ─── STEAM LIBRARY (1/3 width) ─── -->
       <section class="lg:col-span-1">
         <div class="mb-4">
-          <h2 class="text-lg font-bold text-white font-heading uppercase tracking-wide">Steam Library</h2>
-          <p class="mt-0.5 text-xs text-gray-500">Import games from Steam</p>
+          <h2 class="text-lg font-bold text-white ">Steam Library</h2>
+          <p class="mt-0.5 text-xs text-[#6B7280]">Import games from Steam</p>
         </div>
-        <div class="rounded-xl border border-[#292524] bg-[#1C1917] p-5">
+        <div class="rounded-xl border border-[#2A2D35] bg-[#16181D] p-5">
           <SteamImport client:visible currentUserId={profile.id} />
         </div>
 
@@ -528,29 +528,29 @@ const ratingColors: Record<string, string> = {
             {libraryGames.slice(0, 8).map(game => (
               <a
                 href={game.slug ? `/games/${game.slug}` : '#'}
-                class="flex items-center gap-3 rounded-lg border border-[#292524] bg-[#1C1917] p-2.5 hover:border-[#44403C] transition-all group"
+                class="flex items-center gap-3 rounded-lg border border-[#2A2D35] bg-[#16181D] p-2.5 hover:border-[#3A3D45] transition-all group"
               >
-                <div class="flex-shrink-0 w-10 h-10 rounded bg-[#0C0A09] border border-[#292524] overflow-hidden">
+                <div class="flex-shrink-0 w-10 h-10 rounded bg-[#0F1115] border border-[#2A2D35] overflow-hidden">
                   {game.image ? (
                     <img src={game.image} alt={game.name} class="h-full w-full object-cover" loading="lazy" />
                   ) : (
                     <div class="h-full w-full flex items-center justify-center">
-                      <svg class="h-4 w-4 text-gray-600" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                      <svg class="h-4 w-4 text-[#4B5563]" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
                       </svg>
                     </div>
                   )}
                 </div>
                 <div class="flex-1 min-w-0">
-                  <p class="text-xs font-medium text-white truncate group-hover:text-[#D4A574] transition-colors">{game.name}</p>
+                  <p class="text-xs font-medium text-white truncate group-hover:text-[#60A5FA] transition-colors">{game.name}</p>
                   {game.playtime > 0 && (
-                    <p class="text-[10px] text-gray-500 mt-0.5 font-mono">{game.playtime.toFixed(1)}h</p>
+                    <p class="text-[10px] text-[#6B7280] mt-0.5 font-mono">{game.playtime.toFixed(1)}h</p>
                   )}
                 </div>
               </a>
             ))}
             {(libraryCount ?? 0) > 8 && (
-              <p class="text-center text-[10px] text-gray-500 pt-1">
+              <p class="text-center text-[10px] text-[#6B7280] pt-1">
                 +{(libraryCount ?? 0) - 8} more games
               </p>
             )}
