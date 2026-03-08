@@ -1,33 +1,29 @@
 ---
 import BaseLayout from '@layouts/BaseLayout.astro';
 import GameCard from '@components/astro/GameCard.astro';
-import DeviceCard from '@components/astro/DeviceCard.astro';
+import GameCardFeatured from '@components/astro/GameCardFeatured.astro';
+import SectionHeader from '@components/astro/SectionHeader.astro';
 import SearchBar from '@components/react/SearchBar';
 import { supabaseAdmin } from '@lib/db/client';
 
-// ─── Fetch real data from Supabase ───
-const { data: devicesData } = await supabaseAdmin
-  .from('devices')
-  .select('slug, name, manufacturer, screen_size, battery_wh, chip, image, msrp_usd, is_active')
-  .eq('is_active', true)
-  .order('name');
+// ─── Fetch data ───
+const [devicesRes, gamesRes, gameCountRes, deviceCountRes] = await Promise.all([
+  supabaseAdmin
+    .from('devices')
+    .select('slug, name, manufacturer, screen_size, battery_wh, chip, image, msrp_usd, is_active')
+    .eq('is_active', true)
+    .order('name'),
+  supabaseAdmin
+    .from('games')
+    .select('slug, name, header_image, genres, deck_compatibility')
+    .not('header_image', 'is', null)
+    .order('metacritic_score', { ascending: false, nullsFirst: false })
+    .limit(5),
+  supabaseAdmin.from('games').select('*', { count: 'exact', head: true }),
+  supabaseAdmin.from('devices').select('*', { count: 'exact', head: true }),
+]);
 
-const { data: gamesData } = await supabaseAdmin
-  .from('games')
-  .select('slug, name, header_image, genres, deck_compatibility')
-  .not('header_image', 'is', null)
-  .order('metacritic_score', { ascending: false, nullsFirst: false })
-  .limit(8);
-
-const { count: gameCount } = await supabaseAdmin
-  .from('games')
-  .select('*', { count: 'exact', head: true });
-
-const { count: deviceCount } = await supabaseAdmin
-  .from('devices')
-  .select('*', { count: 'exact', head: true });
-
-const devices = (devicesData ?? []).map(d => ({
+const devices = (devicesRes.data ?? []).map(d => ({
   slug: d.slug,
   name: d.name,
   manufacturer: d.manufacturer,
@@ -38,77 +34,97 @@ const devices = (devicesData ?? []).map(d => ({
   msrpUsd: d.msrp_usd,
 }));
 
-const trendingGames = (gamesData ?? []).map(g => ({
+const games = (gamesRes.data ?? []).map(g => ({
   slug: g.slug,
   name: g.name,
   headerImage: g.header_image,
   genres: (g.genres as string[]) ?? [],
   deckCompatibility: g.deck_compatibility,
-  bestFps: null as number | null,
-  reportCount: 0,
 }));
+
+const gameCount = gameCountRes.count ?? 0;
+const deviceCount = deviceCountRes.count ?? 0;
+const featuredGame = games[0];
+const restGames = games.slice(1);
 ---
 
-<BaseLayout title="Handheld GameDB">
-  <!-- HERO -->
-  <section class="relative overflow-hidden pt-16 pb-20 sm:pt-24 sm:pb-28">
-    <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_30%_50%,rgba(212,165,116,0.06),transparent_70%)]"></div>
+<BaseLayout title="Handheld GameDB — Performance Database for Handheld Gaming">
 
-    <div class="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 text-center lg:text-left">
-      <div class="max-w-4xl">
-        <p class="editorial-label mb-4">Performance Database</p>
+  <!-- ══════ HERO ══════ -->
+  <section class="relative min-h-[70vh] flex items-center overflow-hidden">
+    <!-- Atmospheric background -->
+    <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_20%_50%,rgba(212,165,116,0.08),transparent_60%),radial-gradient(ellipse_at_80%_80%,rgba(218,165,32,0.04),transparent_50%)]"></div>
 
-        <h1 class="text-5xl sm:text-7xl lg:text-8xl font-bold text-stone-50 tracking-tight leading-tight font-heading uppercase">
-          Find the <span class="text-gradient-copper">best settings</span> for<br class="hidden sm:block" />
-          every game on your handheld
-        </h1>
-        <p class="mt-6 max-w-xl text-lg text-stone-400 leading-relaxed">
-          Community-driven performance data for Steam Deck, ROG Ally, Legion Go and more. Optimal settings, FPS benchmarks, battery life &mdash; all in one place.
-        </p>
-      </div>
+    <div class="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-20 w-full">
+      <div class="grid grid-cols-1 lg:grid-cols-5 gap-8 lg:gap-12 items-center">
 
-      <!-- Search Bar -->
-      <div class="mt-10 max-w-2xl lg:mx-0 mx-auto">
-        <SearchBar client:load variant="hero" placeholder="Search games... (e.g. Elden Ring, Cyberpunk 2077, Stardew Valley)" />
-      </div>
+        <!-- Left: Editorial text -->
+        <div class="lg:col-span-3">
+          <p class="editorial-label mb-4">Performance Database</p>
 
-      <!-- Quick Stats -->
-      <div class="mt-14 grid grid-cols-2 sm:grid-cols-4 gap-4 max-w-2xl lg:mx-0 mx-auto">
-        <div class="luxury-card rounded-xl bg-[#1C1917] border border-[#292524] p-4">
-          <p class="text-2xl sm:text-3xl font-bold text-[#DAA520] font-mono">{gameCount ?? 0}</p>
-          <p class="text-sm text-stone-500">Games</p>
+          <h1 class="text-5xl sm:text-6xl lg:text-7xl xl:text-8xl font-bold text-stone-50 tracking-tight leading-[0.95] font-heading uppercase">
+            Find the <span class="text-gradient-copper">best settings</span> for every game on your handheld
+          </h1>
+
+          <p class="mt-6 max-w-lg text-lg text-stone-400 leading-relaxed">
+            Community-driven performance data for Steam Deck, ROG Ally, Legion Go and more. Optimal settings, FPS benchmarks, battery life.
+          </p>
+
+          <!-- Search Bar -->
+          <div class="mt-8 max-w-xl">
+            <SearchBar client:load variant="hero" placeholder="Search games... (e.g. Elden Ring, Cyberpunk 2077)" />
+          </div>
+
+          <!-- Inline Stats -->
+          <div class="mt-10 flex items-center gap-8 sm:gap-12">
+            <div>
+              <span class="text-3xl sm:text-4xl font-bold text-[#DAA520] font-mono">{gameCount.toLocaleString()}</span>
+              <span class="block text-xs text-stone-500 uppercase tracking-wider mt-1">Games</span>
+            </div>
+            <div class="h-8 w-px bg-[#292524]"></div>
+            <div>
+              <span class="text-3xl sm:text-4xl font-bold text-[#DAA520] font-mono">{deviceCount}</span>
+              <span class="block text-xs text-stone-500 uppercase tracking-wider mt-1">Devices</span>
+            </div>
+            <div class="h-8 w-px bg-[#292524]"></div>
+            <div>
+              <span class="text-3xl sm:text-4xl font-bold text-[#DAA520] font-mono">0</span>
+              <span class="block text-xs text-stone-500 uppercase tracking-wider mt-1">Reports</span>
+            </div>
+          </div>
         </div>
-        <div class="luxury-card rounded-xl bg-[#1C1917] border border-[#292524] p-4">
-          <p class="text-2xl sm:text-3xl font-bold text-[#DAA520] font-mono">{deviceCount ?? 0}</p>
-          <p class="text-sm text-stone-500">Devices</p>
-        </div>
-        <div class="luxury-card rounded-xl bg-[#1C1917] border border-[#292524] p-4">
-          <p class="text-2xl sm:text-3xl font-bold text-[#DAA520] font-mono">0</p>
-          <p class="text-sm text-stone-500">Reports</p>
-        </div>
-        <div class="luxury-card rounded-xl bg-[#1C1917] border border-[#292524] p-4">
-          <p class="text-2xl sm:text-3xl font-bold text-[#DAA520] font-mono">0</p>
-          <p class="text-sm text-stone-500">Testers</p>
-        </div>
+
+        <!-- Right: Featured game card -->
+        {featuredGame && (
+          <div class="lg:col-span-2 hidden lg:block">
+            <div class="relative">
+              <div class="absolute -inset-4 bg-[radial-gradient(circle,rgba(212,165,116,0.06),transparent_70%)]"></div>
+              <div class="relative rounded-xl overflow-hidden border border-[#292524] shadow-elevated aspect-[460/400]">
+                <GameCardFeatured {...featuredGame} />
+              </div>
+              <p class="text-center mt-3 text-xs text-stone-600 uppercase tracking-wider">Featured Game</p>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   </section>
 
-  <!-- TOP GAMES -->
-  {trendingGames.length > 0 && (
-    <section class="py-12">
+  <!-- ══════ TOP GAMES — BENTO GRID ══════ -->
+  {games.length > 0 && (
+    <section class="py-14 section-spotlight">
       <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div class="flex items-center justify-between mb-6">
-          <div>
-            <h2 class="text-2xl font-bold text-white font-heading uppercase tracking-wider">Top Games</h2>
-            <p class="mt-1 text-sm text-stone-500">Highest rated games in the database</p>
-          </div>
-          <a href="/games" class="text-sm text-[#D4A574] hover:text-[#E8C5A0] transition-colors">
-            View all &rarr;
-          </a>
-        </div>
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {trendingGames.map((game) => (
+        <SectionHeader title="Top Games" subtitle="Highest rated games in the database" href="/games" />
+
+        <div class="grid grid-cols-2 lg:grid-cols-4 grid-rows-2 gap-3">
+          <!-- Featured: 2col x 2row -->
+          {featuredGame && (
+            <div class="col-span-2 row-span-2">
+              <GameCardFeatured {...featuredGame} />
+            </div>
+          )}
+          <!-- Remaining 4 smaller cards -->
+          {restGames.map((game) => (
             <GameCard {...game} />
           ))}
         </div>
@@ -116,81 +132,123 @@ const trendingGames = (gamesData ?? []).map(g => ({
     </section>
   )}
 
-  <!-- SUPPORTED DEVICES -->
+  <!-- ══════ DEVICES — HORIZONTAL SCROLL ══════ -->
   {devices.length > 0 && (
-    <section class="py-12">
+    <section class="py-14">
       <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div class="flex items-center justify-between mb-6">
-          <div>
-            <h2 class="text-2xl font-bold text-white font-heading uppercase tracking-wider">Supported Devices</h2>
-            <p class="mt-1 text-sm text-stone-500">Pick your handheld to see compatible games</p>
-          </div>
-          <a href="/devices" class="text-sm text-[#D4A574] hover:text-[#E8C5A0] transition-colors">
-            All devices &rarr;
-          </a>
-        </div>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <SectionHeader title="Pick Your Device" subtitle="Select your handheld to see compatible games" href="/devices" linkText="All devices" />
+      </div>
+      <div class="mx-auto max-w-7xl pl-4 sm:pl-6 lg:pl-8">
+        <div class="flex gap-4 scroll-strip snap-x snap-mandatory pb-4 pr-4">
           {devices.map((device) => (
-            <DeviceCard {...device} />
+            <a
+              href={`/devices/${device.slug}`}
+              class="luxury-card flex-shrink-0 w-64 sm:w-72 snap-center rounded-xl border border-[#292524] bg-[#1C1917] overflow-hidden group"
+            >
+              <div class="h-36 bg-[#292524] flex items-center justify-center p-4 overflow-hidden">
+                {device.image ? (
+                  <img src={device.image} alt={device.name} class="h-full w-full object-contain transition-transform group-hover:scale-105" loading="lazy" />
+                ) : (
+                  <svg class="h-16 w-16 text-stone-700" fill="none" stroke="currentColor" stroke-width="1" viewBox="0 0 24 24">
+                    <rect x="2" y="6" width="20" height="12" rx="3" />
+                  </svg>
+                )}
+              </div>
+              <div class="p-4">
+                <p class="text-[10px] text-stone-500 uppercase tracking-wider">{device.manufacturer}</p>
+                <p class="font-heading text-lg font-semibold text-white group-hover:text-[#D4A574] transition-colors">{device.name}</p>
+                <div class="mt-2 flex items-center gap-3 text-xs text-stone-500">
+                  <span>{device.chip}</span>
+                  <span class="text-[#292524]">·</span>
+                  <span>{device.batteryWh}Wh</span>
+                  {device.msrpUsd && (
+                    <>
+                      <span class="text-[#292524]">·</span>
+                      <span>${device.msrpUsd}</span>
+                    </>
+                  )}
+                </div>
+              </div>
+            </a>
           ))}
         </div>
       </div>
     </section>
   )}
 
-  <!-- HOW IT WORKS -->
-  <section class="py-16">
+  <!-- ══════ HOW IT WORKS — ASYMMETRIC ══════ -->
+  <section class="py-16 section-atmospheric">
     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-      <h2 class="text-2xl font-bold text-white mb-10 text-center font-heading uppercase tracking-wider">How It Works</h2>
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-        <div class="relative text-center group">
-          <div class="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-[#D4A574]/10 border border-[#D4A574]/20 text-[#D4A574] group-hover:bg-[#D4A574]/20 transition-colors">
-            <svg class="h-7 w-7" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z" />
-            </svg>
-          </div>
-          <h3 class="text-lg font-semibold text-white font-heading">1. Search Your Game</h3>
-          <p class="mt-2 text-sm text-stone-400 leading-relaxed">
-            Instant search across {gameCount ?? 0}+ games. Filter by device, genre, FPS target, or compatibility.
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+
+        <!-- Left: Pull quote -->
+        <div>
+          <p class="editorial-label mb-6">How It Works</p>
+          <blockquote class="pull-quote">
+            The community tells the truth. Real performance data from real gamers, not marketing specs.
+          </blockquote>
+          <p class="mt-6 text-stone-400 leading-relaxed max-w-md">
+            Every report is submitted by a real user, voted on by the community, and aggregated into consensus recommendations you can trust.
           </p>
         </div>
-        <div class="relative text-center group">
-          <div class="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-[#D4A574]/10 border border-[#D4A574]/20 text-[#D4A574] group-hover:bg-[#D4A574]/20 transition-colors">
-            <svg class="h-7 w-7" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75" />
-            </svg>
+
+        <!-- Right: Numbered steps -->
+        <div class="space-y-8">
+          <div class="flex gap-5">
+            <span class="step-number">01</span>
+            <div>
+              <h3 class="text-lg font-semibold text-white font-heading">Search Your Game</h3>
+              <p class="mt-1 text-sm text-stone-400 leading-relaxed">
+                Instant search across {gameCount.toLocaleString()}+ games. Filter by device, genre, or compatibility.
+              </p>
+            </div>
           </div>
-          <h3 class="text-lg font-semibold text-white font-heading">2. Get Best Settings</h3>
-          <p class="mt-2 text-sm text-stone-400 leading-relaxed">
-            3 TDP profiles per game: Battery Saver, Balanced, Performance. With FPS, thermal, and battery data.
-          </p>
-        </div>
-        <div class="relative text-center group">
-          <div class="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-[#D4A574]/10 border border-[#D4A574]/20 text-[#D4A574] group-hover:bg-[#D4A574]/20 transition-colors">
-            <svg class="h-7 w-7" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
-            </svg>
+          <div class="flex gap-5">
+            <span class="step-number">02</span>
+            <div>
+              <h3 class="text-lg font-semibold text-white font-heading">Get Best Settings</h3>
+              <p class="mt-1 text-sm text-stone-400 leading-relaxed">
+                3 TDP profiles per game: Battery Saver, Balanced, Performance. With FPS, thermal, and battery data.
+              </p>
+            </div>
           </div>
-          <h3 class="text-lg font-semibold text-white font-heading">3. Share Your Results</h3>
-          <p class="mt-2 text-sm text-stone-400 leading-relaxed">
-            Submit performance reports, earn points, climb the leaderboard. Every report helps the community.
-          </p>
+          <div class="flex gap-5">
+            <span class="step-number">03</span>
+            <div>
+              <h3 class="text-lg font-semibold text-white font-heading">Share Your Results</h3>
+              <p class="mt-1 text-sm text-stone-400 leading-relaxed">
+                Submit performance reports, earn points, climb the leaderboard. Every report helps the community.
+              </p>
+            </div>
+          </div>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- CTA -->
-  <section class="py-12 pb-20">
-    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-      <div class="surface-card relative overflow-hidden rounded-2xl p-8 sm:p-12">
-        <div class="absolute top-0 right-0 -mt-16 -mr-16 h-64 w-64 rounded-full bg-[#D4A574]/5 blur-3xl"></div>
-        <div class="relative text-center">
-          <h2 class="text-2xl sm:text-3xl font-bold text-white font-heading">Got a handheld? Your data matters.</h2>
-          <p class="mt-3 text-stone-400 max-w-xl mx-auto">
+  <!-- ══════ CTA — SPLIT ══════ -->
+  <section class="py-0">
+    <div class="grid grid-cols-1 lg:grid-cols-2 min-h-[300px]">
+      <!-- Left: atmospheric -->
+      <div class="flex items-center justify-center p-12 lg:p-16 relative overflow-hidden">
+        <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(212,165,116,0.04),transparent_70%)]"></div>
+        <div class="relative text-center lg:text-right">
+          <h2 class="text-4xl sm:text-5xl font-bold text-white font-heading uppercase tracking-wider leading-tight">
+            Got a<br />handheld?
+          </h2>
+          <p class="mt-4 text-stone-500 text-lg">
+            Your data matters to the community.
+          </p>
+        </div>
+      </div>
+
+      <!-- Right: copper tinted -->
+      <div class="flex items-center justify-center p-12 lg:p-16 bg-gradient-to-br from-[#D4A574]/8 to-[#DAA520]/4 border-l border-[#292524]">
+        <div class="text-center lg:text-left">
+          <p class="text-stone-300 mb-6 max-w-sm">
             Every performance report helps thousands of gamers optimize their experience. Be one of the first testers.
           </p>
-          <div class="mt-8 flex flex-col sm:flex-row justify-center gap-4">
+          <div class="flex flex-col sm:flex-row gap-3 justify-center lg:justify-start">
             <a
               href="/report/new"
               class="inline-flex items-center justify-center gap-2 rounded-xl bg-[#C9956B] px-8 py-3.5 text-sm font-semibold text-white hover:bg-[#D4A574] transition-colors"
@@ -211,4 +269,5 @@ const trendingGames = (gamesData ?? []).map(g => ({
       </div>
     </div>
   </section>
+
 </BaseLayout>

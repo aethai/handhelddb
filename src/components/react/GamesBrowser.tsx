@@ -58,6 +58,7 @@ export default function GamesBrowser({ initialGames, totalGames, allGenres }: Pr
   const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
   const [selectedDeck, setSelectedDeck] = useState<string[]>([]);
   const [showFilters, setShowFilters] = useState(false);
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const abortRef = useRef<AbortController | null>(null);
 
   const hasFilters = query.trim() || selectedGenres.length > 0 || selectedDeck.length > 0 || sort !== 'name:asc';
@@ -211,59 +212,118 @@ export default function GamesBrowser({ initialGames, totalGames, allGenres }: Pr
         )}
       </div>
 
-      {/* Results count */}
+      {/* Results count + View toggle */}
       <div className="mb-4 flex items-center justify-between">
         <p className="text-sm text-gray-500">
           {loading ? 'Searching...' : `${totalHits} game${totalHits !== 1 ? 's' : ''}`}
         </p>
+        <div className="flex items-center gap-1 rounded-lg border border-[#292524] p-0.5">
+          <button
+            onClick={() => setViewMode('grid')}
+            className={`rounded-md p-1.5 transition-colors ${viewMode === 'grid' ? 'bg-[#292524] text-white' : 'text-gray-500 hover:text-gray-300'}`}
+            title="Grid view"
+          >
+            <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" />
+            </svg>
+          </button>
+          <button
+            onClick={() => setViewMode('list')}
+            className={`rounded-md p-1.5 transition-colors ${viewMode === 'list' ? 'bg-[#292524] text-white' : 'text-gray-500 hover:text-gray-300'}`}
+            title="List view"
+          >
+            <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 12h16.5m-16.5 3.75h16.5M3.75 19.5h16.5M5.625 4.5h12.75a1.875 1.875 0 010 3.75H5.625a1.875 1.875 0 010-3.75z" />
+            </svg>
+          </button>
+        </div>
       </div>
 
-      {/* Game Grid */}
+      {/* Game Grid / List */}
       {games.length > 0 ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {games.map(game => (
-            <a
-              key={game.id}
-              href={`/games/${game.slug}`}
-              className="group rounded-xl border border-[#292524] bg-[#1C1917] overflow-hidden hover:border-[#44403C] transition-colors"
-            >
-              {game.header_image ? (
-                <div className="aspect-[460/215] overflow-hidden">
-                  <img
-                    src={game.header_image}
-                    alt={game.name}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                    loading="lazy"
-                  />
+        viewMode === 'grid' ? (
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+            {games.map(game => (
+              <a
+                key={game.id}
+                href={`/games/${game.slug}`}
+                className="group relative rounded-lg border border-[#292524] bg-[#1C1917] overflow-hidden hover:border-[#44403C] transition-colors"
+              >
+                <div className="relative aspect-[460/300]">
+                  {game.header_image ? (
+                    <img
+                      src={game.header_image}
+                      alt={game.name}
+                      className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      loading="lazy"
+                    />
+                  ) : (
+                    <div className="absolute inset-0 bg-gradient-to-br from-[#292524] to-[#1C1917]" />
+                  )}
+                  {/* Overlay with game info at bottom */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent" />
+                  <div className="absolute bottom-0 left-0 right-0 p-2.5">
+                    <h3 className="font-semibold text-white text-sm leading-tight line-clamp-2">{game.name}</h3>
+                    <div className="mt-1 flex items-center gap-1.5">
+                      {game.genres?.slice(0, 1).map(g => (
+                        <span key={g} className="text-[10px] text-stone-400">{g}</span>
+                      ))}
+                      {game.metacritic_score && (
+                        <span className={`ml-auto text-[10px] font-bold ${
+                          game.metacritic_score >= 75 ? 'text-green-400' : game.metacritic_score >= 50 ? 'text-yellow-400' : 'text-red-400'
+                        }`}>
+                          {game.metacritic_score}
+                        </span>
+                      )}
+                    </div>
+                  </div>
                 </div>
-              ) : (
-                <div className="aspect-[460/215] bg-gradient-to-br from-[#292524] to-[#1C1917] flex items-center justify-center">
-                  <span className="text-xl font-bold text-gray-700/50 text-center px-4">{game.name}</span>
+              </a>
+            ))}
+          </div>
+        ) : (
+          /* List view */
+          <div className="rounded-xl border border-[#292524] bg-[#1C1917] divide-y divide-[#292524]">
+            {games.map(game => (
+              <a
+                key={game.id}
+                href={`/games/${game.slug}`}
+                className="flex items-center gap-4 px-4 py-3 hover:bg-[#292524]/50 transition-colors"
+              >
+                {/* Thumbnail */}
+                <div className="w-16 h-9 rounded overflow-hidden flex-shrink-0 bg-[#292524]">
+                  {game.header_image && (
+                    <img src={game.header_image} alt="" className="w-full h-full object-cover" loading="lazy" />
+                  )}
                 </div>
-              )}
-              <div className="p-4">
-                <h3 className="font-semibold text-white text-sm truncate">{game.name}</h3>
-                <div className="mt-2 flex items-center gap-2 flex-wrap">
+                {/* Name */}
+                <span className="text-sm text-white font-medium truncate flex-1 min-w-0">{game.name}</span>
+                {/* Genres */}
+                <div className="hidden sm:flex items-center gap-1.5 flex-shrink-0">
                   {game.genres?.slice(0, 2).map(g => (
-                    <span key={g} className="rounded-full bg-[#292524] px-2 py-0.5 text-[10px] text-gray-400">{g}</span>
+                    <span key={g} className="text-[10px] text-stone-500">{g}</span>
                   ))}
-                  {game.deck_compatibility && DECK_BADGES[game.deck_compatibility] && (
-                    <span className={`rounded-full border px-2 py-0.5 text-[10px] font-medium ${DECK_BADGES[game.deck_compatibility].class}`}>
-                      {DECK_BADGES[game.deck_compatibility].label}
-                    </span>
-                  )}
-                  {game.metacritic_score && (
-                    <span className={`ml-auto text-xs font-bold ${
-                      game.metacritic_score >= 75 ? 'text-green-400' : game.metacritic_score >= 50 ? 'text-yellow-400' : 'text-red-400'
-                    }`}>
-                      {game.metacritic_score}
-                    </span>
-                  )}
                 </div>
-              </div>
-            </a>
-          ))}
-        </div>
+                {/* Deck badge */}
+                {game.deck_compatibility && DECK_BADGES[game.deck_compatibility] && (
+                  <span className={`hidden md:inline rounded-full border px-2 py-0.5 text-[10px] font-medium flex-shrink-0 ${DECK_BADGES[game.deck_compatibility].class}`}>
+                    {DECK_BADGES[game.deck_compatibility].label}
+                  </span>
+                )}
+                {/* Metacritic */}
+                {game.metacritic_score ? (
+                  <span className={`text-xs font-bold flex-shrink-0 w-8 text-right ${
+                    game.metacritic_score >= 75 ? 'text-green-400' : game.metacritic_score >= 50 ? 'text-yellow-400' : 'text-red-400'
+                  }`}>
+                    {game.metacritic_score}
+                  </span>
+                ) : (
+                  <span className="w-8 flex-shrink-0" />
+                )}
+              </a>
+            ))}
+          </div>
+        )
       ) : (
         <div className="rounded-xl border border-[#292524] bg-[#1C1917] p-8 text-center">
           <p className="text-gray-500">No games found matching your criteria.</p>

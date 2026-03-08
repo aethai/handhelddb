@@ -133,50 +133,42 @@ function formatBattery(hours: number): string {
     <div class="flex flex-col lg:flex-row gap-8">
       <!-- MAIN CONTENT -->
       <div class="flex-1 min-w-0">
-        <!-- Header Card -->
-        <div class="rounded-xl border border-[#292524] bg-[#1C1917] overflow-hidden">
+        <!-- Compact Hero -->
+        <div class="relative h-48 sm:h-56 overflow-hidden rounded-xl">
           {game.header_image && (
-            <div class="w-full h-48 overflow-hidden relative">
-              <img src={game.header_image} alt={game.name} class="w-full h-full object-cover opacity-60" />
-              <div class="absolute inset-0 bg-gradient-to-t from-[#1C1917] via-[#1C1917]/60 to-transparent"></div>
-              <div class="absolute bottom-4 left-6 right-6">
-                <h1 class="text-2xl sm:text-3xl font-bold text-white font-heading">{game.name}</h1>
-                <p class="mt-1 text-[#D4A574] font-medium">on {device.name}</p>
-              </div>
-            </div>
+            <img src={game.header_image} alt={game.name} class="absolute inset-0 w-full h-full object-cover" />
           )}
-          {!game.header_image && (
-            <div class="p-6">
-              <h1 class="text-2xl sm:text-3xl font-bold text-white font-heading">{game.name}</h1>
-              <p class="mt-1 text-[#D4A574] font-medium">on {device.name}</p>
-            </div>
-          )}
+          <div class="absolute inset-0 bg-gradient-to-t from-[#0C0A09] via-[#0C0A09]/70 to-[#0C0A09]/30"></div>
+          <div class="absolute bottom-5 left-6 right-6">
+            <h1 class="text-2xl sm:text-3xl font-bold text-white font-heading">{game.name}</h1>
+            <p class="mt-1 text-[#D4A574] font-medium">on {device.name}</p>
+          </div>
         </div>
 
-        <!-- Quick Stats -->
+        <!-- Key Metrics Row -->
         {hasReports && (
           <div class="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-3">
             {avgFps != null && (
-              <div class="luxury-card rounded-xl border border-[#292524] bg-[#1C1917] p-4 text-center">
-                <p class={`text-2xl font-bold font-mono ${fpsColor(avgFps)}`}>{avgFps}</p>
-                <p class="text-xs text-gray-500 mt-1">Avg FPS</p>
+              <div class="luxury-card rounded-xl border border-[#292524] bg-[#1C1917] p-5 text-center">
+                <p class={`font-mono text-3xl font-bold ${fpsColor(avgFps)}`}>{avgFps}</p>
+                <p class="text-xs text-gray-500 mt-1 uppercase tracking-wider">Avg FPS</p>
               </div>
             )}
             {avgTdp != null && (
-              <div class="luxury-card rounded-xl border border-[#292524] bg-[#1C1917] p-4 text-center">
-                <p class="text-2xl font-bold font-mono text-[#D4A574]">{avgTdp}W</p>
-                <p class="text-xs text-gray-500 mt-1">Avg TDP</p>
+              <div class="luxury-card rounded-xl border border-[#292524] bg-[#1C1917] p-5 text-center">
+                <p class="font-mono text-3xl font-bold text-[#D4A574]">{avgTdp}<span class="text-lg">W</span></p>
+                <p class="text-xs text-gray-500 mt-1 uppercase tracking-wider">Avg TDP</p>
               </div>
             )}
             {avgBattery != null && (
-              <div class="luxury-card rounded-xl border border-[#292524] bg-[#1C1917] p-4 text-center">
-                <p class="text-2xl font-bold font-mono text-purple-400">{formatBattery(avgBattery)}</p>
-                <p class="text-xs text-gray-500 mt-1">Avg Battery</p>
+              <div class="luxury-card rounded-xl border border-[#292524] bg-[#1C1917] p-5 text-center">
+                <p class="font-mono text-3xl font-bold text-purple-400">{formatBattery(avgBattery)}</p>
+                <p class="text-xs text-gray-500 mt-1 uppercase tracking-wider">Avg Battery</p>
               </div>
             )}
-            <div class="luxury-card rounded-xl border border-[#292524] bg-[#1C1917] p-4 text-center">
-              <p class="text-2xl font-bold font-mono text-white">{reportList.length}</p>
-              <p class="text-xs text-gray-500 mt-1">Reports</p>
+            <div class="luxury-card rounded-xl border border-[#292524] bg-[#1C1917] p-5 text-center">
+              <p class="font-mono text-3xl font-bold text-white">{reportList.length}</p>
+              <p class="text-xs text-gray-500 mt-1 uppercase tracking-wider">Reports</p>
             </div>
           </div>
         )}
@@ -185,7 +177,7 @@ function formatBattery(hours: number): string {
         {hasTDPProfiles && (
           <div class="mt-6">
             <h2 class="text-xl font-bold text-white mb-4">Recommended Settings</h2>
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div class="tdp-shared-grid grid grid-cols-1 sm:grid-cols-3 gap-0">
               {batterySaver && <TDPProfileCard profile={batterySaver} tier="battery_saver" />}
               {balanced && <TDPProfileCard profile={balanced} tier="balanced" />}
               {performance && <TDPProfileCard profile={performance} tier="performance" />}
@@ -346,7 +338,7 @@ function formatBattery(hours: number): string {
       </div>
 
       <!-- SIDEBAR -->
-      <aside class="w-full lg:w-72 flex-shrink-0 space-y-4">
+      <aside class="w-full lg:w-64 flex-shrink-0 space-y-4">
         <!-- Device Quick Specs -->
         <div class="rounded-xl border border-[#292524] bg-[#1C1917] p-5">
           <h3 class="text-xs font-semibold uppercase tracking-wider mb-3 font-heading text-[#D4A574]">{device.name}</h3>
@@ -415,3 +407,43 @@ function formatBattery(hours: number): string {
     </div>
   </div>
 </BaseLayout>
+
+<style>
+  /* TDP shared-border grid: merge adjacent card borders */
+  .tdp-shared-grid > :global(div) {
+    border-radius: 0;
+  }
+  /* First card: round left corners */
+  .tdp-shared-grid > :global(div:first-child) {
+    border-top-left-radius: 0.75rem;
+    border-bottom-left-radius: 0.75rem;
+  }
+  /* Last card: round right corners */
+  .tdp-shared-grid > :global(div:last-child) {
+    border-top-right-radius: 0.75rem;
+    border-bottom-right-radius: 0.75rem;
+  }
+  /* Remove right border from all but last to avoid double borders */
+  .tdp-shared-grid > :global(div:not(:last-child)) {
+    border-right-width: 0;
+  }
+  /* Mobile stacked: restore full borders, reset rounding */
+  @media (max-width: 639px) {
+    .tdp-shared-grid > :global(div) {
+      border-radius: 0;
+      border-right-width: 1px;
+      border-bottom-width: 0;
+    }
+    .tdp-shared-grid > :global(div:first-child) {
+      border-top-left-radius: 0.75rem;
+      border-top-right-radius: 0.75rem;
+      border-bottom-left-radius: 0;
+    }
+    .tdp-shared-grid > :global(div:last-child) {
+      border-bottom-left-radius: 0.75rem;
+      border-bottom-right-radius: 0.75rem;
+      border-top-right-radius: 0;
+      border-bottom-width: 1px;
+    }
+  }
+</style>

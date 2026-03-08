@@ -2,15 +2,21 @@
 const currentYear = new Date().getFullYear();
 ---
 
-<div class="h-px bg-gradient-to-r from-transparent via-[#D4A574]/30 to-transparent"></div>
+<div class="metallic-line"></div>
 <footer class="border-t border-[#292524] bg-[#0C0A09] py-8 mt-16">
   <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-    <div class="grid grid-cols-2 gap-8 md:grid-cols-4">
+    <!-- Mini CTA -->
+    <p class="text-center text-sm text-stone-500 mb-8">
+      Help build the database &mdash; <a href="/report/new" class="text-[#D4A574] hover:text-[#E8C5A0] underline underline-offset-2">submit your first report</a>
+    </p>
+
+    <div class="grid grid-cols-2 gap-8 md:grid-cols-3">
       <div>
-        <h3 class="text-sm font-semibold font-heading uppercase tracking-wider text-[#D4A574]">Database</h3>
+        <h3 class="text-sm font-semibold font-heading uppercase tracking-wider text-[#D4A574]">Browse</h3>
         <ul class="mt-3 space-y-2">
-          <li><a href="/games" class="text-sm text-stone-400 hover:text-[#D4A574]">All Games</a></li>
+          <li><a href="/games" class="text-sm text-stone-400 hover:text-[#D4A574]">Games</a></li>
           <li><a href="/devices" class="text-sm text-stone-400 hover:text-[#D4A574]">Devices</a></li>
+          <li><a href="/discover" class="text-sm text-stone-400 hover:text-[#D4A574]">Discover</a></li>
           <li><a href="/compare" class="text-sm text-stone-400 hover:text-[#D4A574]">Compare</a></li>
           <li><a href="/news" class="text-sm text-stone-400 hover:text-[#D4A574]">News</a></li>
         </ul>
@@ -23,19 +29,11 @@ const currentYear = new Date().getFullYear();
         </ul>
       </div>
       <div>
-        <h3 class="text-sm font-semibold font-heading uppercase tracking-wider text-[#D4A574]">Devices</h3>
-        <ul class="mt-3 space-y-2">
-          <li><a href="/devices/steam-deck-oled" class="text-sm text-stone-400 hover:text-[#D4A574]">Steam Deck OLED</a></li>
-          <li><a href="/devices/rog-ally-x" class="text-sm text-stone-400 hover:text-[#D4A574]">ROG Ally X</a></li>
-          <li><a href="/devices/legion-go" class="text-sm text-stone-400 hover:text-[#D4A574]">Legion Go</a></li>
-        </ul>
-      </div>
-      <div>
         <h3 class="text-sm font-semibold font-heading uppercase tracking-wider text-[#D4A574]">About</h3>
         <ul class="mt-3 space-y-2">
           <li><a href="/about" class="text-sm text-stone-400 hover:text-[#D4A574]">About Us</a></li>
-          <li><a href="/privacy" class="text-sm text-stone-400 hover:text-[#D4A574]">Privacy Policy</a></li>
-          <li><a href="/terms" class="text-sm text-stone-400 hover:text-[#D4A574]">Terms of Service</a></li>
+          <li><a href="/privacy" class="text-sm text-stone-400 hover:text-[#D4A574]">Privacy</a></li>
+          <li><a href="/terms" class="text-sm text-stone-400 hover:text-[#D4A574]">Terms</a></li>
         </ul>
       </div>
     </div>

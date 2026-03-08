@@ -1,0 +1,62 @@
+---
+interface Props {
+  slug: string;
+  name: string;
+  headerImage?: string | null;
+  genres?: string[];
+  deckCompatibility?: string | null;
+}
+
+const { slug, name, headerImage, genres = [], deckCompatibility } = Astro.props;
+
+const deckBadge: Record<string, { label: string; class: string }> = {
+  verified: { label: 'Verified', class: 'bg-green-500/20 text-green-400 border-green-500/30' },
+  playable: { label: 'Playable', class: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30' },
+  unsupported: { label: 'Unsupported', class: 'bg-red-500/20 text-red-400 border-red-500/30' },
+};
+const deck = deckBadge[deckCompatibility ?? ''];
+---
+
+<a
+  href={`/games/${slug}`}
+  class="luxury-card group relative block overflow-hidden rounded-xl border border-[#292524] bg-[#1C1917] h-full min-h-[280px]"
+>
+  {headerImage ? (
+    <img
+      src={headerImage}
+      alt={name}
+      class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+      loading="lazy"
+    />
+  ) : (
+    <div class="absolute inset-0 bg-gradient-to-br from-[#292524] via-[#1C1917] to-[#0C0A09]"></div>
+  )}
+
+  <!-- Gradient overlay -->
+  <div class="game-card-overlay"></div>
+
+  <!-- Deck badge top-left -->
+  {deck && (
+    <div class="absolute top-3 left-3 z-10">
+      <span class={`rounded-md border px-2 py-0.5 text-xs font-medium ${deck.class}`}>
+        Deck {deck.label}
+      </span>
+    </div>
+  )}
+
+  <!-- Content at bottom -->
+  <div class="absolute bottom-0 left-0 right-0 p-4 sm:p-5 z-10">
+    <h3 class="font-heading text-xl sm:text-2xl font-bold text-white leading-tight group-hover:text-[#E8C5A0] transition-colors">
+      {name}
+    </h3>
+    {genres.length > 0 && (
+      <div class="mt-2 flex items-center gap-2 flex-wrap">
+        {genres.slice(0, 3).map((genre) => (
+          <span class="rounded-full bg-white/10 px-2.5 py-0.5 text-xs text-stone-300 backdrop-blur-sm">
+            {genre}
+          </span>
+        ))}
+      </div>
+    )}
+  </div>
+</a>

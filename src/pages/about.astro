@@ -3,7 +3,7 @@ import BaseLayout from '@layouts/BaseLayout.astro';
 ---
 
 <BaseLayout title="About Handheld GameDB" description="Learn about Handheld GameDB — the community-driven handheld gaming performance database built by gamers, for gamers.">
-  <div class="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 py-16 sm:py-24">
+  <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24">
     <article class="prose prose-invert max-w-none">
 
       <h1 class="text-4xl font-bold text-white">About Handheld GameDB</h1>
@@ -27,26 +27,45 @@ import BaseLayout from '@layouts/BaseLayout.astro';
       <section class="mt-12">
         <h2 class="text-2xl font-bold text-white">How It Works</h2>
 
-        <div class="mt-6 space-y-6">
-          <div class="rounded-xl border border-[#292524] bg-gray-900/50 p-6">
-            <h3 class="text-lg font-semibold text-[#D4A574]">1. Submit Reports</h3>
-            <p class="mt-2 text-gray-300">
-              Players submit performance reports for games they have tested on their handheld devices. Each report includes the device used, graphics settings, average FPS, TDP configuration, and battery life observations. The more detail, the more helpful the report.
+        <div class="mt-6 grid grid-cols-1 md:grid-cols-[1fr_2fr] gap-8 items-start">
+          <!-- Left: Pull-quote -->
+          <div class="border-l-2 border-[#D4A574] pl-5 py-2">
+            <p class="text-lg text-[#D4A574] font-heading italic leading-relaxed">
+              "Real data from real players, surfaced by community consensus."
             </p>
           </div>
 
-          <div class="rounded-xl border border-[#292524] bg-gray-900/50 p-6">
-            <h3 class="text-lg font-semibold text-[#D4A574]">2. Community Voting</h3>
-            <p class="mt-2 text-gray-300">
-              Other players vote on reports based on accuracy. Did those settings actually deliver the reported FPS? Was battery life as described? Votes help surface the most reliable data and push down inaccurate or outdated reports.
-            </p>
-          </div>
+          <!-- Right: Numbered steps -->
+          <div class="space-y-6">
+            <div class="flex gap-4">
+              <span class="flex-shrink-0 flex items-center justify-center h-8 w-8 rounded-full bg-[#D4A574]/10 text-[#D4A574] font-bold text-sm font-mono border border-[#D4A574]/20">1</span>
+              <div>
+                <h3 class="text-lg font-semibold text-white">Submit Reports</h3>
+                <p class="mt-1 text-gray-300 leading-relaxed">
+                  Players submit performance reports for games they have tested on their handheld devices. Each report includes the device used, graphics settings, average FPS, TDP configuration, and battery life observations. The more detail, the more helpful the report.
+                </p>
+              </div>
+            </div>
 
-          <div class="rounded-xl border border-[#292524] bg-gray-900/50 p-6">
-            <h3 class="text-lg font-semibold text-[#D4A574]">3. Consensus Algorithm</h3>
-            <p class="mt-2 text-gray-300">
-              Our consensus algorithm aggregates multiple reports for the same game-device combination, weighting them by vote count, recency, and reporter reputation. The result is three optimized settings profiles per game: Battery Saver, Balanced, and Performance -- each with expected FPS, thermals, and battery life.
-            </p>
+            <div class="flex gap-4">
+              <span class="flex-shrink-0 flex items-center justify-center h-8 w-8 rounded-full bg-[#D4A574]/10 text-[#D4A574] font-bold text-sm font-mono border border-[#D4A574]/20">2</span>
+              <div>
+                <h3 class="text-lg font-semibold text-white">Community Voting</h3>
+                <p class="mt-1 text-gray-300 leading-relaxed">
+                  Other players vote on reports based on accuracy. Did those settings actually deliver the reported FPS? Was battery life as described? Votes help surface the most reliable data and push down inaccurate or outdated reports.
+                </p>
+              </div>
+            </div>
+
+            <div class="flex gap-4">
+              <span class="flex-shrink-0 flex items-center justify-center h-8 w-8 rounded-full bg-[#D4A574]/10 text-[#D4A574] font-bold text-sm font-mono border border-[#D4A574]/20">3</span>
+              <div>
+                <h3 class="text-lg font-semibold text-white">Consensus Algorithm</h3>
+                <p class="mt-1 text-gray-300 leading-relaxed">
+                  Our consensus algorithm aggregates multiple reports for the same game-device combination, weighting them by vote count, recency, and reporter reputation. The result is three optimized settings profiles per game: Battery Saver, Balanced, and Performance -- each with expected FPS, thermals, and battery life.
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </section>

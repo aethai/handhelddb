@@ -192,3 +192,84 @@ h1, h2, h3, h4, h5, h6 {
 .vs-divider {
   background: linear-gradient(180deg, transparent, rgba(212,165,116,0.3), transparent);
 }
+
+/* ══════════════════════════════════════
+   LAYOUT UTILITIES v3.1
+   Bento grids, scroll strips, tabs, sections
+   ══════════════════════════════════════ */
+
+/* ── Bento Grid Helpers ── */
+.bento-featured { grid-column: span 2; grid-row: span 2; }
+.bento-wide { grid-column: span 2; }
+.bento-tall { grid-row: span 2; }
+
+/* ── Section Backgrounds ── */
+.section-spotlight {
+  background: radial-gradient(ellipse at 50% 0%, rgba(212,165,116,0.04) 0%, transparent 60%);
+}
+
+.section-atmospheric {
+  background: linear-gradient(180deg, #0C0A09 0%, #1C1917 50%, #0C0A09 100%);
+}
+
+/* ── Tabs ── */
+.tab-active {
+  border-bottom: 2px solid #D4A574;
+  color: white;
+  padding-bottom: 0.75rem;
+}
+.tab-inactive {
+  border-bottom: 2px solid transparent;
+  color: #78716C;
+  padding-bottom: 0.75rem;
+  transition: color 0.2s ease;
+}
+.tab-inactive:hover { color: #A8A29E; }
+
+/* ── Ticker ── */
+@keyframes ticker-scroll {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+/* ── Horizontal Scroll Strip ── */
+.scroll-strip {
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.scroll-strip::-webkit-scrollbar { display: none; }
+
+/* ── Pull Quote ── */
+.pull-quote {
+  border-left: 3px solid #D4A574;
+  padding-left: 1.5rem;
+  font-family: var(--font-heading);
+  font-size: 1.5rem;
+  letter-spacing: 0.02em;
+  color: #E8C5A0;
+  text-transform: uppercase;
+  line-height: 1.3;
+}
+
+/* ── Step Number ── */
+.step-number {
+  font-family: var(--font-heading);
+  font-size: 2rem;
+  font-weight: 700;
+  color: #D4A574;
+  opacity: 0.6;
+  line-height: 1;
+}
+
+/* ── Game Card Overlay (name on image) ── */
+.game-card-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.2) 40%, transparent 60%);
+}
+
+/* ── Animate Breathe ── */
+.animate-breathe {
+  animation: breathe 4s ease-in-out infinite;
+}

@@ -138,12 +138,12 @@ const ratingColors: Record<string, string> = {
 ---
 
 <BaseLayout title="My Setup" noindex={true}>
-  <div class="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
 
-    <!-- ═══════════════════════════════════════════
-         PROFILE HEADER
-         ═══════════════════════════════════════════ -->
-    <section class="rounded-2xl border border-[#292524] bg-[#1C1917] p-6 sm:p-8">
+  <!-- ═══════════════════════════════════════════
+       FULL-BLEED PROFILE HERO
+       ═══════════════════════════════════════════ -->
+  <section class="bg-gradient-to-b from-[#1C1917] to-[#0C0A09] py-12 border-b border-[#292524]">
+    <div class="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
       <div class="flex flex-col sm:flex-row items-center sm:items-start gap-6">
         <!-- Avatar -->
         <div class="flex-shrink-0">
@@ -151,23 +151,22 @@ const ratingColors: Record<string, string> = {
             <img
               src={avatarUrl}
               alt={displayName}
-              class="h-24 w-24 rounded-2xl border-2 border-gray-700 object-cover"
+              class="h-24 w-24 rounded-2xl border-2 border-[#292524] object-cover ring-2 ring-[#D4A574]/20 ring-offset-2 ring-offset-[#0C0A09]"
             />
           ) : (
-            <div class="h-24 w-24 rounded-2xl border-2 border-gray-700 bg-[#C9956B] flex items-center justify-center text-3xl font-bold text-white">
+            <div class="h-24 w-24 rounded-2xl border-2 border-[#292524] bg-gradient-to-br from-[#D4A574] to-[#C9956B] flex items-center justify-center text-3xl font-bold text-white ring-2 ring-[#D4A574]/20 ring-offset-2 ring-offset-[#0C0A09]">
               {displayName.charAt(0).toUpperCase()}
             </div>
           )}
         </div>
 
-        <!-- Info -->
+        <!-- Identity block -->
         <div class="flex-1 text-center sm:text-left">
-          <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
-            <h1 class="text-2xl font-bold text-white font-heading">{displayName}</h1>
+          <h1 class="text-3xl font-bold text-white font-heading">{displayName}</h1>
+          <div class="flex flex-wrap items-center justify-center sm:justify-start gap-2 mt-1.5">
             {profile.username && (
               <span class="text-sm text-gray-500">@{profile.username}</span>
             )}
-            <!-- Level badge -->
             <span class="inline-flex items-center gap-1 rounded-full bg-[#D4A574]/15 border border-[#D4A574]/25 px-2.5 py-0.5 text-xs font-semibold text-[#D4A574]">
               <svg class="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
                 <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707l-3-3a1 1 0 00-1.414 0l-3 3a1 1 0 001.414 1.414L9 9.414V13a1 1 0 102 0V9.414l1.293 1.293a1 1 0 001.414-1.414z" clip-rule="evenodd" />
@@ -183,28 +182,27 @@ const ratingColors: Record<string, string> = {
               </span>
             )}
           </div>
-
-          <p class="mt-2 text-sm text-gray-400">
+          <p class="mt-2 text-sm text-gray-500">
             Member since {memberSince}
           </p>
 
           <!-- Stats row -->
-          <div class="mt-4 flex flex-wrap justify-center sm:justify-start gap-6">
-            <div>
-              <p class="text-xl font-bold text-white">{totalReports}</p>
-              <p class="text-xs text-gray-500">Reports</p>
+          <div class="mt-6 flex flex-wrap justify-center sm:justify-start gap-8">
+            <div class="text-center sm:text-left">
+              <p class="text-2xl font-bold text-white font-mono tracking-tight">{totalReports}</p>
+              <p class="text-xs text-gray-500 uppercase tracking-wider mt-0.5">Reports</p>
             </div>
-            <div>
-              <p class="text-xl font-bold text-white">{userDevices.length}</p>
-              <p class="text-xs text-gray-500">Devices</p>
+            <div class="text-center sm:text-left">
+              <p class="text-2xl font-bold text-white font-mono tracking-tight">{userDevices.length}</p>
+              <p class="text-xs text-gray-500 uppercase tracking-wider mt-0.5">Devices</p>
             </div>
-            <div>
-              <p class="text-xl font-bold text-white">{points}</p>
-              <p class="text-xs text-gray-500">Points</p>
+            <div class="text-center sm:text-left">
+              <p class="text-2xl font-bold text-white font-mono tracking-tight">{points}</p>
+              <p class="text-xs text-gray-500 uppercase tracking-wider mt-0.5">Points</p>
             </div>
-            <div>
-              <p class="text-xl font-bold text-white">{followedGames.length}</p>
-              <p class="text-xs text-gray-500">Following</p>
+            <div class="text-center sm:text-left">
+              <p class="text-2xl font-bold text-white font-mono tracking-tight">{followedGames.length}</p>
+              <p class="text-xs text-gray-500 uppercase tracking-wider mt-0.5">Following</p>
             </div>
           </div>
         </div>
@@ -213,28 +211,31 @@ const ratingColors: Record<string, string> = {
         <div class="flex-shrink-0">
           <button
             id="edit-profile-btn"
-            class="rounded-lg border border-gray-700 px-4 py-2 text-sm font-medium text-gray-300 hover:border-gray-500 hover:text-white transition-colors"
+            class="inline-flex items-center gap-2 rounded-lg border border-[#44403C] bg-[#1C1917] px-4 py-2.5 text-sm font-medium text-gray-300 hover:border-[#D4A574]/40 hover:text-white transition-all"
           >
+            <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125" />
+            </svg>
             Edit Profile
           </button>
         </div>
       </div>
 
-      <!-- Edit profile form (hidden by default) -->
-      <div id="edit-profile-form" class="hidden mt-6 pt-6 border-t border-gray-800">
+      <!-- Edit profile form (slides open below hero) -->
+      <div id="edit-profile-form" class="hidden mt-8 pt-8 border-t border-[#292524] animate-slideDown">
         <form class="flex flex-col sm:flex-row gap-4 items-end">
           <div class="flex-1">
-            <label for="edit-display-name" class="block text-sm font-medium text-gray-400 mb-1">Display Name</label>
+            <label for="edit-display-name" class="block text-sm font-medium text-gray-400 mb-1.5">Display Name</label>
             <input
               id="edit-display-name"
               type="text"
               value={profile.display_name ?? ''}
               maxlength="50"
-              class="w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white placeholder-gray-500 focus:border-[#D4A574] focus:outline-none focus:ring-1 focus:ring-[#D4A574]"
+              class="w-full rounded-lg border border-[#44403C] bg-[#0C0A09] px-3.5 py-2.5 text-sm text-white placeholder-gray-500 focus:border-[#D4A574] focus:outline-none focus:ring-1 focus:ring-[#D4A574] transition-colors"
             />
           </div>
           <div class="flex-1">
-            <label for="edit-username" class="block text-sm font-medium text-gray-400 mb-1">Username</label>
+            <label for="edit-username" class="block text-sm font-medium text-gray-400 mb-1.5">Username</label>
             <input
               id="edit-username"
               type="text"
@@ -242,336 +243,322 @@ const ratingColors: Record<string, string> = {
               maxlength="24"
               pattern="[a-z0-9_]{3,24}"
               placeholder="lowercase, 3-24 chars"
-              class="w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white placeholder-gray-500 focus:border-[#D4A574] focus:outline-none focus:ring-1 focus:ring-[#D4A574]"
+              class="w-full rounded-lg border border-[#44403C] bg-[#0C0A09] px-3.5 py-2.5 text-sm text-white placeholder-gray-500 focus:border-[#D4A574] focus:outline-none focus:ring-1 focus:ring-[#D4A574] transition-colors"
             />
           </div>
           <div class="flex gap-2">
             <button
               type="button"
               id="save-profile-btn"
-              class="rounded-lg bg-[#C9956B] px-4 py-2 text-sm font-medium text-white hover:bg-[#D4A574] transition-colors"
+              class="rounded-lg bg-[#C9956B] px-5 py-2.5 text-sm font-medium text-white hover:bg-[#D4A574] transition-colors"
             >
               Save
             </button>
             <button
               type="button"
               id="cancel-profile-btn"
-              class="rounded-lg border border-gray-700 px-4 py-2 text-sm font-medium text-gray-300 hover:border-gray-500 hover:text-white transition-colors"
+              class="rounded-lg border border-[#44403C] px-4 py-2.5 text-sm font-medium text-gray-300 hover:border-gray-500 hover:text-white transition-colors"
             >
               Cancel
             </button>
           </div>
         </form>
-        <p id="edit-profile-error" class="hidden mt-2 text-sm text-red-400"></p>
-        <p id="edit-profile-success" class="hidden mt-2 text-sm text-[#D4A574]"></p>
+        <p id="edit-profile-error" class="hidden mt-3 text-sm text-red-400"></p>
+        <p id="edit-profile-success" class="hidden mt-3 text-sm text-[#D4A574]"></p>
       </div>
-    </section>
+    </div>
+  </section>
 
-    <!-- ═══════════════════════════════════════════
-         BADGES
-         ═══════════════════════════════════════════ -->
-    <section class="mt-8">
-      <div class="mb-4">
-        <h2 class="text-xl font-bold text-white font-heading">Badges</h2>
-        <p class="mt-0.5 text-sm text-gray-500">Achievements earned through your contributions</p>
-      </div>
-      <div class="rounded-xl border border-gray-800 bg-gray-900 p-6">
-        <BadgeGrid client:visible badges={badgesForGrid} />
-      </div>
-    </section>
+  <!-- ═══════════════════════════════════════════
+       DASHBOARD BENTO GRID
+       ═══════════════════════════════════════════ -->
+  <div class="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-    <!-- ═══════════════════════════════════════════
-         FOLLOWED GAMES
-         ═══════════════════════════════════════════ -->
-    <section class="mt-8">
-      <div class="flex items-center justify-between mb-4">
-        <div>
-          <h2 class="text-xl font-bold text-white font-heading">Followed Games</h2>
-          <p class="mt-0.5 text-sm text-gray-500">Games you're tracking for updates</p>
-        </div>
-        {followedGames.length > 0 && (
-          <span class="text-sm text-gray-500">{followedGames.length} games</span>
-        )}
-      </div>
-
-      {followedGames.length > 0 ? (
-        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-          {followedGames.map(game => (
-            <a
-              href={game.slug ? `/games/${game.slug}` : '#'}
-              class="group rounded-lg border border-gray-800 bg-gray-900 overflow-hidden hover:border-gray-600 transition-all"
-            >
-              <div class="aspect-[460/215] bg-gray-800 overflow-hidden">
-                {game.image ? (
-                  <img src={game.image} alt={game.name} class="h-full w-full object-cover group-hover:scale-105 transition-transform duration-300" loading="lazy" />
-                ) : (
-                  <div class="h-full w-full flex items-center justify-center">
-                    <svg class="h-8 w-8 text-gray-600" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                  </div>
-                )}
-              </div>
-              <div class="p-2.5">
-                <p class="text-xs font-medium text-white truncate group-hover:text-[#D4A574] transition-colors">{game.name}</p>
-              </div>
-            </a>
-          ))}
-        </div>
-      ) : (
-        <div class="rounded-xl border border-dashed border-gray-700 bg-gray-900/50 p-8 text-center">
-          <svg class="mx-auto h-10 w-10 text-gray-600 mb-3" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z" />
-          </svg>
-          <p class="text-gray-400 text-sm">No followed games yet.</p>
-          <p class="text-gray-500 text-xs mt-1">
-            <a href="/games" class="text-[#D4A574] hover:text-[#E8C5A0] transition-colors">Browse games</a> and follow the ones you play.
-          </p>
-        </div>
-      )}
-    </section>
-
-    <!-- ═══════════════════════════════════════════
-         MY LIBRARY
-         ═══════════════════════════════════════════ -->
-    {(libraryCount ?? 0) > 0 && (
-      <section class="mt-8">
+      <!-- ─── MY DEVICES (2/3 width) ─── -->
+      <section class="lg:col-span-2">
         <div class="flex items-center justify-between mb-4">
           <div>
-            <h2 class="text-xl font-bold text-white font-heading">My Library</h2>
-            <p class="mt-0.5 text-sm text-gray-500">{libraryCount} games from Steam</p>
+            <h2 class="text-lg font-bold text-white font-heading uppercase tracking-wide">My Devices</h2>
+            <p class="mt-0.5 text-xs text-gray-500">Handhelds in your collection</p>
           </div>
+          <button
+            id="toggle-device-picker"
+            class="inline-flex items-center gap-1.5 rounded-lg bg-[#C9956B] px-3 py-1.5 text-sm font-medium text-white hover:bg-[#D4A574] transition-colors"
+          >
+            <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+            </svg>
+            Add Device
+          </button>
         </div>
-        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-          {libraryGames.map(game => (
-            <a
-              href={game.slug ? `/games/${game.slug}` : '#'}
-              class="group rounded-lg border border-gray-800 bg-gray-900 overflow-hidden hover:border-gray-600 transition-all"
-            >
-              <div class="aspect-[460/215] bg-gray-800 overflow-hidden">
-                {game.image ? (
-                  <img src={game.image} alt={game.name} class="h-full w-full object-cover group-hover:scale-105 transition-transform duration-300" loading="lazy" />
-                ) : (
-                  <div class="h-full w-full flex items-center justify-center">
-                    <svg class="h-8 w-8 text-gray-600" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
+
+        {userDevices.length > 0 ? (
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {userDevices.map((ud: any) => (
+              <div class="rounded-xl border border-[#292524] bg-[#1C1917] p-4 group relative hover:border-[#44403C] transition-colors">
+                {ud.isPrimary && (
+                  <span class="absolute top-3 right-3 inline-flex items-center rounded-full bg-[#D4A574]/20 px-2 py-0.5 text-[10px] font-semibold text-[#D4A574] border border-[#D4A574]/30 uppercase tracking-wider">
+                    Primary
+                  </span>
+                )}
+                <div class="flex items-start gap-3">
+                  <div class="flex-shrink-0 w-16 h-16 rounded-lg bg-[#0C0A09] border border-[#292524] flex items-center justify-center overflow-hidden">
+                    {ud.device?.image ? (
+                      <img src={ud.device.image} alt={ud.device?.name} class="h-full w-full object-cover" loading="lazy" />
+                    ) : (
+                      <svg class="h-7 w-7 text-gray-600" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                        <rect x="5" y="3" width="14" height="18" rx="3" />
+                        <line x1="9" y1="18" x2="15" y2="18" />
+                      </svg>
+                    )}
                   </div>
-                )}
+                  <div class="flex-1 min-w-0">
+                    <p class="text-[10px] text-gray-500 uppercase tracking-widest">{ud.device?.manufacturer}</p>
+                    <h3 class="font-semibold text-white text-sm mt-0.5">
+                      <a href={`/devices/${ud.device?.slug}`} class="hover:text-[#D4A574] transition-colors">
+                        {ud.device?.name ?? 'Unknown Device'}
+                      </a>
+                    </h3>
+                    <div class="mt-1.5 flex flex-wrap gap-x-3 text-xs text-gray-500">
+                      {ud.device?.chip && <span>{ud.device.chip}</span>}
+                      {ud.device?.screen_size && <span>{ud.device.screen_size}"</span>}
+                    </div>
+                  </div>
+                </div>
+                <button
+                  data-remove-device={ud.deviceId}
+                  class="mt-3 w-full rounded-lg border border-[#292524] px-3 py-1.5 text-xs font-medium text-gray-500 hover:border-red-500/30 hover:bg-red-500/10 hover:text-red-400 transition-colors"
+                >
+                  Remove
+                </button>
               </div>
-              <div class="p-2.5">
-                <p class="text-xs font-medium text-white truncate group-hover:text-[#D4A574] transition-colors">{game.name}</p>
-                {game.playtime > 0 && (
-                  <p class="text-[10px] text-gray-500 mt-0.5">{game.playtime.toFixed(1)}h played</p>
-                )}
-              </div>
-            </a>
-          ))}
-        </div>
-        {(libraryCount ?? 0) > 12 && (
-          <p class="mt-3 text-center text-xs text-gray-500">
-            Showing top 12 by playtime out of {libraryCount} games
-          </p>
+            ))}
+          </div>
+        ) : (
+          <div class="rounded-xl border border-dashed border-[#44403C] bg-[#1C1917]/50 p-10 text-center">
+            <svg class="mx-auto h-10 w-10 text-gray-600 mb-3" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+              <rect x="5" y="3" width="14" height="18" rx="3" />
+              <line x1="9" y1="18" x2="15" y2="18" />
+            </svg>
+            <p class="text-gray-400 text-sm">No devices in your setup yet.</p>
+            <p class="text-gray-500 text-xs mt-1">Click "Add Device" above to get started.</p>
+          </div>
         )}
-      </section>
-    )}
 
-    <!-- ═══════════════════════════════════════════
-         MY DEVICES
-         ═══════════════════════════════════════════ -->
-    <section class="mt-8">
-      <div class="flex items-center justify-between mb-4">
-        <div>
-          <h2 class="text-xl font-bold text-white font-heading">My Devices</h2>
-          <p class="mt-0.5 text-sm text-gray-500">Handhelds in your collection</p>
-        </div>
-        <button
-          id="toggle-device-picker"
-          class="inline-flex items-center gap-1.5 rounded-lg bg-[#C9956B] px-3 py-1.5 text-sm font-medium text-white hover:bg-[#D4A574] transition-colors"
-        >
-          <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
-          </svg>
-          Add Device
-        </button>
-      </div>
-
-      <!-- Current devices grid -->
-      {userDevices.length > 0 ? (
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-          {userDevices.map((ud: any) => (
-            <div class="rounded-lg border border-gray-800 bg-gray-900 p-4 group relative">
-              {ud.isPrimary && (
-                <span class="absolute top-2 right-2 inline-flex items-center rounded-full bg-[#D4A574]/20 px-2 py-0.5 text-xs font-medium text-[#D4A574] border border-[#D4A574]/30">
-                  Primary
-                </span>
-              )}
-              <div class="flex items-start gap-3">
-                <div class="flex-shrink-0 w-14 h-14 rounded-lg bg-gray-800 flex items-center justify-center overflow-hidden">
-                  {ud.device?.image ? (
-                    <img src={ud.device.image} alt={ud.device?.name} class="h-full w-full object-cover" loading="lazy" />
-                  ) : (
-                    <svg class="h-7 w-7 text-gray-600" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-                      <rect x="5" y="3" width="14" height="18" rx="3" />
-                      <line x1="9" y1="18" x2="15" y2="18" />
-                    </svg>
-                  )}
-                </div>
-                <div class="flex-1 min-w-0">
-                  <p class="text-xs text-gray-500 uppercase tracking-wider">{ud.device?.manufacturer}</p>
-                  <h3 class="font-semibold text-white text-sm">
-                    <a href={`/devices/${ud.device?.slug}`} class="hover:text-[#D4A574] transition-colors">
-                      {ud.device?.name ?? 'Unknown Device'}
-                    </a>
-                  </h3>
-                  <div class="mt-1 flex flex-wrap gap-x-3 text-xs text-gray-500">
-                    {ud.device?.chip && <span>{ud.device.chip}</span>}
-                    {ud.device?.screen_size && <span>{ud.device.screen_size}"</span>}
-                  </div>
-                </div>
-              </div>
-              <button
-                data-remove-device={ud.deviceId}
-                class="mt-3 w-full rounded-lg border border-gray-700 px-3 py-1.5 text-xs font-medium text-gray-400 hover:border-red-500/30 hover:bg-red-500/10 hover:text-red-400 transition-colors"
-              >
-                Remove
+        <!-- Device Picker (hidden by default) -->
+        <div id="device-picker-container" class="hidden mt-4">
+          <div class="rounded-xl border border-[#44403C] bg-[#0C0A09] p-6">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-lg font-semibold text-white">Choose a Device</h3>
+              <button id="close-device-picker" class="text-gray-400 hover:text-white transition-colors">
+                <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
               </button>
             </div>
-          ))}
-        </div>
-      ) : (
-        <div class="rounded-xl border border-dashed border-gray-700 bg-gray-900/50 p-8 text-center mb-6">
-          <svg class="mx-auto h-10 w-10 text-gray-600 mb-3" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-            <rect x="5" y="3" width="14" height="18" rx="3" />
-            <line x1="9" y1="18" x2="15" y2="18" />
-          </svg>
-          <p class="text-gray-400 text-sm">No devices in your setup yet.</p>
-          <p class="text-gray-500 text-xs mt-1">Click "Add Device" above to get started.</p>
-        </div>
-      )}
-
-      <!-- Device Picker (hidden by default, toggled via JS) -->
-      <div id="device-picker-container" class="hidden">
-        <div class="rounded-xl border border-gray-700 bg-gray-950 p-6">
-          <div class="flex items-center justify-between mb-4">
-            <h3 class="text-lg font-semibold text-white">Choose a Device</h3>
-            <button id="close-device-picker" class="text-gray-400 hover:text-white transition-colors">
-              <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
+            <DevicePicker
+              client:load
+              userDeviceIds={userDeviceIds}
+            />
           </div>
-          <DevicePicker
-            client:load
-            userDeviceIds={userDeviceIds}
-          />
         </div>
-      </div>
-    </section>
+      </section>
 
-    <!-- ═══════════════════════════════════════════
-         MY REPORTS
-         ═══════════════════════════════════════════ -->
-    <section class="mt-8 mb-12">
-      <div class="flex items-center justify-between mb-4">
-        <div>
-          <h2 class="text-xl font-bold text-white font-heading">My Reports</h2>
-          <p class="mt-0.5 text-sm text-gray-500">Your recent performance submissions</p>
+      <!-- ─── BADGES (1/3 width) ─── -->
+      <section class="lg:col-span-1">
+        <div class="mb-4">
+          <h2 class="text-lg font-bold text-white font-heading uppercase tracking-wide">Badges</h2>
+          <p class="mt-0.5 text-xs text-gray-500">Achievements earned through contributions</p>
         </div>
-        <a
-          href="/report/new"
-          class="inline-flex items-center gap-1.5 rounded-lg bg-[#C9956B] px-3 py-1.5 text-sm font-medium text-white hover:bg-[#D4A574] transition-colors"
-        >
-          <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
-          </svg>
-          New Report
-        </a>
-      </div>
+        <div class="rounded-xl border border-[#292524] bg-[#1C1917] p-5">
+          <BadgeGrid client:visible badges={badgesForGrid} />
+        </div>
+      </section>
 
-      {recentReports.length > 0 ? (
-        <div class="space-y-3">
-          {recentReports.map((report: any) => {
-            const ratingClass = ratingColors[report.overallRating] ?? ratingColors.fair;
-            const date = new Date(report.createdAt).toLocaleDateString('en-US', {
-              month: 'short',
-              day: 'numeric',
-              year: 'numeric',
-            });
-            return (
+      <!-- ─── MY REPORTS (full width) ─── -->
+      <section class="lg:col-span-3">
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <h2 class="text-lg font-bold text-white font-heading uppercase tracking-wide">My Reports</h2>
+            <p class="mt-0.5 text-xs text-gray-500">Your recent performance submissions</p>
+          </div>
+          <a
+            href="/report/new"
+            class="inline-flex items-center gap-1.5 rounded-lg bg-[#C9956B] px-3 py-1.5 text-sm font-medium text-white hover:bg-[#D4A574] transition-colors"
+          >
+            <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+            </svg>
+            New Report
+          </a>
+        </div>
+
+        {recentReports.length > 0 ? (
+          <div class="space-y-2">
+            {recentReports.map((report: any) => {
+              const ratingClass = ratingColors[report.overallRating] ?? ratingColors.fair;
+              const date = new Date(report.createdAt).toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric',
+              });
+              return (
+                <a
+                  href={report.gameSlug ? `/games/${report.gameSlug}` : '#'}
+                  class="flex items-center gap-4 rounded-xl border border-[#292524] bg-[#1C1917] p-4 hover:border-[#44403C] hover:bg-[#1C1917]/80 transition-all group"
+                >
+                  {/* Game image */}
+                  <div class="flex-shrink-0 w-16 h-10 rounded-lg bg-[#0C0A09] border border-[#292524] overflow-hidden">
+                    {report.gameImage ? (
+                      <img src={report.gameImage} alt="" class="h-full w-full object-cover" loading="lazy" />
+                    ) : (
+                      <div class="h-full w-full flex items-center justify-center">
+                        <svg class="h-5 w-5 text-gray-600" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Report info */}
+                  <div class="flex-1 min-w-0">
+                    <h4 class="text-sm font-medium text-white group-hover:text-[#D4A574] transition-colors truncate">
+                      {report.gameName}
+                    </h4>
+                    <p class="text-xs text-gray-500 mt-0.5">
+                      {report.deviceName} &middot; {report.fpsAvg ? `${report.fpsAvg} FPS` : 'No FPS data'}
+                    </p>
+                  </div>
+
+                  {/* Rating badge */}
+                  <span class={`flex-shrink-0 inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium capitalize ${ratingClass}`}>
+                    {report.overallRating}
+                  </span>
+
+                  {/* Date */}
+                  <span class="flex-shrink-0 text-xs text-gray-500 hidden sm:block font-mono">
+                    {date}
+                  </span>
+
+                  {/* Arrow */}
+                  <svg class="flex-shrink-0 h-4 w-4 text-gray-600 group-hover:text-[#D4A574] transition-colors" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+                  </svg>
+                </a>
+              );
+            })}
+          </div>
+        ) : (
+          <div class="rounded-xl border border-dashed border-[#44403C] bg-[#1C1917]/50 p-10 text-center">
+            <svg class="mx-auto h-10 w-10 text-gray-600 mb-3" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            <p class="text-gray-400 text-sm">No performance reports yet.</p>
+            <p class="text-gray-500 text-xs mt-1">
+              <a href="/report/new" class="text-[#D4A574] hover:text-[#E8C5A0] transition-colors">Submit your first report</a> to help the community.
+            </p>
+          </div>
+        )}
+      </section>
+
+      <!-- ─── FOLLOWED GAMES (2/3 width) ─── -->
+      <section class="lg:col-span-2">
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <h2 class="text-lg font-bold text-white font-heading uppercase tracking-wide">Followed Games</h2>
+            <p class="mt-0.5 text-xs text-gray-500">Games you're tracking for updates</p>
+          </div>
+          {followedGames.length > 0 && (
+            <span class="text-xs text-gray-500 font-mono">{followedGames.length} games</span>
+          )}
+        </div>
+
+        {followedGames.length > 0 ? (
+          <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            {followedGames.map(game => (
               <a
-                href={report.gameSlug ? `/games/${report.gameSlug}` : '#'}
-                class="flex items-center gap-4 rounded-lg border border-gray-800 bg-gray-900 p-4 hover:border-gray-600 transition-all group"
+                href={game.slug ? `/games/${game.slug}` : '#'}
+                class="group rounded-xl border border-[#292524] bg-[#1C1917] overflow-hidden hover:border-[#44403C] transition-all"
               >
-                {/* Game image */}
-                <div class="flex-shrink-0 w-16 h-10 rounded bg-gray-800 overflow-hidden">
-                  {report.gameImage ? (
-                    <img src={report.gameImage} alt="" class="h-full w-full object-cover" loading="lazy" />
+                <div class="aspect-[460/215] bg-[#0C0A09] overflow-hidden">
+                  {game.image ? (
+                    <img src={game.image} alt={game.name} class="h-full w-full object-cover group-hover:scale-105 transition-transform duration-300" loading="lazy" />
                   ) : (
                     <div class="h-full w-full flex items-center justify-center">
-                      <svg class="h-5 w-5 text-gray-600" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                      <svg class="h-8 w-8 text-gray-600" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
                         <path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
                     </div>
                   )}
                 </div>
-
-                {/* Report info */}
-                <div class="flex-1 min-w-0">
-                  <h4 class="text-sm font-medium text-white group-hover:text-[#D4A574] transition-colors truncate">
-                    {report.gameName}
-                  </h4>
-                  <p class="text-xs text-gray-500 mt-0.5">
-                    {report.deviceName} &middot; {report.fpsAvg ? `${report.fpsAvg} FPS` : 'No FPS data'}
-                  </p>
+                <div class="p-2.5">
+                  <p class="text-xs font-medium text-white truncate group-hover:text-[#D4A574] transition-colors">{game.name}</p>
                 </div>
-
-                {/* Rating badge */}
-                <span class={`flex-shrink-0 inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium capitalize ${ratingClass}`}>
-                  {report.overallRating}
-                </span>
-
-                {/* Date */}
-                <span class="flex-shrink-0 text-xs text-gray-500 hidden sm:block">
-                  {date}
-                </span>
-
-                {/* Arrow */}
-                <svg class="flex-shrink-0 h-4 w-4 text-gray-600 group-hover:text-gray-400 transition-colors" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
-                </svg>
               </a>
-            );
-          })}
-        </div>
-      ) : (
-        <div class="rounded-xl border border-dashed border-gray-700 bg-gray-900/50 p-8 text-center">
-          <svg class="mx-auto h-10 w-10 text-gray-600 mb-3" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-          </svg>
-          <p class="text-gray-400 text-sm">No performance reports yet.</p>
-          <p class="text-gray-500 text-xs mt-1">
-            <a href="/report/new" class="text-[#D4A574] hover:text-[#E8C5A0] transition-colors">Submit your first report</a> to help the community.
-          </p>
-        </div>
-      )}
-    </section>
+            ))}
+          </div>
+        ) : (
+          <div class="rounded-xl border border-dashed border-[#44403C] bg-[#1C1917]/50 p-10 text-center">
+            <svg class="mx-auto h-10 w-10 text-gray-600 mb-3" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z" />
+            </svg>
+            <p class="text-gray-400 text-sm">No followed games yet.</p>
+            <p class="text-gray-500 text-xs mt-1">
+              <a href="/games" class="text-[#D4A574] hover:text-[#E8C5A0] transition-colors">Browse games</a> and follow the ones you play.
+            </p>
+          </div>
+        )}
+      </section>
 
-    <!-- ═══════════════════════════════════════════
-         STEAM LIBRARY IMPORT
-         ═══════════════════════════════════════════ -->
-    <section class="mt-8 mb-12">
-      <div class="mb-4">
-        <h2 class="text-xl font-bold text-white font-heading">Steam Library</h2>
-        <p class="mt-0.5 text-sm text-gray-500">Import your Steam library to see which games have performance data</p>
-      </div>
-      <div class="rounded-xl border border-gray-800 bg-gray-900 p-6">
-        <SteamImport client:visible currentUserId={profile.id} />
-      </div>
-    </section>
+      <!-- ─── STEAM LIBRARY (1/3 width) ─── -->
+      <section class="lg:col-span-1">
+        <div class="mb-4">
+          <h2 class="text-lg font-bold text-white font-heading uppercase tracking-wide">Steam Library</h2>
+          <p class="mt-0.5 text-xs text-gray-500">Import games from Steam</p>
+        </div>
+        <div class="rounded-xl border border-[#292524] bg-[#1C1917] p-5">
+          <SteamImport client:visible currentUserId={profile.id} />
+        </div>
+
+        {(libraryCount ?? 0) > 0 && (
+          <div class="mt-4 space-y-2">
+            {libraryGames.slice(0, 8).map(game => (
+              <a
+                href={game.slug ? `/games/${game.slug}` : '#'}
+                class="flex items-center gap-3 rounded-lg border border-[#292524] bg-[#1C1917] p-2.5 hover:border-[#44403C] transition-all group"
+              >
+                <div class="flex-shrink-0 w-10 h-10 rounded bg-[#0C0A09] border border-[#292524] overflow-hidden">
+                  {game.image ? (
+                    <img src={game.image} alt={game.name} class="h-full w-full object-cover" loading="lazy" />
+                  ) : (
+                    <div class="h-full w-full flex items-center justify-center">
+                      <svg class="h-4 w-4 text-gray-600" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                      </svg>
+                    </div>
+                  )}
+                </div>
+                <div class="flex-1 min-w-0">
+                  <p class="text-xs font-medium text-white truncate group-hover:text-[#D4A574] transition-colors">{game.name}</p>
+                  {game.playtime > 0 && (
+                    <p class="text-[10px] text-gray-500 mt-0.5 font-mono">{game.playtime.toFixed(1)}h</p>
+                  )}
+                </div>
+              </a>
+            ))}
+            {(libraryCount ?? 0) > 8 && (
+              <p class="text-center text-[10px] text-gray-500 pt-1">
+                +{(libraryCount ?? 0) - 8} more games
+              </p>
+            )}
+          </div>
+        )}
+      </section>
+
+    </div>
   </div>
 
   <!-- ═══════════════════════════════════════════

@@ -1,6 +1,8 @@
 ---
 import BaseLayout from '@layouts/BaseLayout.astro';
 import GameCard from '@components/astro/GameCard.astro';
+import GameCardFeatured from '@components/astro/GameCardFeatured.astro';
+import SectionHeader from '@components/astro/SectionHeader.astro';
 import { supabaseAdmin } from '@lib/db/client';
 import { getCached, setCache } from '@lib/cache';
 
@@ -142,24 +144,37 @@ const genreColors: Record<string, string> = {
   'Racing': 'border-amber-500/30 text-amber-400 hover:bg-amber-500/10',
 };
 const defaultColor = 'border-gray-500/30 text-gray-400 hover:bg-gray-500/10';
+
+// Deck badge helper for compact list
+const deckBadgeMap: Record<string, { label: string; class: string }> = {
+  verified: { label: 'Verified', class: 'text-green-400' },
+  playable: { label: 'Playable', class: 'text-yellow-400' },
+  unsupported: { label: 'Unsupported', class: 'text-red-400' },
+};
 ---
 
 <BaseLayout title="What Should I Play?" description="Discover the best handheld games. Curated lists for Steam Deck, ROG Ally, and Legion Go — browse by genre, rating, and device compatibility.">
-  <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
-    <div class="mb-10">
-      <h1 class="text-3xl font-bold text-white font-heading">What Should I Play?</h1>
-      <p class="mt-2 text-gray-400">Discover games perfect for handheld gaming</p>
+  <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-10">
+
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- PAGE HEADING                               -->
+    <!-- ═══════════════════════════════════════════ -->
+    <div class="mb-12">
+      <h1 class="text-4xl sm:text-5xl font-bold text-white font-heading tracking-tight">What Should I Play?</h1>
+      <p class="mt-3 text-lg text-stone-400 max-w-2xl">Discover games perfect for handheld gaming — curated by the community, tested on real devices.</p>
     </div>
 
-    <!-- Genre Tags Cloud -->
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- GENRE TAGS — Horizontal scroll strip       -->
+    <!-- ═══════════════════════════════════════════ -->
     {topGenres.length > 0 && (
-      <div class="mb-10">
-        <h2 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4 font-heading">Browse by Genre</h2>
-        <div class="flex flex-wrap gap-2">
+      <div class="mb-14">
+        <h2 class="text-xs font-semibold text-stone-500 uppercase tracking-wider mb-4 font-heading">Browse by Genre</h2>
+        <div class="flex scroll-strip snap-x gap-2 pb-2">
           {topGenres.map(([genre, count]) => (
             <a
               href={`/games?genre=${encodeURIComponent(genre)}`}
-              class={`rounded-full border px-4 py-2 text-sm font-medium transition-colors ${genreColors[genre] ?? defaultColor}`}
+              class={`snap-start flex-shrink-0 rounded-full border px-4 py-2 text-sm font-medium transition-colors ${genreColors[genre] ?? defaultColor}`}
             >
               {genre}
               <span class="ml-1.5 text-xs opacity-60">{count}</span>
@@ -169,45 +184,131 @@ const defaultColor = 'border-gray-500/30 text-gray-400 hover:bg-gray-500/10';
       </div>
     )}
 
-    <!-- Curated Lists -->
-    <div class="space-y-12">
-      {curations.map((list) => (
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- CURATED LISTS — Alternating layouts        -->
+    <!-- ═══════════════════════════════════════════ -->
+    <div class="space-y-16">
+      {curations.map((list, idx) => (
         <section>
-          <div class="flex items-end justify-between mb-5">
-            <div>
-              <h2 class="text-xl font-bold text-white">
-                <span class="mr-2">{list.emoji}</span>{list.title}
-              </h2>
-              <p class="mt-0.5 text-sm text-gray-500">{list.subtitle}</p>
+          <SectionHeader
+            title={list.title}
+            subtitle={list.subtitle}
+            href="/games"
+            editorial={list.emoji}
+          />
+
+          {/* ─── Layout 0: BENTO GRID (Highest Rated) ─── */}
+          {idx === 0 && (
+            <div class="grid grid-cols-2 lg:grid-cols-4 grid-rows-2 gap-3">
+              {list.games[0] && (
+                <div class="col-span-2 row-span-2">
+                  <GameCardFeatured
+                    slug={list.games[0].slug}
+                    name={list.games[0].name}
+                    headerImage={list.games[0].headerImage}
+                    genres={list.games[0].genres}
+                    deckCompatibility={list.games[0].deckCompatibility}
+                  />
+                </div>
+              )}
+              {list.games.slice(1).map((game) => (
+                <GameCard {...game} />
+              ))}
             </div>
-            <a href="/games" class="text-sm text-[#D4A574] hover:text-[#E8C5A0] transition-colors">
-              View all &rarr;
-            </a>
-          </div>
-          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {list.games.map((game) => (
-              <GameCard {...game} />
-            ))}
-          </div>
+          )}
+
+          {/* ─── Layout 1: HORIZONTAL SCROLL (Deck Verified) ─── */}
+          {idx === 1 && (
+            <div class="flex gap-4 scroll-strip snap-x snap-mandatory pb-4">
+              {list.games.map((game) => (
+                <div class="flex-shrink-0 w-64 snap-center">
+                  <GameCard {...game} />
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* ─── Layout 2: COMPACT LIST (Free to Play) ─── */}
+          {idx === 2 && (
+            <div class="rounded-xl border border-[#292524] bg-[#1C1917] divide-y divide-[#292524]">
+              {list.games.map((game) => {
+                const badge = deckBadgeMap[game.deckCompatibility ?? ''];
+                return (
+                  <a
+                    href={`/games/${game.slug}`}
+                    class="flex items-center justify-between px-5 py-4 hover:bg-[#292524]/50 transition-colors group"
+                  >
+                    <div class="flex items-center gap-3 min-w-0">
+                      <span class="font-semibold text-white group-hover:text-[#D4A574] transition-colors truncate">
+                        {game.name}
+                      </span>
+                      {game.genres.length > 0 && (
+                        <span class="text-xs text-stone-600 flex-shrink-0 hidden sm:inline">{game.genres[0]}</span>
+                      )}
+                    </div>
+                    <div class="flex items-center gap-3 flex-shrink-0">
+                      {badge && (
+                        <span class={`text-xs font-medium ${badge.class}`}>{badge.label}</span>
+                      )}
+                      <svg class="h-4 w-4 text-stone-600 group-hover:text-stone-400 transition-colors" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+                      </svg>
+                    </div>
+                  </a>
+                );
+              })}
+            </div>
+          )}
+
+          {/* ─── Layout 3+: STANDARD GRID with first item bento-wide ─── */}
+          {idx >= 3 && (
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {list.games.map((game, gameIdx) => (
+                <div class={gameIdx === 0 ? 'sm:col-span-2' : ''}>
+                  {gameIdx === 0 ? (
+                    <GameCardFeatured
+                      slug={game.slug}
+                      name={game.name}
+                      headerImage={game.headerImage}
+                      genres={game.genres}
+                      deckCompatibility={game.deckCompatibility}
+                    />
+                  ) : (
+                    <GameCard {...game} />
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
         </section>
       ))}
     </div>
 
-    <!-- Quick Device Filters -->
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- DEVICE FILTERS — Prominent cards           -->
+    <!-- ═══════════════════════════════════════════ -->
     {devices && devices.length > 0 && (
-      <div class="mt-16 mb-8">
-        <h2 class="text-xl font-bold text-white mb-6 text-center font-heading">Find games for your device</h2>
-        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+      <div class="mt-20">
+        <SectionHeader
+          title="Find Games for Your Device"
+          subtitle="Browse performance reports by handheld"
+        />
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {devices.map((device) => (
             <a
               href={`/devices/${device.slug}`}
-              class="group rounded-xl border border-[#292524] bg-[#1C1917] p-6 text-center hover:border-[#D4A574]/30 transition-colors"
+              class="group rounded-xl border border-[#292524] bg-[#1C1917] p-8 text-center hover:border-[#D4A574]/30 hover:bg-[#1C1917]/80 transition-all"
             >
-              <p class="text-xs text-gray-500 uppercase">{device.manufacturer}</p>
-              <p class="text-lg font-bold text-white group-hover:text-[#D4A574] transition-colors">
+              <div class="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-[#292524] group-hover:bg-[#44403C] transition-colors">
+                <svg class="h-6 w-6 text-stone-400" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 1.5H8.25A2.25 2.25 0 006 3.75v16.5a2.25 2.25 0 002.25 2.25h7.5A2.25 2.25 0 0018 20.25V3.75a2.25 2.25 0 00-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 18.75h3" />
+                </svg>
+              </div>
+              <p class="text-xs text-stone-500 uppercase tracking-wider">{device.manufacturer}</p>
+              <p class="text-xl font-bold text-white group-hover:text-[#D4A574] transition-colors mt-1">
                 {device.name}
               </p>
-              <p class="mt-2 text-sm text-gray-400">
+              <p class="mt-2 text-sm text-stone-400">
                 {deviceReportMap[device.id] ?? 0} reports
               </p>
             </a>
@@ -216,23 +317,21 @@ const defaultColor = 'border-gray-500/30 text-gray-400 hover:bg-gray-500/10';
       </div>
     )}
 
-    <!-- Recently Added -->
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- RECENTLY ADDED — Horizontal scroll strip   -->
+    <!-- ═══════════════════════════════════════════ -->
     {topRatedAll.length > 4 && (
-      <div class="mt-16">
-        <div class="flex items-end justify-between mb-5">
-          <div>
-            <h2 class="text-xl font-bold text-white">
-              <span class="mr-2">🆕</span>Recently Added
-            </h2>
-            <p class="mt-0.5 text-sm text-gray-500">Latest games added to the database</p>
-          </div>
-          <a href="/games" class="text-sm text-[#D4A574] hover:text-[#E8C5A0] transition-colors">
-            View all &rarr;
-          </a>
-        </div>
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div class="mt-20">
+        <SectionHeader
+          title="Recently Added"
+          subtitle="Latest games added to the database"
+          href="/games"
+        />
+        <div class="flex gap-4 scroll-strip snap-x snap-mandatory pb-4">
           {topRatedAll.slice(4, 8).map((g) => (
-            <GameCard {...g} />
+            <div class="flex-shrink-0 w-64 snap-center">
+              <GameCard {...g} />
+            </div>
           ))}
         </div>
       </div>

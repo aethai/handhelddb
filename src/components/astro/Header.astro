@@ -9,6 +9,7 @@ interface Props {
 const { user } = Astro.props;
 const avatarUrl = user?.user_metadata?.avatar_url as string | undefined;
 const displayName = (user?.user_metadata?.full_name as string) ?? user?.email?.split('@')[0] ?? 'User';
+const currentPath = Astro.url.pathname;
 
 const navLinks = [
   { href: '/games', label: 'Games' },
@@ -37,14 +38,17 @@ const navLinks = [
 
       <!-- Navigation (desktop) -->
       <nav class="hidden md:flex items-center gap-6">
-        {navLinks.map(({ href, label }) => (
-          <a
-            href={href}
-            class="relative uppercase tracking-wider text-xs font-medium text-stone-400 hover:text-white transition-colors after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 after:bg-[#D4A574] after:transition-all hover:after:w-full"
-          >
-            {label}
-          </a>
-        ))}
+        {navLinks.map(({ href, label }) => {
+          const isActive = currentPath.startsWith(href);
+          return (
+            <a
+              href={href}
+              class={`relative uppercase tracking-wider text-xs font-medium transition-colors after:absolute after:bottom-0 after:left-0 after:h-0.5 after:bg-[#D4A574] after:transition-all ${isActive ? 'text-white after:w-full' : 'text-stone-400 hover:text-white after:w-0 hover:after:w-full'}`}
+            >
+              {label}
+            </a>
+          );
+        })}
       </nav>
 
       <!-- Search + Auth + Hamburger -->
@@ -139,14 +143,17 @@ const navLinks = [
     <!-- Nav links -->
     <div class="flex-1 overflow-y-auto px-3 py-4">
       <div class="space-y-1">
-        {navLinks.map(({ href, label }) => (
-          <a
-            href={href}
-            class="mobile-menu-link block rounded-lg px-4 py-3 text-sm font-medium text-stone-400 hover:bg-[#1C1917] hover:text-white transition-colors"
-          >
-            {label}
-          </a>
-        ))}
+        {navLinks.map(({ href, label }) => {
+          const isActive = currentPath.startsWith(href);
+          return (
+            <a
+              href={href}
+              class={`mobile-menu-link block rounded-lg px-4 py-3 text-sm font-medium transition-colors ${isActive ? 'text-white bg-[#1C1917]' : 'text-stone-400 hover:bg-[#1C1917] hover:text-white'}`}
+            >
+              {label}
+            </a>
+          );
+        })}
       </div>
 
       <!-- Divider -->

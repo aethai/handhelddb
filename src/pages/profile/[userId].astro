@@ -105,144 +105,206 @@ const ratingColors: Record<string, string> = {
   title={`${displayName}'s Profile`}
   description={`${displayName}'s handheld gaming profile — ${totalReports} performance reports submitted.`}
 >
-  <div class="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
 
-    <!-- Profile Header -->
-    <section class="rounded-2xl border border-gray-800 bg-gray-900 p-6 sm:p-8">
+  <!-- ═══════════════════════════════════════════
+       FULL-BLEED PROFILE HERO (read-only)
+       ═══════════════════════════════════════════ -->
+  <section class="bg-gradient-to-b from-[#1C1917] to-[#0C0A09] py-12 border-b border-[#292524]">
+    <div class="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
       <div class="flex flex-col sm:flex-row items-center sm:items-start gap-6">
+        <!-- Avatar -->
         <div class="flex-shrink-0">
           {profile.avatar_url ? (
-            <img src={profile.avatar_url} alt={displayName} class="h-24 w-24 rounded-2xl border-2 border-gray-700 object-cover" />
+            <img
+              src={profile.avatar_url}
+              alt={displayName}
+              class="h-24 w-24 rounded-2xl border-2 border-[#292524] object-cover ring-2 ring-[#D4A574]/20 ring-offset-2 ring-offset-[#0C0A09]"
+            />
           ) : (
-            <div class="h-24 w-24 rounded-2xl border-2 border-gray-700 bg-[#C9956B] flex items-center justify-center text-3xl font-bold text-white">
+            <div class="h-24 w-24 rounded-2xl border-2 border-[#292524] bg-gradient-to-br from-[#D4A574] to-[#C9956B] flex items-center justify-center text-3xl font-bold text-white ring-2 ring-[#D4A574]/20 ring-offset-2 ring-offset-[#0C0A09]">
               {displayName.charAt(0).toUpperCase()}
             </div>
           )}
         </div>
 
+        <!-- Identity block -->
         <div class="flex-1 text-center sm:text-left">
-          <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
-            <h1 class="text-2xl font-bold text-white">{displayName}</h1>
-            {profile.username && <span class="text-sm text-gray-500">@{profile.username}</span>}
+          <h1 class="text-3xl font-bold text-white font-heading">{displayName}</h1>
+          <div class="flex flex-wrap items-center justify-center sm:justify-start gap-2 mt-1.5">
+            {profile.username && (
+              <span class="text-sm text-gray-500">@{profile.username}</span>
+            )}
             <span class="inline-flex items-center gap-1 rounded-full bg-[#D4A574]/15 border border-[#D4A574]/25 px-2.5 py-0.5 text-xs font-semibold text-[#D4A574]">
+              <svg class="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707l-3-3a1 1 0 00-1.414 0l-3 3a1 1 0 001.414 1.414L9 9.414V13a1 1 0 102 0V9.414l1.293 1.293a1 1 0 001.414-1.414z" clip-rule="evenodd" />
+              </svg>
               Level {profile.level ?? 1}
             </span>
             {profile.is_verified_tester && (
               <span class="inline-flex items-center gap-1 rounded-full bg-blue-500/15 border border-blue-500/25 px-2.5 py-0.5 text-xs font-semibold text-blue-400">
+                <svg class="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                </svg>
                 Verified Tester
               </span>
             )}
           </div>
-          <p class="mt-2 text-sm text-gray-400">Member since {memberSince}</p>
+          <p class="mt-2 text-sm text-gray-500">
+            Member since {memberSince}
+          </p>
 
-          <div class="mt-4 flex flex-wrap justify-center sm:justify-start gap-6">
-            <div>
-              <p class="text-xl font-bold text-white">{totalReports}</p>
-              <p class="text-xs text-gray-500">Reports</p>
+          <!-- Stats row -->
+          <div class="mt-6 flex flex-wrap justify-center sm:justify-start gap-8">
+            <div class="text-center sm:text-left">
+              <p class="text-2xl font-bold text-white font-mono tracking-tight">{totalReports}</p>
+              <p class="text-xs text-gray-500 uppercase tracking-wider mt-0.5">Reports</p>
             </div>
-            <div>
-              <p class="text-xl font-bold text-white">{userDevices.length}</p>
-              <p class="text-xs text-gray-500">Devices</p>
+            <div class="text-center sm:text-left">
+              <p class="text-2xl font-bold text-white font-mono tracking-tight">{userDevices.length}</p>
+              <p class="text-xs text-gray-500 uppercase tracking-wider mt-0.5">Devices</p>
             </div>
-            <div>
-              <p class="text-xl font-bold text-white">{profile.points ?? 0}</p>
-              <p class="text-xs text-gray-500">Points</p>
+            <div class="text-center sm:text-left">
+              <p class="text-2xl font-bold text-white font-mono tracking-tight">{profile.points ?? 0}</p>
+              <p class="text-xs text-gray-500 uppercase tracking-wider mt-0.5">Points</p>
             </div>
           </div>
         </div>
       </div>
-    </section>
+    </div>
+  </section>
 
-    <!-- Devices -->
-    {userDevices.length > 0 && (
-      <section class="mt-8">
-        <h2 class="text-xl font-bold text-white mb-4">Devices</h2>
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-          {userDevices.map((d: any) => (
-            <a href={`/devices/${d.slug}`} class="rounded-lg border border-gray-800 bg-gray-900 p-4 hover:border-gray-600 transition-all group">
-              <p class="text-xs text-gray-500 uppercase tracking-wider">{d.manufacturer}</p>
-              <h3 class="font-semibold text-white text-sm group-hover:text-[#D4A574] transition-colors">{d.name}</h3>
-              {d.chip && <p class="text-xs text-gray-500 mt-1">{d.chip}</p>}
-            </a>
-          ))}
-        </div>
-      </section>
-    )}
+  <!-- ═══════════════════════════════════════════
+       DASHBOARD BENTO GRID (read-only)
+       ═══════════════════════════════════════════ -->
+  <div class="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-    <!-- Badges -->
-    {badgesForGrid.length > 0 && (
-      <section class="mt-8">
-        <h2 class="text-xl font-bold text-white mb-4">Badges</h2>
-        <div class="rounded-xl border border-gray-800 bg-gray-900 p-6">
-          <BadgeGrid client:visible badges={badgesForGrid} />
-        </div>
-      </section>
-    )}
-
-    <!-- Recent Reports -->
-    {recentReports.length > 0 && (
-      <section class="mt-8">
-        <h2 class="text-xl font-bold text-white mb-4">Recent Reports</h2>
-        <div class="space-y-3">
-          {recentReports.map((report: any) => {
-            const ratingClass = ratingColors[report.overallRating] ?? ratingColors.fair;
-            const date = new Date(report.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-            return (
+      <!-- ─── DEVICES (2/3 width) ─── -->
+      {userDevices.length > 0 && (
+        <section class="lg:col-span-2">
+          <div class="mb-4">
+            <h2 class="text-lg font-bold text-white font-heading uppercase tracking-wide">Devices</h2>
+            <p class="mt-0.5 text-xs text-gray-500">{userDevices.length} handheld{userDevices.length !== 1 ? 's' : ''} in their collection</p>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {userDevices.map((d: any) => (
               <a
-                href={report.gameSlug ? `/games/${report.gameSlug}` : '#'}
-                class="flex items-center gap-4 rounded-lg border border-gray-800 bg-gray-900 p-4 hover:border-gray-600 transition-all group"
+                href={`/devices/${d.slug}`}
+                class="rounded-xl border border-[#292524] bg-[#1C1917] p-4 hover:border-[#44403C] transition-all group"
               >
-                <div class="flex-shrink-0 w-16 h-10 rounded bg-gray-800 overflow-hidden">
-                  {report.gameImage ? (
-                    <img src={report.gameImage} alt="" class="h-full w-full object-cover" loading="lazy" />
+                <p class="text-[10px] text-gray-500 uppercase tracking-widest">{d.manufacturer}</p>
+                <h3 class="font-semibold text-white text-sm mt-0.5 group-hover:text-[#D4A574] transition-colors">{d.name}</h3>
+                {d.chip && <p class="text-xs text-gray-500 mt-1.5">{d.chip}</p>}
+              </a>
+            ))}
+          </div>
+        </section>
+      )}
+
+      <!-- ─── BADGES (1/3 width) ─── -->
+      {badgesForGrid.length > 0 && (
+        <section class={userDevices.length > 0 ? 'lg:col-span-1' : 'lg:col-span-3'}>
+          <div class="mb-4">
+            <h2 class="text-lg font-bold text-white font-heading uppercase tracking-wide">Badges</h2>
+            <p class="mt-0.5 text-xs text-gray-500">{badgesForGrid.length} achievement{badgesForGrid.length !== 1 ? 's' : ''} earned</p>
+          </div>
+          <div class="rounded-xl border border-[#292524] bg-[#1C1917] p-5">
+            <BadgeGrid client:visible badges={badgesForGrid} />
+          </div>
+        </section>
+      )}
+
+      <!-- ─── RECENT REPORTS (full width) ─── -->
+      {recentReports.length > 0 && (
+        <section class="lg:col-span-3">
+          <div class="mb-4">
+            <h2 class="text-lg font-bold text-white font-heading uppercase tracking-wide">Recent Reports</h2>
+            <p class="mt-0.5 text-xs text-gray-500">Latest performance submissions</p>
+          </div>
+          <div class="space-y-2">
+            {recentReports.map((report: any) => {
+              const ratingClass = ratingColors[report.overallRating] ?? ratingColors.fair;
+              const date = new Date(report.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+              return (
+                <a
+                  href={report.gameSlug ? `/games/${report.gameSlug}` : '#'}
+                  class="flex items-center gap-4 rounded-xl border border-[#292524] bg-[#1C1917] p-4 hover:border-[#44403C] hover:bg-[#1C1917]/80 transition-all group"
+                >
+                  <div class="flex-shrink-0 w-16 h-10 rounded-lg bg-[#0C0A09] border border-[#292524] overflow-hidden">
+                    {report.gameImage ? (
+                      <img src={report.gameImage} alt="" class="h-full w-full object-cover" loading="lazy" />
+                    ) : (
+                      <div class="h-full w-full flex items-center justify-center">
+                        <svg class="h-5 w-5 text-gray-600" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                        </svg>
+                      </div>
+                    )}
+                  </div>
+                  <div class="flex-1 min-w-0">
+                    <h4 class="text-sm font-medium text-white group-hover:text-[#D4A574] transition-colors truncate">{report.gameName}</h4>
+                    <p class="text-xs text-gray-500 mt-0.5">{report.deviceName} &middot; {report.fpsAvg ? `${report.fpsAvg} FPS` : 'No FPS data'}</p>
+                  </div>
+                  <span class={`flex-shrink-0 inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium capitalize ${ratingClass}`}>
+                    {report.overallRating}
+                  </span>
+                  <span class="flex-shrink-0 text-xs text-gray-500 hidden sm:block font-mono">{date}</span>
+                  <svg class="flex-shrink-0 h-4 w-4 text-gray-600 group-hover:text-[#D4A574] transition-colors" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+                  </svg>
+                </a>
+              );
+            })}
+          </div>
+        </section>
+      )}
+
+      <!-- ─── FOLLOWED GAMES (2/3 width) ─── -->
+      {followedGames.length > 0 && (
+        <section class="lg:col-span-2">
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <h2 class="text-lg font-bold text-white font-heading uppercase tracking-wide">Following</h2>
+              <p class="mt-0.5 text-xs text-gray-500">{followedGames.length} game{followedGames.length !== 1 ? 's' : ''} tracked</p>
+            </div>
+          </div>
+          <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            {followedGames.map(game => (
+              <a
+                href={game.slug ? `/games/${game.slug}` : '#'}
+                class="group rounded-xl border border-[#292524] bg-[#1C1917] overflow-hidden hover:border-[#44403C] transition-all"
+              >
+                <div class="aspect-[460/215] bg-[#0C0A09] overflow-hidden">
+                  {game.image ? (
+                    <img src={game.image} alt={game.name} class="h-full w-full object-cover group-hover:scale-105 transition-transform duration-300" loading="lazy" />
                   ) : (
                     <div class="h-full w-full flex items-center justify-center">
-                      <svg class="h-5 w-5 text-gray-600" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                      <svg class="h-8 w-8 text-gray-600" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
                       </svg>
                     </div>
                   )}
                 </div>
-                <div class="flex-1 min-w-0">
-                  <h4 class="text-sm font-medium text-white group-hover:text-[#D4A574] transition-colors truncate">{report.gameName}</h4>
-                  <p class="text-xs text-gray-500 mt-0.5">{report.deviceName} &middot; {report.fpsAvg ? `${report.fpsAvg} FPS` : 'No FPS data'}</p>
+                <div class="p-2.5">
+                  <p class="text-xs font-medium text-white truncate group-hover:text-[#D4A574] transition-colors">{game.name}</p>
                 </div>
-                <span class={`flex-shrink-0 inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium capitalize ${ratingClass}`}>
-                  {report.overallRating}
-                </span>
-                <span class="flex-shrink-0 text-xs text-gray-500 hidden sm:block">{date}</span>
               </a>
-            );
-          })}
-        </div>
-      </section>
-    )}
+            ))}
+          </div>
+        </section>
+      )}
 
-    <!-- Followed Games -->
-    {followedGames.length > 0 && (
-      <section class="mt-8 mb-12">
-        <h2 class="text-xl font-bold text-white mb-4">Following</h2>
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          {followedGames.map(game => (
-            <a href={game.slug ? `/games/${game.slug}` : '#'} class="group rounded-lg border border-gray-800 bg-gray-900 overflow-hidden hover:border-gray-600 transition-all">
-              <div class="aspect-[460/215] bg-gray-800 overflow-hidden">
-                {game.image ? (
-                  <img src={game.image} alt={game.name} class="h-full w-full object-cover group-hover:scale-105 transition-transform duration-300" loading="lazy" />
-                ) : (
-                  <div class="h-full w-full flex items-center justify-center">
-                    <svg class="h-8 w-8 text-gray-600" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-                    </svg>
-                  </div>
-                )}
-              </div>
-              <div class="p-2.5">
-                <p class="text-xs font-medium text-white truncate group-hover:text-[#D4A574] transition-colors">{game.name}</p>
-              </div>
-            </a>
-          ))}
+      <!-- Empty state if user has no public content -->
+      {userDevices.length === 0 && badgesForGrid.length === 0 && recentReports.length === 0 && followedGames.length === 0 && (
+        <div class="lg:col-span-3 rounded-xl border border-dashed border-[#44403C] bg-[#1C1917]/50 p-12 text-center">
+          <svg class="mx-auto h-12 w-12 text-gray-600 mb-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
+          </svg>
+          <p class="text-gray-400 text-sm">This user hasn't added any content yet.</p>
+          <p class="text-gray-500 text-xs mt-1">Check back later for devices, reports, and badges.</p>
         </div>
-      </section>
-    )}
+      )}
+
+    </div>
   </div>
 </BaseLayout>
