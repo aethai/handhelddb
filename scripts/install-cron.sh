@@ -1,0 +1,74 @@
+#!/usr/bin/env bash
+#
+# Install cron jobs for HandheldDB data sync
+#
+# Schedules:
+#   - Steam sync:          daily at 3:00 AM UTC
+#   - ProtonDB sync:       weekly on Sunday at 4:00 AM UTC
+#   - Meilisearch reindex: every 6 hours (0:00, 6:00, 12:00, 18:00)
+#   - Consensus recalc:    every 12 hours (2:00, 14:00)
+#
+# Usage: bash scripts/install-cron.sh
+#        bash scripts/install-cron.sh --remove   (to uninstall)
+
+set -euo pipefail
+
+WORKDIR="/home/ubuntu/handhelddb"
+LOGDIR="${WORKDIR}/logs"
+TSX="$(which npx) tsx"
+MARKER="# HandheldDB cron jobs"
+
+# Create logs directory
+mkdir -p "${LOGDIR}"
+
+if [[ "${1:-}" == "--remove" ]]; then
+    echo "Removing HandheldDB cron jobs..."
+    crontab -l 2>/dev/null | grep -v "${MARKER}" | grep -v "cron-sync-steam" | grep -v "cron-sync-protondb" | grep -v "cron-reindex-meilisearch" | grep -v "cron-consensus" | crontab -
+    echo "Done. Cron jobs removed."
+    exit 0
+fi
+
+echo "Installing HandheldDB cron jobs..."
+echo "  Working directory: ${WORKDIR}"
+echo "  Log directory:     ${LOGDIR}"
+echo "  TSX runner:        ${TSX}"
+echo ""
+
+# Build cron entries
+CRON_ENTRIES=$(cat <<EOF
+${MARKER}
+# Steam sync: daily at 3:00 AM UTC
+0 3 * * * cd ${WORKDIR} && ${TSX} scripts/cron-sync-steam.ts >> ${LOGDIR}/cron-sync-steam.log 2>&1
+# ProtonDB sync: weekly on Sunday at 4:00 AM UTC
+0 4 * * 0 cd ${WORKDIR} && ${TSX} scripts/cron-sync-protondb.ts >> ${LOGDIR}/cron-sync-protondb.log 2>&1
+# Meilisearch reindex: every 6 hours
+0 */6 * * * cd ${WORKDIR} && ${TSX} scripts/cron-reindex-meilisearch.ts >> ${LOGDIR}/cron-reindex-meilisearch.log 2>&1
+# Consensus recalculation: every 12 hours (2am and 2pm UTC)
+0 2,14 * * * cd ${WORKDIR} && ${TSX} scripts/cron-consensus.ts >> ${LOGDIR}/cron-consensus.log 2>&1
+${MARKER} END
+EOF
+)
+
+# Remove any existing HandheldDB cron entries, then append new ones
+EXISTING_CRON=$(crontab -l 2>/dev/null || true)
+
+# Filter out old HandheldDB entries
+CLEAN_CRON=$(echo "${EXISTING_CRON}" | grep -v "${MARKER}" | grep -v "cron-sync-steam" | grep -v "cron-sync-protondb" | grep -v "cron-reindex-meilisearch" | grep -v "cron-consensus" || true)
+
+# Install updated crontab
+echo "${CLEAN_CRON}
+${CRON_ENTRIES}" | crontab -
+
+echo "Cron jobs installed successfully!"
+echo ""
+echo "Installed entries:"
+crontab -l | grep -A1 "HandheldDB"
+echo ""
+echo "Log files will be written to: ${LOGDIR}/"
+echo "  - cron-sync-steam.log"
+echo "  - cron-sync-protondb.log"
+echo "  - cron-reindex-meilisearch.log"
+echo "  - cron-consensus.log"
+echo ""
+echo "To remove: bash scripts/install-cron.sh --remove"
+echo "To view logs: tail -f ${LOGDIR}/cron-*.log"

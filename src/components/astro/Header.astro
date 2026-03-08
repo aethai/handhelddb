@@ -34,7 +34,7 @@ const navLinks = [
         <span class="hidden sm:inline">Handheld GameDB</span>
       </a>
 
-      <!-- Navigation -->
+      <!-- Navigation (desktop) -->
       <nav class="hidden md:flex items-center gap-6">
         {navLinks.map(({ href, label }) => (
           <a
@@ -46,7 +46,7 @@ const navLinks = [
         ))}
       </nav>
 
-      <!-- Search + Auth -->
+      <!-- Search + Auth + Hamburger -->
       <div class="flex items-center gap-3">
         <div class="hidden md:block">
           <SearchBar client:load variant="header" placeholder="Search games..." />
@@ -82,12 +82,172 @@ const navLinks = [
         ) : (
           <a
             href="/auth/login"
-            class="rounded-lg border border-gray-700 px-3 py-1.5 text-sm font-medium text-gray-300 hover:border-gray-500 hover:text-white transition-colors"
+            class="hidden md:inline-flex rounded-lg border border-gray-700 px-3 py-1.5 text-sm font-medium text-gray-300 hover:border-gray-500 hover:text-white transition-colors"
           >
             Sign in
           </a>
         )}
+
+        <!-- Hamburger button (mobile only) -->
+        <button
+          id="mobile-menu-btn"
+          type="button"
+          class="md:hidden inline-flex items-center justify-center rounded-lg border border-gray-700 p-2 text-gray-400 hover:border-gray-500 hover:text-white transition-colors"
+          aria-label="Open menu"
+          aria-expanded="false"
+        >
+          <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        </button>
       </div>
     </div>
   </div>
 </header>
+
+<!-- Mobile menu backdrop -->
+<div
+  id="mobile-menu-backdrop"
+  class="fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm opacity-0 invisible transition-all duration-300"
+></div>
+
+<!-- Mobile menu drawer -->
+<nav
+  id="mobile-menu-drawer"
+  class="fixed top-0 right-0 z-[70] h-full w-72 bg-gray-950 border-l border-gray-800 shadow-2xl translate-x-full transition-transform duration-300 ease-in-out"
+>
+  <div class="flex h-full flex-col">
+    <!-- Drawer header -->
+    <div class="flex items-center justify-between border-b border-gray-800 px-5 py-4">
+      <span class="text-sm font-semibold text-white">Menu</span>
+      <button
+        id="mobile-menu-close"
+        type="button"
+        class="rounded-lg p-1.5 text-gray-400 hover:text-white transition-colors"
+        aria-label="Close menu"
+      >
+        <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
+
+    <!-- Nav links -->
+    <div class="flex-1 overflow-y-auto px-3 py-4">
+      <div class="space-y-1">
+        {navLinks.map(({ href, label }) => (
+          <a
+            href={href}
+            class="mobile-menu-link block rounded-lg px-4 py-3 text-sm font-medium text-gray-300 hover:bg-gray-900 hover:text-white transition-colors"
+          >
+            {label}
+          </a>
+        ))}
+      </div>
+
+      <!-- Divider -->
+      <div class="my-4 border-t border-gray-800"></div>
+
+      <!-- Report button -->
+      <a
+        href="/report/new"
+        class="mobile-menu-link flex items-center gap-2 rounded-lg bg-emerald-600/10 border border-emerald-500/20 px-4 py-3 text-sm font-medium text-emerald-400 hover:bg-emerald-600/20 transition-colors"
+      >
+        <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+        </svg>
+        Submit Report
+      </a>
+    </div>
+
+    <!-- Auth section at bottom -->
+    <div class="border-t border-gray-800 px-3 py-4">
+      {user ? (
+        <div class="space-y-2">
+          <div class="flex items-center gap-3 px-4 py-2">
+            {avatarUrl ? (
+              <img src={avatarUrl} alt="" class="h-8 w-8 rounded-full" />
+            ) : (
+              <div class="h-8 w-8 rounded-full bg-emerald-600 flex items-center justify-center text-sm font-bold text-white">
+                {displayName.charAt(0).toUpperCase()}
+              </div>
+            )}
+            <div class="min-w-0">
+              <p class="truncate text-sm font-medium text-white">{displayName}</p>
+              <p class="truncate text-xs text-gray-500">{user.email}</p>
+            </div>
+          </div>
+          <a href="/profile" class="mobile-menu-link block rounded-lg px-4 py-2.5 text-sm text-gray-300 hover:bg-gray-900 hover:text-white transition-colors">
+            Profile
+          </a>
+          <a href="/auth/logout" class="mobile-menu-link block rounded-lg px-4 py-2.5 text-sm text-red-400 hover:bg-gray-900 hover:text-red-300 transition-colors">
+            Sign out
+          </a>
+        </div>
+      ) : (
+        <a
+          href="/auth/login"
+          class="mobile-menu-link flex items-center justify-center gap-2 rounded-lg border border-gray-700 px-4 py-3 text-sm font-medium text-gray-300 hover:border-gray-500 hover:text-white transition-colors"
+        >
+          Sign in
+        </a>
+      )}
+    </div>
+  </div>
+</nav>
+
+<script>
+  function initMobileMenu() {
+    const btn = document.getElementById('mobile-menu-btn');
+    const closeBtn = document.getElementById('mobile-menu-close');
+    const backdrop = document.getElementById('mobile-menu-backdrop');
+    const drawer = document.getElementById('mobile-menu-drawer');
+
+    if (!btn || !closeBtn || !backdrop || !drawer) return;
+
+    const _btn = btn!;
+    const _backdrop = backdrop!;
+    const _drawer = drawer!;
+
+    function openMenu() {
+      _backdrop.classList.remove('opacity-0', 'invisible');
+      _backdrop.classList.add('opacity-100', 'visible');
+      _drawer.classList.remove('translate-x-full');
+      _drawer.classList.add('translate-x-0');
+      _btn.setAttribute('aria-expanded', 'true');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeMenu() {
+      _backdrop.classList.add('opacity-0', 'invisible');
+      _backdrop.classList.remove('opacity-100', 'visible');
+      _drawer.classList.add('translate-x-full');
+      _drawer.classList.remove('translate-x-0');
+      _btn.setAttribute('aria-expanded', 'false');
+      document.body.style.overflow = '';
+    }
+
+    _btn.addEventListener('click', openMenu);
+    closeBtn!.addEventListener('click', closeMenu);
+    _backdrop.addEventListener('click', closeMenu);
+
+    // Close on link click
+    const links = _drawer.querySelectorAll('.mobile-menu-link');
+    links.forEach((link) => {
+      link.addEventListener('click', closeMenu);
+    });
+
+    // Close on Escape key
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && _btn.getAttribute('aria-expanded') === 'true') {
+        closeMenu();
+      }
+    });
+  }
+
+  // Run on initial load
+  initMobileMenu();
+
+  // Re-run after Astro client-side navigation (View Transitions)
+  document.addEventListener('astro:after-swap', initMobileMenu);
+</script>
