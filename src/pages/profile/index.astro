@@ -1,0 +1,516 @@
+---
+import BaseLayout from '@layouts/BaseLayout.astro';
+import DevicePicker from '@components/react/DevicePicker';
+import SteamImport from '@components/react/SteamImport';
+import { supabaseAdmin } from '@lib/db/client';
+
+// ─── Auth guard ───
+const user = Astro.locals.user;
+if (!user) {
+  return Astro.redirect('/auth/login');
+}
+
+// ─── Fetch user profile ───
+const { data: profile } = await supabaseAdmin
+  .from('users')
+  .select('id, email, username, display_name, avatar_url, steam_id, google_id, points, level, is_verified_tester, primary_device_id, created_at')
+  .eq('id', user.id)
+  .single();
+
+if (!profile) {
+  return Astro.redirect('/auth/login');
+}
+
+// ─── Fetch user's devices with device details ───
+const { data: userDevicesRaw } = await supabaseAdmin
+  .from('user_devices')
+  .select('device_id, is_primary, devices(id, slug, name, manufacturer, screen_size, battery_wh, chip, image)')
+  .eq('user_id', user.id);
+
+const userDevices = (userDevicesRaw ?? []).map((ud: any) => ({
+  deviceId: ud.device_id,
+  isPrimary: ud.is_primary,
+  device: ud.devices,
+}));
+
+const userDeviceIds = userDevices.map((ud: any) => ud.deviceId);
+
+// ─── Count reports ───
+const { count: reportCount } = await supabaseAdmin
+  .from('performance_reports')
+  .select('*', { count: 'exact', head: true })
+  .eq('user_id', user.id);
+
+// ─── Fetch recent reports with game and device info ───
+const { data: recentReportsRaw } = await supabaseAdmin
+  .from('performance_reports')
+  .select('id, overall_rating, fps_avg, created_at, game_id, device_id, games(slug, name, header_image), devices(name)')
+  .eq('user_id', user.id)
+  .order('created_at', { ascending: false })
+  .limit(10);
+
+const recentReports = (recentReportsRaw ?? []).map((r: any) => ({
+  id: r.id,
+  overallRating: r.overall_rating,
+  fpsAvg: r.fps_avg,
+  createdAt: r.created_at,
+  gameSlug: r.games?.slug,
+  gameName: r.games?.name ?? 'Unknown Game',
+  gameImage: r.games?.header_image,
+  deviceName: r.devices?.name ?? 'Unknown Device',
+}));
+
+// ─── Derived values ───
+const displayName = profile.display_name ?? profile.username ?? user.email?.split('@')[0] ?? 'User';
+const avatarUrl = profile.avatar_url ?? (user.user_metadata?.avatar_url as string | undefined);
+const memberSince = new Date(profile.created_at).toLocaleDateString('en-US', {
+  year: 'numeric',
+  month: 'long',
+  day: 'numeric',
+});
+const levelLabel = profile.level ?? 1;
+const points = profile.points ?? 0;
+const totalReports = reportCount ?? 0;
+
+const ratingColors: Record<string, string> = {
+  excellent: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30',
+  good: 'bg-green-500/20 text-green-400 border-green-500/30',
+  fair: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30',
+  poor: 'bg-orange-500/20 text-orange-400 border-orange-500/30',
+  unplayable: 'bg-red-500/20 text-red-400 border-red-500/30',
+};
+---
+
+<BaseLayout title="My Setup" noindex={true}>
+  <div class="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+
+    <!-- ═══════════════════════════════════════════
+         PROFILE HEADER
+         ═══════════════════════════════════════════ -->
+    <section class="rounded-2xl border border-gray-800 bg-gray-900 p-6 sm:p-8">
+      <div class="flex flex-col sm:flex-row items-center sm:items-start gap-6">
+        <!-- Avatar -->
+        <div class="flex-shrink-0">
+          {avatarUrl ? (
+            <img
+              src={avatarUrl}
+              alt={displayName}
+              class="h-24 w-24 rounded-2xl border-2 border-gray-700 object-cover"
+            />
+          ) : (
+            <div class="h-24 w-24 rounded-2xl border-2 border-gray-700 bg-emerald-600 flex items-center justify-center text-3xl font-bold text-white">
+              {displayName.charAt(0).toUpperCase()}
+            </div>
+          )}
+        </div>
+
+        <!-- Info -->
+        <div class="flex-1 text-center sm:text-left">
+          <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+            <h1 class="text-2xl font-bold text-white">{displayName}</h1>
+            {profile.username && (
+              <span class="text-sm text-gray-500">@{profile.username}</span>
+            )}
+            <!-- Level badge -->
+            <span class="inline-flex items-center gap-1 rounded-full bg-emerald-500/15 border border-emerald-500/25 px-2.5 py-0.5 text-xs font-semibold text-emerald-400">
+              <svg class="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707l-3-3a1 1 0 00-1.414 0l-3 3a1 1 0 001.414 1.414L9 9.414V13a1 1 0 102 0V9.414l1.293 1.293a1 1 0 001.414-1.414z" clip-rule="evenodd" />
+              </svg>
+              Level {levelLabel}
+            </span>
+            {profile.is_verified_tester && (
+              <span class="inline-flex items-center gap-1 rounded-full bg-blue-500/15 border border-blue-500/25 px-2.5 py-0.5 text-xs font-semibold text-blue-400">
+                <svg class="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                </svg>
+                Verified Tester
+              </span>
+            )}
+          </div>
+
+          <p class="mt-2 text-sm text-gray-400">
+            Member since {memberSince}
+          </p>
+
+          <!-- Stats row -->
+          <div class="mt-4 flex flex-wrap justify-center sm:justify-start gap-6">
+            <div>
+              <p class="text-xl font-bold text-white">{totalReports}</p>
+              <p class="text-xs text-gray-500">Reports</p>
+            </div>
+            <div>
+              <p class="text-xl font-bold text-white">{userDevices.length}</p>
+              <p class="text-xs text-gray-500">Devices</p>
+            </div>
+            <div>
+              <p class="text-xl font-bold text-white">{points}</p>
+              <p class="text-xs text-gray-500">Points</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Edit profile button -->
+        <div class="flex-shrink-0">
+          <button
+            id="edit-profile-btn"
+            class="rounded-lg border border-gray-700 px-4 py-2 text-sm font-medium text-gray-300 hover:border-gray-500 hover:text-white transition-colors"
+          >
+            Edit Profile
+          </button>
+        </div>
+      </div>
+
+      <!-- Edit profile form (hidden by default) -->
+      <div id="edit-profile-form" class="hidden mt-6 pt-6 border-t border-gray-800">
+        <form class="flex flex-col sm:flex-row gap-4 items-end">
+          <div class="flex-1">
+            <label for="edit-display-name" class="block text-sm font-medium text-gray-400 mb-1">Display Name</label>
+            <input
+              id="edit-display-name"
+              type="text"
+              value={profile.display_name ?? ''}
+              maxlength="50"
+              class="w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white placeholder-gray-500 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+            />
+          </div>
+          <div class="flex-1">
+            <label for="edit-username" class="block text-sm font-medium text-gray-400 mb-1">Username</label>
+            <input
+              id="edit-username"
+              type="text"
+              value={profile.username ?? ''}
+              maxlength="24"
+              pattern="[a-z0-9_]{3,24}"
+              placeholder="lowercase, 3-24 chars"
+              class="w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white placeholder-gray-500 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+            />
+          </div>
+          <div class="flex gap-2">
+            <button
+              type="button"
+              id="save-profile-btn"
+              class="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-500 transition-colors"
+            >
+              Save
+            </button>
+            <button
+              type="button"
+              id="cancel-profile-btn"
+              class="rounded-lg border border-gray-700 px-4 py-2 text-sm font-medium text-gray-300 hover:border-gray-500 hover:text-white transition-colors"
+            >
+              Cancel
+            </button>
+          </div>
+        </form>
+        <p id="edit-profile-error" class="hidden mt-2 text-sm text-red-400"></p>
+        <p id="edit-profile-success" class="hidden mt-2 text-sm text-emerald-400"></p>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         MY DEVICES
+         ═══════════════════════════════════════════ -->
+    <section class="mt-8">
+      <div class="flex items-center justify-between mb-4">
+        <div>
+          <h2 class="text-xl font-bold text-white">My Devices</h2>
+          <p class="mt-0.5 text-sm text-gray-500">Handhelds in your collection</p>
+        </div>
+        <button
+          id="toggle-device-picker"
+          class="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-emerald-500 transition-colors"
+        >
+          <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+          </svg>
+          Add Device
+        </button>
+      </div>
+
+      <!-- Current devices grid -->
+      {userDevices.length > 0 ? (
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+          {userDevices.map((ud: any) => (
+            <div class="rounded-lg border border-gray-800 bg-gray-900 p-4 group relative">
+              {ud.isPrimary && (
+                <span class="absolute top-2 right-2 inline-flex items-center rounded-full bg-emerald-500/20 px-2 py-0.5 text-xs font-medium text-emerald-400 border border-emerald-500/30">
+                  Primary
+                </span>
+              )}
+              <div class="flex items-start gap-3">
+                <div class="flex-shrink-0 w-14 h-14 rounded-lg bg-gray-800 flex items-center justify-center overflow-hidden">
+                  {ud.device?.image ? (
+                    <img src={ud.device.image} alt={ud.device?.name} class="h-full w-full object-cover" loading="lazy" />
+                  ) : (
+                    <svg class="h-7 w-7 text-gray-600" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                      <rect x="5" y="3" width="14" height="18" rx="3" />
+                      <line x1="9" y1="18" x2="15" y2="18" />
+                    </svg>
+                  )}
+                </div>
+                <div class="flex-1 min-w-0">
+                  <p class="text-xs text-gray-500 uppercase tracking-wider">{ud.device?.manufacturer}</p>
+                  <h3 class="font-semibold text-white text-sm">
+                    <a href={`/devices/${ud.device?.slug}`} class="hover:text-emerald-400 transition-colors">
+                      {ud.device?.name ?? 'Unknown Device'}
+                    </a>
+                  </h3>
+                  <div class="mt-1 flex flex-wrap gap-x-3 text-xs text-gray-500">
+                    {ud.device?.chip && <span>{ud.device.chip}</span>}
+                    {ud.device?.screen_size && <span>{ud.device.screen_size}"</span>}
+                  </div>
+                </div>
+              </div>
+              <button
+                data-remove-device={ud.deviceId}
+                class="mt-3 w-full rounded-lg border border-gray-700 px-3 py-1.5 text-xs font-medium text-gray-400 hover:border-red-500/30 hover:bg-red-500/10 hover:text-red-400 transition-colors"
+              >
+                Remove
+              </button>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div class="rounded-xl border border-dashed border-gray-700 bg-gray-900/50 p-8 text-center mb-6">
+          <svg class="mx-auto h-10 w-10 text-gray-600 mb-3" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+            <rect x="5" y="3" width="14" height="18" rx="3" />
+            <line x1="9" y1="18" x2="15" y2="18" />
+          </svg>
+          <p class="text-gray-400 text-sm">No devices in your setup yet.</p>
+          <p class="text-gray-500 text-xs mt-1">Click "Add Device" above to get started.</p>
+        </div>
+      )}
+
+      <!-- Device Picker (hidden by default, toggled via JS) -->
+      <div id="device-picker-container" class="hidden">
+        <div class="rounded-xl border border-gray-700 bg-gray-950 p-6">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-semibold text-white">Choose a Device</h3>
+            <button id="close-device-picker" class="text-gray-400 hover:text-white transition-colors">
+              <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+          <DevicePicker
+            client:load
+            userDeviceIds={userDeviceIds}
+          />
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         MY REPORTS
+         ═══════════════════════════════════════════ -->
+    <section class="mt-8 mb-12">
+      <div class="flex items-center justify-between mb-4">
+        <div>
+          <h2 class="text-xl font-bold text-white">My Reports</h2>
+          <p class="mt-0.5 text-sm text-gray-500">Your recent performance submissions</p>
+        </div>
+        <a
+          href="/report/new"
+          class="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-emerald-500 transition-colors"
+        >
+          <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+          </svg>
+          New Report
+        </a>
+      </div>
+
+      {recentReports.length > 0 ? (
+        <div class="space-y-3">
+          {recentReports.map((report: any) => {
+            const ratingClass = ratingColors[report.overallRating] ?? ratingColors.fair;
+            const date = new Date(report.createdAt).toLocaleDateString('en-US', {
+              month: 'short',
+              day: 'numeric',
+              year: 'numeric',
+            });
+            return (
+              <a
+                href={report.gameSlug ? `/games/${report.gameSlug}` : '#'}
+                class="flex items-center gap-4 rounded-lg border border-gray-800 bg-gray-900 p-4 hover:border-gray-600 transition-all group"
+              >
+                {/* Game image */}
+                <div class="flex-shrink-0 w-16 h-10 rounded bg-gray-800 overflow-hidden">
+                  {report.gameImage ? (
+                    <img src={report.gameImage} alt="" class="h-full w-full object-cover" loading="lazy" />
+                  ) : (
+                    <div class="h-full w-full flex items-center justify-center">
+                      <svg class="h-5 w-5 text-gray-600" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </div>
+                  )}
+                </div>
+
+                {/* Report info */}
+                <div class="flex-1 min-w-0">
+                  <h4 class="text-sm font-medium text-white group-hover:text-emerald-400 transition-colors truncate">
+                    {report.gameName}
+                  </h4>
+                  <p class="text-xs text-gray-500 mt-0.5">
+                    {report.deviceName} &middot; {report.fpsAvg ? `${report.fpsAvg} FPS` : 'No FPS data'}
+                  </p>
+                </div>
+
+                {/* Rating badge */}
+                <span class={`flex-shrink-0 inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium capitalize ${ratingClass}`}>
+                  {report.overallRating}
+                </span>
+
+                {/* Date */}
+                <span class="flex-shrink-0 text-xs text-gray-500 hidden sm:block">
+                  {date}
+                </span>
+
+                {/* Arrow */}
+                <svg class="flex-shrink-0 h-4 w-4 text-gray-600 group-hover:text-gray-400 transition-colors" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+                </svg>
+              </a>
+            );
+          })}
+        </div>
+      ) : (
+        <div class="rounded-xl border border-dashed border-gray-700 bg-gray-900/50 p-8 text-center">
+          <svg class="mx-auto h-10 w-10 text-gray-600 mb-3" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+          <p class="text-gray-400 text-sm">No performance reports yet.</p>
+          <p class="text-gray-500 text-xs mt-1">
+            <a href="/report/new" class="text-emerald-400 hover:text-emerald-300 transition-colors">Submit your first report</a> to help the community.
+          </p>
+        </div>
+      )}
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         STEAM LIBRARY IMPORT
+         ═══════════════════════════════════════════ -->
+    <section class="mt-8 mb-12">
+      <div class="mb-4">
+        <h2 class="text-xl font-bold text-white">Steam Library</h2>
+        <p class="mt-0.5 text-sm text-gray-500">Import your Steam library to see which games have performance data</p>
+      </div>
+      <div class="rounded-xl border border-gray-800 bg-gray-900 p-6">
+        <SteamImport client:load currentUserId={profile.id} />
+      </div>
+    </section>
+  </div>
+
+  <!-- ═══════════════════════════════════════════
+       CLIENT-SIDE SCRIPTS
+       ═══════════════════════════════════════════ -->
+  <script>
+    // --- Edit Profile Toggle ---
+    const editBtn = document.getElementById('edit-profile-btn');
+    const editForm = document.getElementById('edit-profile-form');
+    const cancelBtn = document.getElementById('cancel-profile-btn');
+    const saveBtn = document.getElementById('save-profile-btn');
+    const errorEl = document.getElementById('edit-profile-error');
+    const successEl = document.getElementById('edit-profile-success');
+
+    editBtn?.addEventListener('click', () => {
+      editForm?.classList.toggle('hidden');
+      if (errorEl) errorEl.classList.add('hidden');
+      if (successEl) successEl.classList.add('hidden');
+    });
+
+    cancelBtn?.addEventListener('click', () => {
+      editForm?.classList.add('hidden');
+    });
+
+    saveBtn?.addEventListener('click', async () => {
+      const displayName = (document.getElementById('edit-display-name') as HTMLInputElement)?.value.trim();
+      const username = (document.getElementById('edit-username') as HTMLInputElement)?.value.trim();
+
+      if (errorEl) errorEl.classList.add('hidden');
+      if (successEl) successEl.classList.add('hidden');
+
+      const body: Record<string, string> = {};
+      if (displayName) body.displayName = displayName;
+      if (username) body.username = username;
+
+      if (Object.keys(body).length === 0) {
+        if (errorEl) {
+          errorEl.textContent = 'Nothing to update.';
+          errorEl.classList.remove('hidden');
+        }
+        return;
+      }
+
+      try {
+        const res = await fetch('/api/my-setup', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+        });
+        const data = await res.json();
+
+        if (res.ok) {
+          if (successEl) {
+            successEl.textContent = 'Profile updated! Reloading...';
+            successEl.classList.remove('hidden');
+          }
+          setTimeout(() => window.location.reload(), 800);
+        } else {
+          if (errorEl) {
+            errorEl.textContent = data.error ?? 'Update failed.';
+            errorEl.classList.remove('hidden');
+          }
+        }
+      } catch {
+        if (errorEl) {
+          errorEl.textContent = 'Network error. Please try again.';
+          errorEl.classList.remove('hidden');
+        }
+      }
+    });
+
+    // --- Device Picker Toggle ---
+    const togglePickerBtn = document.getElementById('toggle-device-picker');
+    const pickerContainer = document.getElementById('device-picker-container');
+    const closePickerBtn = document.getElementById('close-device-picker');
+
+    togglePickerBtn?.addEventListener('click', () => {
+      pickerContainer?.classList.toggle('hidden');
+      if (!pickerContainer?.classList.contains('hidden')) {
+        pickerContainer?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    });
+
+    closePickerBtn?.addEventListener('click', () => {
+      pickerContainer?.classList.add('hidden');
+    });
+
+    // --- Remove device buttons ---
+    document.querySelectorAll('[data-remove-device]').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        e.preventDefault();
+        const deviceId = (btn as HTMLElement).dataset.removeDevice;
+        if (!deviceId) return;
+
+        if (!confirm('Remove this device from your setup?')) return;
+
+        try {
+          const res = await fetch(`/api/my-setup?deviceId=${encodeURIComponent(deviceId)}`, {
+            method: 'DELETE',
+          });
+          if (res.ok) {
+            window.location.reload();
+          } else {
+            const data = await res.json();
+            alert(data.error ?? 'Failed to remove device.');
+          }
+        } catch {
+          alert('Network error. Please try again.');
+        }
+      });
+    });
+  </script>
+</BaseLayout>

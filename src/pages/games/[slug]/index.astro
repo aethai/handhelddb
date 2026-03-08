@@ -1,6 +1,7 @@
 ---
 import BaseLayout from '@layouts/BaseLayout.astro';
 import PerformanceBadge from '@components/astro/PerformanceBadge.astro';
+import CommentSection from '@components/react/CommentSection';
 import { supabaseAdmin } from '@lib/db/client';
 
 const { slug } = Astro.params;
@@ -53,12 +54,14 @@ const releaseDate = game.release_date ? new Date(game.release_date).toLocaleDate
 
 // Strip HTML from description
 const cleanDescription = game.short_description || (game.description?.replace(/<[^>]*>/g, '').slice(0, 500) ?? '');
+
+const currentUser = Astro.locals.user;
 ---
 
 <BaseLayout
   title={`${game.name} — Handheld Performance`}
   description={`Best settings for ${game.name} on Steam Deck, ROG Ally, Legion Go. FPS benchmarks, TDP profiles, and battery life.`}
-  ogImage={game.header_image}
+  ogImage={`${import.meta.env.PUBLIC_SITE_URL ?? ''}/api/og/${slug}`}
 >
   <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
     <!-- Breadcrumb -->
@@ -163,6 +166,16 @@ const cleanDescription = game.short_description || (game.description?.replace(/<
             </div>
           </div>
         )}
+
+        <!-- COMMENTS -->
+        <div class="mt-8">
+          <h2 class="text-xl font-bold text-white mb-4">Discussion</h2>
+          <CommentSection
+            client:load
+            gameId={game.id}
+            currentUserId={currentUser?.id ?? null}
+          />
+        </div>
       </div>
 
       <!-- SIDEBAR -->
