@@ -1,41 +1,176 @@
 ---
 const currentYear = new Date().getFullYear();
+
+const browseLinks = [
+  { href: '/games', label: 'Games' },
+  { href: '/devices', label: 'Devices' },
+  { href: '/compare', label: 'Compare' },
+  { href: '/news', label: 'News' },
+];
+
+const communityLinks = [
+  { href: '/report/new', label: 'Submit Report' },
+  { href: '/discover', label: 'Discover' },
+  { href: '/leaderboard', label: 'Leaderboard' },
+];
+
+const aboutLinks = [
+  { href: '/about', label: 'About' },
+  { href: '/privacy', label: 'Privacy' },
+  { href: '/terms', label: 'Terms' },
+  { href: '/about#contact', label: 'Contact' },
+];
 ---
 
-<footer style="border-top:1px solid rgba(255,255,255,0.04);">
-  <div style="max-width:960px;margin:0 auto;padding:28px 24px 20px;">
-    <div style="display:flex;gap:40px;margin-bottom:16px;flex-wrap:wrap;">
+<footer class="hdb-footer">
+  <div class="hdb-footer-inner">
+    <div class="hdb-footer-grid">
       <!-- Brand -->
-      <div style="flex:1;min-width:200px;">
-        <div style="font-family:var(--font-display);font-weight:800;font-size:14px;color:#c8c4d4;margin-bottom:4px;">HandheldDB</div>
-        <p style="font-family:var(--font-display);font-size:11px;color:#4a4560;line-height:1.5;">Community-powered performance database for handheld gaming devices.</p>
+      <div class="hdb-footer-brand">
+        <div class="hdb-footer-logo">
+          <div class="hdb-footer-logo-mark">
+            <div class="hdb-footer-logo-dot"></div>
+          </div>
+          <span class="hdb-footer-logo-text">HandheldDB</span>
+        </div>
+        <p class="hdb-footer-tagline">Community-powered performance database for handheld gaming devices.</p>
       </div>
+
       <!-- Link columns -->
-      <div style="display:flex;gap:40px;flex-wrap:wrap;">
-        <div>
-          <div style="font-family:var(--font-mono);font-size:9px;color:#4a4560;letter-spacing:0.08em;margin-bottom:6px;">BROWSE</div>
-          <a href="/games" style="display:block;font-family:var(--font-display);font-size:11px;color:#6d6882;margin-bottom:4px;text-decoration:none;transition:color 0.15s;">Games</a>
-          <a href="/devices" style="display:block;font-family:var(--font-display);font-size:11px;color:#6d6882;margin-bottom:4px;text-decoration:none;transition:color 0.15s;">Devices</a>
-          <a href="/compare" style="display:block;font-family:var(--font-display);font-size:11px;color:#6d6882;margin-bottom:4px;text-decoration:none;transition:color 0.15s;">Compare</a>
-          <a href="/news" style="display:block;font-family:var(--font-display);font-size:11px;color:#6d6882;margin-bottom:4px;text-decoration:none;transition:color 0.15s;">News</a>
+      <div class="hdb-footer-columns">
+        <div class="hdb-footer-col">
+          <div class="hdb-footer-col-label">Browse</div>
+          {browseLinks.map(({ href, label }) => (
+            <a href={href} class="hdb-footer-link">{label}</a>
+          ))}
         </div>
-        <div>
-          <div style="font-family:var(--font-mono);font-size:9px;color:#4a4560;letter-spacing:0.08em;margin-bottom:6px;">COMMUNITY</div>
-          <a href="/report/new" style="display:block;font-family:var(--font-display);font-size:11px;color:#6d6882;margin-bottom:4px;text-decoration:none;transition:color 0.15s;">Submit Report</a>
-          <a href="/discover" style="display:block;font-family:var(--font-display);font-size:11px;color:#6d6882;margin-bottom:4px;text-decoration:none;transition:color 0.15s;">Discover</a>
-          <a href="/leaderboard" style="display:block;font-family:var(--font-display);font-size:11px;color:#6d6882;margin-bottom:4px;text-decoration:none;transition:color 0.15s;">Leaderboard</a>
+        <div class="hdb-footer-col">
+          <div class="hdb-footer-col-label">Community</div>
+          {communityLinks.map(({ href, label }) => (
+            <a href={href} class="hdb-footer-link">{label}</a>
+          ))}
         </div>
-        <div>
-          <div style="font-family:var(--font-mono);font-size:9px;color:#4a4560;letter-spacing:0.08em;margin-bottom:6px;">ABOUT</div>
-          <a href="/about" style="display:block;font-family:var(--font-display);font-size:11px;color:#6d6882;margin-bottom:4px;text-decoration:none;transition:color 0.15s;">About</a>
-          <a href="/privacy" style="display:block;font-family:var(--font-display);font-size:11px;color:#6d6882;margin-bottom:4px;text-decoration:none;transition:color 0.15s;">Privacy</a>
-          <a href="/terms" style="display:block;font-family:var(--font-display);font-size:11px;color:#6d6882;margin-bottom:4px;text-decoration:none;transition:color 0.15s;">Terms</a>
-          <a href="/about#contact" style="display:block;font-family:var(--font-display);font-size:11px;color:#6d6882;margin-bottom:4px;text-decoration:none;transition:color 0.15s;">Contact</a>
+        <div class="hdb-footer-col">
+          <div class="hdb-footer-col-label">About</div>
+          {aboutLinks.map(({ href, label }) => (
+            <a href={href} class="hdb-footer-link">{label}</a>
+          ))}
         </div>
       </div>
     </div>
-    <div style="font-family:var(--font-mono);font-size:9px;color:#2a2838;text-align:center;padding-top:12px;border-top:1px solid rgba(255,255,255,0.04);">
-      {currentYear} HandheldDB
+
+    <div class="hdb-footer-bottom">
+      <span>&copy; {currentYear} HandheldDB</span>
+      <span class="hdb-footer-sep">&middot;</span>
+      <a href="/rss.xml" class="hdb-footer-link-inline">RSS</a>
     </div>
   </div>
 </footer>
+
+<style>
+  .hdb-footer {
+    border-top: 1px solid rgba(255,255,255,0.04);
+    margin-top: 64px;
+  }
+  .hdb-footer-inner {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 40px 24px 24px;
+  }
+  .hdb-footer-grid {
+    display: flex;
+    gap: 48px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+  }
+
+  /* Brand section */
+  .hdb-footer-brand {
+    flex: 1;
+    min-width: 200px;
+  }
+  .hdb-footer-logo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+  .hdb-footer-logo-mark {
+    width: 20px;
+    height: 20px;
+    border-radius: 5px;
+    background: rgba(167,139,250,0.1);
+    border: 1px solid rgba(167,139,250,0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .hdb-footer-logo-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 2px;
+    background: #a78bfa;
+  }
+  .hdb-footer-logo-text {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 14px;
+    color: #eae6f4;
+  }
+  .hdb-footer-tagline {
+    font-size: 13px;
+    line-height: 1.6;
+    color: #5a5468;
+  }
+
+  /* Link columns */
+  .hdb-footer-columns {
+    display: flex;
+    gap: 48px;
+    flex-wrap: wrap;
+  }
+  .hdb-footer-col {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .hdb-footer-col-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    color: #5a5468;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  .hdb-footer-link {
+    font-size: 13px;
+    color: #6d6882;
+    text-decoration: none;
+    transition: color 0.15s;
+  }
+  .hdb-footer-link:hover {
+    color: #a78bfa;
+  }
+
+  /* Bottom bar */
+  .hdb-footer-bottom {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: #3e3a4c;
+    text-align: center;
+    padding-top: 16px;
+    border-top: 1px solid rgba(255,255,255,0.04);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  .hdb-footer-sep { color: #2a2838; }
+  .hdb-footer-link-inline {
+    color: #3e3a4c;
+    text-decoration: none;
+    transition: color 0.15s;
+  }
+  .hdb-footer-link-inline:hover { color: #6d6882; }
+</style>

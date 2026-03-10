@@ -20,25 +20,25 @@ const navLinks = [
 ];
 ---
 
-<header style="position:sticky;top:0;z-index:50;background:#08070cee;backdrop-filter:blur(20px);border-bottom:1px solid rgba(255,255,255,0.06);">
-  <div style="max-width:960px;margin:0 auto;padding:11px 24px;display:flex;align-items:center;justify-content:space-between;">
-    <div style="display:flex;align-items:center;gap:24px;">
+<header class="hdb-header">
+  <div class="hdb-header-inner">
+    <div class="hdb-header-left">
       <!-- Logo -->
-      <a href="/" style="display:flex;align-items:center;gap:7px;text-decoration:none;">
-        <div style="width:22px;height:22px;border-radius:6px;background:rgba(167,139,250,0.12);border:1px solid rgba(167,139,250,0.2);display:flex;align-items:center;justify-content:center;">
-          <div style="width:6px;height:6px;border-radius:2px;background:#a78bfa;"></div>
+      <a href="/" class="hdb-logo">
+        <div class="hdb-logo-mark">
+          <div class="hdb-logo-dot"></div>
         </div>
-        <span style="font-family:var(--font-display);font-weight:800;font-size:15px;color:#eae6f4;">HandheldDB</span>
+        <span class="hdb-logo-text">HandheldDB</span>
       </a>
 
       <!-- Navigation (desktop) -->
-      <nav class="hidden md:flex" style="gap:20px;">
+      <nav class="hidden md:flex hdb-nav">
         {navLinks.map(({ href, label }) => {
           const isActive = currentPath.startsWith(href);
           return (
             <a
               href={href}
-              style={`font-family:var(--font-mono);font-size:11px;color:${isActive ? '#9890a8' : '#4a4458'};text-decoration:none;transition:color 0.15s;`}
+              class:list={['hdb-nav-link', { 'is-active': isActive }]}
             >
               {label}
             </a>
@@ -48,7 +48,7 @@ const navLinks = [
     </div>
 
     <!-- Right side -->
-    <div style="display:flex;align-items:center;gap:12px;">
+    <div class="hdb-header-right">
       <!-- Search (desktop) -->
       <div class="hidden md:block">
         <SearchBar client:load variant="header" placeholder="Search games..." />
@@ -59,39 +59,31 @@ const navLinks = [
       )}
 
       <!-- Submit button -->
-      <a
-        href="/report/new"
-        class="hidden sm:inline-flex"
-        style="font-family:var(--font-mono);font-size:9px;font-weight:700;color:#08070c;background:#a78bfa;padding:6px 14px;border-radius:6px;letter-spacing:0.04em;box-shadow:0 0 16px rgba(167,139,250,0.2);text-decoration:none;transition:all 0.2s;"
-      >
+      <a href="/report/new" class="hidden sm:inline-flex hdb-submit-btn">
         SUBMIT
       </a>
 
       {user ? (
         <div class="relative group">
-          <button style="display:flex;align-items:center;gap:6px;border-radius:8px;border:1px solid rgba(255,255,255,0.09);padding:4px 8px;background:none;cursor:pointer;transition:border-color 0.15s;">
+          <button class="hdb-avatar-btn">
             {avatarUrl ? (
-              <img src={avatarUrl} alt="" style="height:24px;width:24px;border-radius:50%;" />
+              <img src={avatarUrl} alt="" class="hdb-avatar-img" />
             ) : (
-              <div style="height:24px;width:24px;border-radius:50%;background:#a78bfa;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#08070c;">
+              <div class="hdb-avatar-fallback">
                 {displayName.charAt(0).toUpperCase()}
               </div>
             )}
-            <span class="hidden sm:inline" style="font-size:12px;color:#9890a8;">{displayName}</span>
+            <span class="hidden sm:inline hdb-avatar-name">{displayName}</span>
           </button>
-          <div class="absolute right-0 mt-2 w-48 rounded-xl bg-[#0e0c16] shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50" style="border:1px solid rgba(255,255,255,0.09);">
-            <div style="padding:8px;">
-              <a href="/profile" style="display:block;border-radius:8px;padding:8px 12px;font-size:13px;color:#9890a8;text-decoration:none;transition:background 0.1s;">Profile</a>
-              <a href="/auth/logout" style="display:block;border-radius:8px;padding:8px 12px;font-size:13px;color:#f87171;text-decoration:none;transition:background 0.1s;">Sign out</a>
+          <div class="hdb-dropdown">
+            <div class="hdb-dropdown-inner">
+              <a href="/profile" class="hdb-dropdown-link">Profile</a>
+              <a href="/auth/logout" class="hdb-dropdown-link hdb-dropdown-danger">Sign out</a>
             </div>
           </div>
         </div>
       ) : (
-        <a
-          href="/auth/login"
-          class="hidden md:inline-flex"
-          style="font-family:var(--font-mono);font-size:10px;color:#6d6882;text-decoration:none;transition:color 0.15s;"
-        >
+        <a href="/auth/login" class="hidden md:inline-flex hdb-signin-link">
           Sign in
         </a>
       )}
@@ -100,13 +92,12 @@ const navLinks = [
       <button
         id="mobile-menu-btn"
         type="button"
-        class="md:hidden"
-        style="display:flex;flex-direction:column;justify-content:center;gap:4px;padding:4px;background:none;border:none;cursor:pointer;"
+        class="md:hidden hdb-hamburger"
         aria-label="Open menu"
         aria-expanded="false"
       >
-        <div style="width:16px;height:1.5px;background:#6d6882;border-radius:1px;"></div>
-        <div style="width:12px;height:1.5px;background:#6d6882;border-radius:1px;"></div>
+        <div class="hdb-hamburger-line w-[18px]"></div>
+        <div class="hdb-hamburger-line w-[13px]"></div>
       </button>
     </div>
   </div>
@@ -208,6 +199,225 @@ const navLinks = [
     </div>
   </div>
 </nav>
+
+<style>
+  .hdb-header {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: rgba(8, 7, 12, 0.92);
+    backdrop-filter: blur(24px);
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+  .hdb-header-inner {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 0 24px;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .hdb-header-left {
+    display: flex;
+    align-items: center;
+    gap: 32px;
+  }
+  .hdb-header-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  /* Logo */
+  .hdb-logo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+  }
+  .hdb-logo-mark {
+    width: 24px;
+    height: 24px;
+    border-radius: 7px;
+    background: rgba(167,139,250,0.12);
+    border: 1px solid rgba(167,139,250,0.25);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+  }
+  .hdb-logo:hover .hdb-logo-mark {
+    background: rgba(167,139,250,0.18);
+    border-color: rgba(167,139,250,0.35);
+    box-shadow: 0 0 12px rgba(167,139,250,0.15);
+  }
+  .hdb-logo-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 2px;
+    background: #a78bfa;
+  }
+  .hdb-logo-text {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 16px;
+    color: #eae6f4;
+    letter-spacing: -0.02em;
+  }
+
+  /* Navigation */
+  .hdb-nav {
+    gap: 6px;
+  }
+  .hdb-nav-link {
+    font-family: var(--font-sans);
+    font-size: 13px;
+    font-weight: 500;
+    color: #5a5468;
+    text-decoration: none;
+    padding: 6px 10px;
+    border-radius: 6px;
+    transition: all 0.15s;
+  }
+  .hdb-nav-link:hover {
+    color: #9890a8;
+    background: rgba(255,255,255,0.03);
+  }
+  .hdb-nav-link.is-active {
+    color: #eae6f4;
+    background: rgba(255,255,255,0.04);
+  }
+
+  /* Submit button */
+  .hdb-submit-btn {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    color: #08070c;
+    background: #a78bfa;
+    padding: 7px 16px;
+    border-radius: 8px;
+    text-decoration: none;
+    transition: all 0.2s;
+    box-shadow: 0 0 16px rgba(167,139,250,0.2);
+  }
+  .hdb-submit-btn:hover {
+    background: #c4b5fd;
+    box-shadow: 0 0 24px rgba(167,139,250,0.3);
+    transform: translateY(-1px);
+  }
+
+  /* Sign in */
+  .hdb-signin-link {
+    font-family: var(--font-sans);
+    font-size: 13px;
+    font-weight: 500;
+    color: #6d6882;
+    text-decoration: none;
+    transition: color 0.15s;
+  }
+  .hdb-signin-link:hover { color: #9890a8; }
+
+  /* Avatar */
+  .hdb-avatar-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-radius: 8px;
+    border: 1px solid rgba(255,255,255,0.06);
+    padding: 4px 10px 4px 4px;
+    background: none;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .hdb-avatar-btn:hover {
+    border-color: rgba(255,255,255,0.1);
+    background: rgba(255,255,255,0.02);
+  }
+  .hdb-avatar-img {
+    height: 26px;
+    width: 26px;
+    border-radius: 50%;
+  }
+  .hdb-avatar-fallback {
+    height: 26px;
+    width: 26px;
+    border-radius: 50%;
+    background: #a78bfa;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+    color: #08070c;
+  }
+  .hdb-avatar-name {
+    font-size: 13px;
+    color: #9890a8;
+  }
+
+  /* Dropdown */
+  .hdb-dropdown {
+    position: absolute;
+    right: 0;
+    margin-top: 8px;
+    width: 192px;
+    border-radius: 12px;
+    background: #0e0c16;
+    border: 1px solid rgba(255,255,255,0.08);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-4px);
+    transition: all 0.15s;
+  }
+  .group:hover .hdb-dropdown {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+  }
+  .hdb-dropdown-inner {
+    padding: 6px;
+  }
+  .hdb-dropdown-link {
+    display: block;
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 13px;
+    color: #9890a8;
+    text-decoration: none;
+    transition: background 0.1s;
+  }
+  .hdb-dropdown-link:hover {
+    background: rgba(255,255,255,0.04);
+  }
+  .hdb-dropdown-danger {
+    color: #f87171;
+  }
+
+  /* Hamburger */
+  .hdb-hamburger {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 5px;
+    padding: 6px;
+    background: none;
+    border: none;
+    cursor: pointer;
+  }
+  .hdb-hamburger-line {
+    height: 1.5px;
+    background: #6d6882;
+    border-radius: 1px;
+    transition: background 0.15s;
+  }
+  .hdb-hamburger:hover .hdb-hamburger-line {
+    background: #9890a8;
+  }
+</style>
 
 <script>
   function initMobileMenu() {

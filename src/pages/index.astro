@@ -243,7 +243,7 @@ const schemaItemList = {
         <h1 class="hp-hero-title">
           Does it run on your handheld<span style="color:#4ade80;">?</span>
         </h1>
-        <p class="hp-hero-sub">Real FPS and battery data from <strong style="color:#9890a8;">{reportCount.toLocaleString()}</strong> community reports</p>
+        <p class="hp-hero-sub">Real FPS &amp; battery data from <strong style="color:#9890a8;font-weight:600;">{reportCount.toLocaleString()}</strong> community reports across <strong style="color:#9890a8;font-weight:600;">{deviceCount}</strong> devices</p>
 
         <div class="hp-hero-search">
           <SearchBar client:load variant="hero" placeholder={`Search ${gameCount.toLocaleString()} games...`} />
@@ -261,14 +261,14 @@ const schemaItemList = {
       {featured && (
         <a href={`/games/${featured.slug}`} class="hp-featured-card" style="text-decoration:none;">
           <div class="hp-featured-inner">
-            <div style="font-family:var(--font-mono);font-size:7px;letter-spacing:0.08em;color:#6d6882;margin-bottom:4px;">MOST TESTED</div>
-            <div style="display:flex;align-items:baseline;gap:6px;margin-bottom:4px;">
+            <div style="font-family:var(--font-mono);font-size:9px;letter-spacing:0.06em;color:#6d6882;margin-bottom:6px;">MOST TESTED</div>
+            <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:6px;">
               <span class="hp-featured-fps" style={`color:${heroFpsColor};text-shadow:0 0 20px ${heroFpsColor}40;`}>{featured.fps}</span>
-              <span style="font-family:var(--font-mono);font-size:10px;color:#6d6882;">fps</span>
-              <span style={`font-family:var(--font-mono);font-size:8px;font-weight:700;letter-spacing:0.06em;color:${heroTier.color};background:${heroTier.color}15;padding:2px 6px;border-radius:3px;margin-left:4px;`}>{heroTier.label.toUpperCase()}</span>
+              <span style="font-family:var(--font-mono);font-size:11px;color:#6d6882;">fps</span>
+              <span style={`font-family:var(--font-mono);font-size:9px;font-weight:700;letter-spacing:0.06em;color:${heroTier.color};background:${heroTier.color}15;padding:3px 8px;border-radius:4px;margin-left:4px;`}>{heroTier.label.toUpperCase()}</span>
             </div>
-            <div style="font-family:var(--font-display);font-size:15px;font-weight:700;color:#e0dce8;margin-bottom:2px;">{featured.name}</div>
-            <div style="font-family:var(--font-mono);font-size:9px;color:#6d6882;">{featured.device} · {featured.reports} reports</div>
+            <div style="font-family:var(--font-display);font-size:16px;font-weight:700;color:#e0dce8;margin-bottom:3px;">{featured.name}</div>
+            <div style="font-family:var(--font-mono);font-size:10px;color:#6d6882;">{featured.device} · {featured.reports} reports</div>
           </div>
         </a>
       )}
@@ -524,7 +524,7 @@ const schemaItemList = {
 
     <!-- ══════ DEVICE STRIP ══════ -->
     <div class="hp-devices-strip">
-      <span style="font-family:var(--font-mono);font-size:10px;color:#4a4560;flex-shrink:0;">Browse by device</span>
+      <span style="font-family:var(--font-mono);font-size:11px;color:#5a5468;flex-shrink:0;">Browse by device</span>
       <div class="hp-devices-scroll">
         {devices.slice(0, 8).map(d => (
           <a href={`/devices/${d.slug}`} class="hp-device-chip">{d.name.replace('ASUS ', '').replace('Lenovo ', '')}</a>
@@ -538,22 +538,22 @@ const schemaItemList = {
       <div class="hp-cta">
         <div class="hp-cta-glow"></div>
         <div style="position:relative;z-index:1;">
-          <h2 style="font-family:var(--font-display);font-size:clamp(20px,3vw,26px);font-weight:800;color:#eae6f4;margin-bottom:6px;">Got a handheld?</h2>
-          <p style="font-family:var(--font-display);font-size:13px;color:#6d6882;margin-bottom:16px;">
-            Your benchmarks help the community. 5 minutes per report.
+          <h2 style="font-family:var(--font-display);font-size:clamp(20px,3vw,26px);font-weight:800;color:#eae6f4;margin-bottom:8px;letter-spacing:-0.02em;">Help us benchmark handheld gaming</h2>
+          <p style="font-family:var(--font-display);font-size:14px;color:#6d6882;margin-bottom:20px;line-height:1.5;">
+            Share your real-world performance data. Takes about 5 minutes per report.
           </p>
-          <div style="display:flex;gap:20px;flex-wrap:wrap;">
+          <div style="display:flex;gap:24px;flex-wrap:wrap;">
             <div>
-              <div style="font-family:var(--font-mono);font-size:13px;font-weight:700;color:#c8c4d4;">{reportCount.toLocaleString()}</div>
-              <div style="font-family:var(--font-mono);font-size:8px;color:#4a4560;letter-spacing:0.04em;">REPORTS</div>
+              <div style="font-family:var(--font-mono);font-size:14px;font-weight:700;color:#c8c4d4;">{reportCount.toLocaleString()}</div>
+              <div style="font-family:var(--font-mono);font-size:10px;color:#5a5468;letter-spacing:0.04em;">REPORTS</div>
             </div>
             <div>
-              <div style="font-family:var(--font-mono);font-size:13px;font-weight:700;color:#c8c4d4;">{gameCount.toLocaleString()}</div>
-              <div style="font-family:var(--font-mono);font-size:8px;color:#4a4560;letter-spacing:0.04em;">GAMES</div>
+              <div style="font-family:var(--font-mono);font-size:14px;font-weight:700;color:#c8c4d4;">{gameCount.toLocaleString()}</div>
+              <div style="font-family:var(--font-mono);font-size:10px;color:#5a5468;letter-spacing:0.04em;">GAMES</div>
             </div>
             <div>
-              <div style="font-family:var(--font-mono);font-size:13px;font-weight:700;color:#c8c4d4;">{deviceCount}</div>
-              <div style="font-family:var(--font-mono);font-size:8px;color:#4a4560;letter-spacing:0.04em;">DEVICES</div>
+              <div style="font-family:var(--font-mono);font-size:14px;font-weight:700;color:#c8c4d4;">{deviceCount}</div>
+              <div style="font-family:var(--font-mono);font-size:10px;color:#5a5468;letter-spacing:0.04em;">DEVICES</div>
             </div>
           </div>
         </div>

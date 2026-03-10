@@ -217,13 +217,13 @@ const panelData = {
 <div style="background:#08070c;min-height:100vh;overflow-x:hidden;">
 
   <!-- Visible breadcrumbs -->
-  <nav aria-label="Breadcrumb" style="max-width:1060px;margin:0 auto;padding:12px 28px 0;">
-    <ol style="display:flex;align-items:center;gap:6px;font-family:var(--font-mono);font-size:10px;list-style:none;margin:0;padding:0;">
-      <li><a href="/" style="color:#4a4560;text-decoration:none;transition:color 0.15s;" onmouseover="this.style.color='#9890a8'" onmouseout="this.style.color='#4a4560'">Home</a></li>
-      <li style="color:#2a2838;" aria-hidden="true">›</li>
-      <li><a href="/games" style="color:#4a4560;text-decoration:none;transition:color 0.15s;" onmouseover="this.style.color='#9890a8'" onmouseout="this.style.color='#4a4560'">Games</a></li>
-      <li style="color:#2a2838;" aria-hidden="true">›</li>
-      <li style="color:#6d6882;" aria-current="page">{game.name}</li>
+  <nav aria-label="Breadcrumb" style="max-width:1080px;margin:0 auto;padding:12px 28px 0;">
+    <ol class="hdb-breadcrumb">
+      <li><a href="/">Home</a></li>
+      <li class="hdb-breadcrumb-sep" aria-hidden="true">›</li>
+      <li><a href="/games">Games</a></li>
+      <li class="hdb-breadcrumb-sep" aria-hidden="true">›</li>
+      <li class="hdb-breadcrumb-current" aria-current="page">{game.name}</li>
     </ol>
   </nav>
 
@@ -231,13 +231,13 @@ const panelData = {
   <GameDetailPanel client:load dataId="game-page-data" initialData={panelData} />
 
   <!-- ████████ CTA ████████ -->
-  <div style="max-width:1060px;margin:0 auto;padding:0 28px;">
+  <div style="max-width:1080px;margin:0 auto;padding:0 28px;">
     <section style="margin-bottom:44px;">
       <div style="border-radius:20px;padding:48px 36px;background:#0a0910;border:1px solid rgba(167,139,250,0.05);display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:20px;position:relative;overflow:hidden;">
         <div style="position:absolute;top:50%;right:20%;transform:translate(50%,-50%);width:200px;height:200px;background:radial-gradient(circle,rgba(167,139,250,0.04),transparent 55%);pointer-events:none;"></div>
         <div>
-          <div style="font-family:var(--font-display);font-size:clamp(18px,3vw,28px);font-weight:900;color:#eae6f4;letter-spacing:-0.03em;margin-bottom:4px;">Tested {game.name}?</div>
-          <div style="font-family:var(--font-mono);font-size:11px;color:#3a3448;">5 minutes · real data · help thousands</div>
+          <div style="font-family:var(--font-display);font-size:clamp(18px,3vw,28px);font-weight:900;color:#eae6f4;letter-spacing:-0.03em;margin-bottom:6px;">Played {game.name} on a handheld?</div>
+          <div style="font-family:var(--font-sans);font-size:13px;color:#5a5468;">Share your FPS and settings. Takes about 5 minutes.</div>
         </div>
         <div style="display:flex;align-items:center;gap:12px;flex-shrink:0;">
           <FollowButton client:load gameId={game.id} initialFollowing={!!followData} followerCount={followerCount ?? 0} />

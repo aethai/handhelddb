@@ -216,9 +216,9 @@ input:focus { outline: none; }
   background: #a78bfa;
   color: #08070c;
   border: none;
-  border-radius: 6px;
-  padding: 6px 14px;
-  font-size: 11px;
+  border-radius: 8px;
+  padding: 8px 18px;
+  font-size: 12px;
   font-weight: 700;
   font-family: var(--font-mono);
   letter-spacing: 0.04em;
@@ -348,8 +348,8 @@ input:focus { outline: none; }
   position: relative;
 }
 
-/* ── Content Wrapper — 960px max ── */
-.hw { max-width: 960px; margin: 0 auto; padding: 0 24px; position: relative; z-index: 1; }
+/* ── Content Wrapper — 1080px max ── */
+.hw { max-width: 1080px; margin: 0 auto; padding: 0 24px; position: relative; z-index: 1; }
 
 /* Legacy wrapper compat for other pages */
 .b6-w { max-width: 1200px; margin: 0 auto; padding: 0 48px; }
@@ -486,13 +486,13 @@ input:focus { outline: none; }
 }
 .hp-device-pill {
   font-family: var(--font-mono);
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 600;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.03em;
   color: var(--pill-color, #5a5468);
   background: rgba(255,255,255,0.03);
   border: 1px solid rgba(255,255,255,0.06);
-  padding: 5px 12px;
+  padding: 6px 14px;
   border-radius: 100px;
   text-decoration: none;
   transition: all 0.15s;
@@ -576,11 +576,11 @@ input:focus { outline: none; }
 }
 .hp-stat-label {
   font-family: var(--font-mono);
-  font-size: 9px;
-  color: #3e3a4c;
-  letter-spacing: 0.08em;
+  font-size: 10px;
+  color: #4a4560;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
-  margin-top: 2px;
+  margin-top: 4px;
 }
 .hp-stat-divider {
   width: 1px;
@@ -629,15 +629,16 @@ input:focus { outline: none; }
 }
 .hp-section-head h2 {
   font-family: var(--font-display);
-  font-size: 20px;
+  font-size: 22px;
   font-weight: 800;
   color: #eae6f4;
+  letter-spacing: -0.02em;
 }
 .hp-section-head a,
 .hp-section-head .link {
   font-family: var(--font-mono);
-  font-size: 10px;
-  color: #4a4458;
+  font-size: 11px;
+  color: #5a5468;
   cursor: pointer;
   transition: color 0.15s;
 }
@@ -1122,6 +1123,28 @@ input:focus { outline: none; }
   .cta-content h2 { font-size: 22px; }
   .cta-btn { width: 100%; text-align: center; }
 }
+
+/* ══════════════════════════════════════
+   BREADCRUMBS
+   ══════════════════════════════════════ */
+.hdb-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.hdb-breadcrumb a {
+  color: #5a5468;
+  text-decoration: none;
+  transition: color 0.15s;
+}
+.hdb-breadcrumb a:hover { color: #9890a8; }
+.hdb-breadcrumb-sep { color: #2a2838; }
+.hdb-breadcrumb-current { color: #6d6882; }
 
 /* ══════════════════════════════════════
    RESPONSIVE — SMALL PHONE (≤ 420px)
