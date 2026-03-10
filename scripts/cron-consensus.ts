@@ -421,6 +421,40 @@ async function main() {
     }
   }
 
+  // Step 3: Update games.performance_tier based on best consensus verdict
+  console.log('\nUpdating games.performance_tier...');
+  const gameVerdicts = new Map<string, string[]>();
+  for (const [key] of eligiblePairs) {
+    const [gameId] = key.split('::');
+    if (!gameVerdicts.has(gameId)) gameVerdicts.set(gameId, []);
+  }
+
+  // Fetch all consensus ratings to get verdicts
+  const { data: allConsensus } = await supabase
+    .from('consensus_ratings')
+    .select('game_id, overall_verdict')
+    .not('overall_verdict', 'is', null);
+
+  for (const c of allConsensus ?? []) {
+    const list = gameVerdicts.get(c.game_id);
+    if (list) list.push(c.overall_verdict);
+    else gameVerdicts.set(c.game_id, [c.overall_verdict]);
+  }
+
+  const tierOrder = ['excellent', 'good', 'fair', 'poor', 'unplayable'];
+  let tierUpdated = 0;
+  for (const [gameId, verdicts] of gameVerdicts) {
+    if (verdicts.length === 0) continue;
+    // Best verdict = highest tier across all devices
+    const best = verdicts.sort((a, b) => tierOrder.indexOf(a) - tierOrder.indexOf(b))[0];
+    const { error: tierErr } = await supabase
+      .from('games')
+      .update({ performance_tier: best })
+      .eq('id', gameId);
+    if (!tierErr) tierUpdated++;
+  }
+  console.log(`  Updated performance_tier for ${tierUpdated} games`);
+
   const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
   console.log(`\nConsensus recalculation complete in ${elapsed}s`);
   console.log(`  Pairs processed: ${eligiblePairs.length}`);

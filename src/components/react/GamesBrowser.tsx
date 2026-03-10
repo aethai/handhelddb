@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import ErrorBoundary from './ErrorBoundary';
 
 interface GameHit {
   id: string;
@@ -28,10 +29,10 @@ interface Props {
 }
 
 const DECK_BADGES: Record<string, { label: string; class: string }> = {
-  verified: { label: 'Verified', class: 'bg-[#60A5FA]/20 text-[#60A5FA] border-[#60A5FA]/30' },
+  verified: { label: 'Verified', class: 'bg-[#7c6cf0]/20 text-[#7c6cf0] border-[#7c6cf0]/30' },
   playable: { label: 'Playable', class: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30' },
   unsupported: { label: 'Unsupported', class: 'bg-red-500/20 text-red-400 border-red-500/30' },
-  unknown: { label: 'Unknown', class: 'bg-[#6B7280]/20 text-[#9CA3AF] border-[#6B7280]/30' },
+  unknown: { label: 'Unknown', class: 'bg-[#55555e]/20 text-[#8a8a94] border-[#55555e]/30' },
 };
 
 const SORT_OPTIONS = [
@@ -49,22 +50,29 @@ const DECK_FILTERS = [
   { value: 'unsupported', label: 'Unsupported' },
 ];
 
-export default function GamesBrowser({ initialGames, totalGames, allGenres }: Props) {
-  const [query, setQuery] = useState('');
+function GamesBrowserInner({ initialGames, totalGames, allGenres }: Props) {
+  // Read URL params for initial filters (e.g. /games?genre=Action&q=...)
+  const urlParams = typeof window !== 'undefined' ? new URL(window.location.href).searchParams : null;
+  const initialQuery = urlParams?.get('q') ?? '';
+  const initialGenre = urlParams?.get('genre') ?? '';
+
+  const [query, setQuery] = useState(initialQuery);
   const [games, setGames] = useState<GameHit[]>(initialGames);
   const [totalHits, setTotalHits] = useState(totalGames);
   const [loading, setLoading] = useState(false);
   const [sort, setSort] = useState('name:asc');
-  const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
+  const [selectedGenres, setSelectedGenres] = useState<string[]>(initialGenre ? [initialGenre] : []);
   const [selectedDeck, setSelectedDeck] = useState<string[]>([]);
-  const [showFilters, setShowFilters] = useState(false);
+  const [showFilters, setShowFilters] = useState(!!initialGenre);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [loadingMore, setLoadingMore] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
 
   const hasFilters = query.trim() || selectedGenres.length > 0 || selectedDeck.length > 0 || sort !== 'name:asc';
+  const PAGE_SIZE = 60;
 
-  const doSearch = useCallback(async () => {
-    setLoading(true);
+  const doSearch = useCallback(async (append = false) => {
+    if (append) setLoadingMore(true); else setLoading(true);
     abortRef.current?.abort();
     const controller = new AbortController();
     abortRef.current = controller;
@@ -72,14 +80,19 @@ export default function GamesBrowser({ initialGames, totalGames, allGenres }: Pr
     try {
       const params = new URLSearchParams();
       params.set('q', query);
-      params.set('limit', '60');
+      params.set('limit', String(PAGE_SIZE));
+      if (append) params.set('offset', String(games.length));
       params.set('sort', sort);
       if (selectedGenres.length > 0) params.set('genres', selectedGenres.join(','));
       if (selectedDeck.length > 0) params.set('deck', selectedDeck.join(','));
 
       const res = await fetch(`/api/games-search?${params}`, { signal: controller.signal });
       const data: SearchResponse = await res.json();
-      setGames(data.hits);
+      if (append) {
+        setGames(prev => [...prev, ...data.hits]);
+      } else {
+        setGames(data.hits);
+      }
       setTotalHits(data.estimatedTotalHits ?? data.hits.length);
     } catch (e) {
       if ((e as Error).name !== 'AbortError') {
@@ -87,13 +100,14 @@ export default function GamesBrowser({ initialGames, totalGames, allGenres }: Pr
       }
     } finally {
       setLoading(false);
+      setLoadingMore(false);
     }
-  }, [query, sort, selectedGenres, selectedDeck]);
+  }, [query, sort, selectedGenres, selectedDeck, games.length]);
 
-  // Debounce search
+  // Debounce search (reset to page 1)
   useEffect(() => {
     if (!hasFilters && games === initialGames) return;
-    const timer = setTimeout(doSearch, query ? 250 : 0);
+    const timer = setTimeout(() => doSearch(false), query ? 250 : 0);
     return () => clearTimeout(timer);
   }, [query, sort, selectedGenres, selectedDeck]);
 
@@ -117,10 +131,10 @@ export default function GamesBrowser({ initialGames, totalGames, allGenres }: Pr
   return (
     <div>
       {/* Search + Controls */}
-      <div className="mb-6 rounded-xl border border-[#2A2D35] bg-[#16181D] p-4">
+      <div className="mb-6 rounded-xl border border-[#1a1a22] bg-[#0f0f12] p-4">
         <div className="flex gap-3">
           <div className="relative flex-1">
-            <svg className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-[#6B7280]" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+            <svg className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-[#55555e]" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z" />
             </svg>
             <input
@@ -128,13 +142,13 @@ export default function GamesBrowser({ initialGames, totalGames, allGenres }: Pr
               value={query}
               onChange={e => setQuery(e.target.value)}
               placeholder="Search games..."
-              className="w-full rounded-lg border border-[#3A3D45] bg-[#2A2D35] py-2.5 pl-12 pr-4 text-white placeholder-[#6B7280] focus:border-[#60A5FA] focus:outline-none focus:ring-1 focus:ring-[#60A5FA]"
+              className="w-full rounded-lg border border-[#25252e] bg-[#1a1a22] py-2.5 pl-12 pr-4 text-white placeholder-[#55555e] focus:border-[#7c6cf0] focus:outline-none focus:ring-1 focus:ring-[#7c6cf0]"
             />
           </div>
           <select
             value={sort}
             onChange={e => setSort(e.target.value)}
-            className="rounded-lg border border-[#3A3D45] bg-[#2A2D35] px-3 py-2.5 text-sm text-gray-300 focus:border-[#60A5FA] focus:outline-none"
+            className="rounded-lg border border-[#25252e] bg-[#1a1a22] px-3 py-2.5 text-sm text-gray-300 focus:border-[#7c6cf0] focus:outline-none"
           >
             {SORT_OPTIONS.map(o => (
               <option key={o.value} value={o.value}>{o.label}</option>
@@ -144,8 +158,8 @@ export default function GamesBrowser({ initialGames, totalGames, allGenres }: Pr
             onClick={() => setShowFilters(!showFilters)}
             className={`rounded-lg border px-3 py-2.5 text-sm transition-colors flex items-center gap-1.5 ${
               showFilters || selectedGenres.length > 0 || selectedDeck.length > 0
-                ? 'border-[#60A5FA] bg-[#60A5FA]/10 text-[#60A5FA]'
-                : 'border-[#3A3D45] bg-[#2A2D35] text-gray-300 hover:border-[#4B5563]'
+                ? 'border-[#7c6cf0] bg-[#7c6cf0]/10 text-[#7c6cf0]'
+                : 'border-[#25252e] bg-[#1a1a22] text-gray-300 hover:border-[#35353e]'
             }`}
           >
             <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
@@ -153,7 +167,7 @@ export default function GamesBrowser({ initialGames, totalGames, allGenres }: Pr
             </svg>
             <span className="hidden sm:inline">Filters</span>
             {(selectedGenres.length + selectedDeck.length) > 0 && (
-              <span className="rounded-full bg-[#60A5FA] px-1.5 text-[10px] font-bold text-white">
+              <span className="rounded-full bg-[#7c6cf0] px-1.5 text-[10px] font-bold text-white">
                 {selectedGenres.length + selectedDeck.length}
               </span>
             )}
@@ -162,10 +176,10 @@ export default function GamesBrowser({ initialGames, totalGames, allGenres }: Pr
 
         {/* Filter Panel */}
         {showFilters && (
-          <div className="mt-4 space-y-4 border-t border-[#2A2D35] pt-4">
+          <div className="mt-4 space-y-4 border-t border-[#1a1a22] pt-4">
             {/* Deck Compatibility */}
             <div>
-              <p className="text-xs font-semibold text-[#9CA3AF] uppercase tracking-wider mb-2">Deck Compatibility</p>
+              <p className="text-xs font-semibold text-[#8a8a94] uppercase tracking-wider mb-2">Deck Compatibility</p>
               <div className="flex flex-wrap gap-2">
                 {DECK_FILTERS.map(d => (
                   <button
@@ -173,8 +187,8 @@ export default function GamesBrowser({ initialGames, totalGames, allGenres }: Pr
                     onClick={() => toggleDeck(d.value)}
                     className={`rounded-full border px-3 py-1 text-xs transition-colors ${
                       selectedDeck.includes(d.value)
-                        ? 'border-[#60A5FA] bg-[#60A5FA]/10 text-[#60A5FA]'
-                        : 'border-[#3A3D45] text-[#9CA3AF] hover:border-[#4B5563] hover:text-white'
+                        ? 'border-[#7c6cf0] bg-[#7c6cf0]/10 text-[#7c6cf0]'
+                        : 'border-[#25252e] text-[#8a8a94] hover:border-[#35353e] hover:text-white'
                     }`}
                   >
                     {d.label}
@@ -185,7 +199,7 @@ export default function GamesBrowser({ initialGames, totalGames, allGenres }: Pr
 
             {/* Genres */}
             <div>
-              <p className="text-xs font-semibold text-[#9CA3AF] uppercase tracking-wider mb-2">Genres</p>
+              <p className="text-xs font-semibold text-[#8a8a94] uppercase tracking-wider mb-2">Genres</p>
               <div className="flex flex-wrap gap-2">
                 {allGenres.map(g => (
                   <button
@@ -193,8 +207,8 @@ export default function GamesBrowser({ initialGames, totalGames, allGenres }: Pr
                     onClick={() => toggleGenre(g)}
                     className={`rounded-full border px-3 py-1 text-xs transition-colors ${
                       selectedGenres.includes(g)
-                        ? 'border-[#60A5FA] bg-[#60A5FA]/10 text-[#60A5FA]'
-                        : 'border-[#3A3D45] text-[#9CA3AF] hover:border-[#4B5563] hover:text-white'
+                        ? 'border-[#7c6cf0] bg-[#7c6cf0]/10 text-[#7c6cf0]'
+                        : 'border-[#25252e] text-[#8a8a94] hover:border-[#35353e] hover:text-white'
                     }`}
                   >
                     {g}
@@ -204,7 +218,7 @@ export default function GamesBrowser({ initialGames, totalGames, allGenres }: Pr
             </div>
 
             {hasFilters && (
-              <button onClick={clearFilters} className="text-xs text-[#6B7280] hover:text-white transition-colors">
+              <button onClick={clearFilters} className="text-xs text-[#55555e] hover:text-white transition-colors">
                 Clear all filters
               </button>
             )}
@@ -214,13 +228,13 @@ export default function GamesBrowser({ initialGames, totalGames, allGenres }: Pr
 
       {/* Results count + View toggle */}
       <div className="mb-4 flex items-center justify-between">
-        <p className="text-sm text-[#6B7280]">
+        <p className="text-sm text-[#55555e]">
           {loading ? 'Searching...' : `${totalHits} game${totalHits !== 1 ? 's' : ''}`}
         </p>
-        <div className="flex items-center gap-1 rounded-lg border border-[#2A2D35] p-0.5">
+        <div className="flex items-center gap-1 rounded-lg border border-[#1a1a22] p-0.5">
           <button
             onClick={() => setViewMode('grid')}
-            className={`rounded-md p-1.5 transition-colors ${viewMode === 'grid' ? 'bg-[#2A2D35] text-white' : 'text-[#6B7280] hover:text-gray-300'}`}
+            className={`rounded-md p-1.5 transition-colors ${viewMode === 'grid' ? 'bg-[#1a1a22] text-white' : 'text-[#55555e] hover:text-gray-300'}`}
             title="Grid view"
           >
             <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
@@ -229,7 +243,7 @@ export default function GamesBrowser({ initialGames, totalGames, allGenres }: Pr
           </button>
           <button
             onClick={() => setViewMode('list')}
-            className={`rounded-md p-1.5 transition-colors ${viewMode === 'list' ? 'bg-[#2A2D35] text-white' : 'text-[#6B7280] hover:text-gray-300'}`}
+            className={`rounded-md p-1.5 transition-colors ${viewMode === 'list' ? 'bg-[#1a1a22] text-white' : 'text-[#55555e] hover:text-gray-300'}`}
             title="List view"
           >
             <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
@@ -247,7 +261,7 @@ export default function GamesBrowser({ initialGames, totalGames, allGenres }: Pr
               <a
                 key={game.id}
                 href={`/games/${game.slug}`}
-                className="group relative rounded-lg border border-[#2A2D35] bg-[#16181D] overflow-hidden hover:border-[#3A3D45] transition-colors"
+                className="group relative rounded-lg border border-[#1a1a22] bg-[#0f0f12] overflow-hidden hover:border-[#25252e] transition-colors"
               >
                 <div className="relative aspect-[460/300]">
                   {game.header_image ? (
@@ -258,7 +272,7 @@ export default function GamesBrowser({ initialGames, totalGames, allGenres }: Pr
                       loading="lazy"
                     />
                   ) : (
-                    <div className="absolute inset-0 bg-gradient-to-br from-[#2A2D35] to-[#16181D]" />
+                    <div className="absolute inset-0 bg-gradient-to-br from-[#1a1a22] to-[#0f0f12]" />
                   )}
                   {/* Overlay with game info at bottom */}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent" />
@@ -266,7 +280,7 @@ export default function GamesBrowser({ initialGames, totalGames, allGenres }: Pr
                     <h3 className="font-semibold text-white text-sm leading-tight line-clamp-2">{game.name}</h3>
                     <div className="mt-1 flex items-center gap-1.5">
                       {game.genres?.slice(0, 1).map(g => (
-                        <span key={g} className="text-[10px] text-[#9CA3AF]">{g}</span>
+                        <span key={g} className="text-[10px] text-[#8a8a94]">{g}</span>
                       ))}
                       {game.metacritic_score && (
                         <span className={`ml-auto text-[10px] font-bold ${
@@ -283,15 +297,15 @@ export default function GamesBrowser({ initialGames, totalGames, allGenres }: Pr
           </div>
         ) : (
           /* List view */
-          <div className="rounded-xl border border-[#2A2D35] bg-[#16181D] divide-y divide-[#2A2D35]">
+          <div className="rounded-xl border border-[#1a1a22] bg-[#0f0f12] divide-y divide-[#1a1a22]">
             {games.map(game => (
               <a
                 key={game.id}
                 href={`/games/${game.slug}`}
-                className="flex items-center gap-4 px-4 py-3 hover:bg-[#2A2D35]/50 transition-colors"
+                className="flex items-center gap-4 px-4 py-3 hover:bg-[#1a1a22]/50 transition-colors"
               >
                 {/* Thumbnail */}
-                <div className="w-16 h-9 rounded overflow-hidden flex-shrink-0 bg-[#2A2D35]">
+                <div className="w-16 h-9 rounded overflow-hidden flex-shrink-0 bg-[#1a1a22]">
                   {game.header_image && (
                     <img src={game.header_image} alt="" className="w-full h-full object-cover" loading="lazy" />
                   )}
@@ -301,7 +315,7 @@ export default function GamesBrowser({ initialGames, totalGames, allGenres }: Pr
                 {/* Genres */}
                 <div className="hidden sm:flex items-center gap-1.5 flex-shrink-0">
                   {game.genres?.slice(0, 2).map(g => (
-                    <span key={g} className="text-[10px] text-[#6B7280]">{g}</span>
+                    <span key={g} className="text-[10px] text-[#55555e]">{g}</span>
                   ))}
                 </div>
                 {/* Deck badge */}
@@ -325,15 +339,36 @@ export default function GamesBrowser({ initialGames, totalGames, allGenres }: Pr
           </div>
         )
       ) : (
-        <div className="rounded-xl border border-[#2A2D35] bg-[#16181D] p-8 text-center">
-          <p className="text-[#6B7280]">No games found matching your criteria.</p>
+        <div className="rounded-xl border border-[#1a1a22] bg-[#0f0f12] p-8 text-center">
+          <p className="text-[#55555e]">No games found matching your criteria.</p>
           {hasFilters && (
-            <button onClick={clearFilters} className="mt-2 text-sm text-[#60A5FA] hover:text-[#93C5FD]">
+            <button onClick={clearFilters} className="mt-2 text-sm text-[#7c6cf0] hover:text-[#9b8fff]">
               Clear filters
             </button>
           )}
         </div>
       )}
+
+      {/* Load More */}
+      {games.length > 0 && games.length < totalHits && (
+        <div className="mt-6 text-center">
+          <button
+            onClick={() => doSearch(true)}
+            disabled={loadingMore}
+            className="rounded-xl border border-[#25252e] bg-[#0f0f12] px-8 py-3 text-sm font-medium text-[#8a8a94] hover:border-[#7c6cf0] hover:text-white transition-colors disabled:opacity-50"
+          >
+            {loadingMore ? 'Loading...' : `Load more (${games.length} of ${totalHits})`}
+          </button>
+        </div>
+      )}
     </div>
+  );
+}
+
+export default function GamesBrowser(props: Props) {
+  return (
+    <ErrorBoundary>
+      <GamesBrowserInner {...props} />
+    </ErrorBoundary>
   );
 }

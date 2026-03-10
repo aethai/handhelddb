@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import { getUser } from '@lib/auth/supabase';
 import { supabaseAdmin } from '@lib/db/client';
+import { rateLimit, rateLimitResponse } from '@lib/rate-limit';
 
 const JSON_HEADERS = { 'Content-Type': 'application/json' };
 
@@ -15,7 +16,11 @@ function errorResponse(error: string, status: number) {
 // ─── GET /api/my-setup ───
 // Returns the authenticated user's profile, devices (with device details),
 // total report count, and their 10 most recent performance reports.
-export const GET: APIRoute = async ({ cookies }) => {
+export const GET: APIRoute = async ({ request, cookies }) => {
+  const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown';
+  const rl = rateLimit(`my-setup-get:${ip}`, 60, 15 * 60 * 1000);
+  if (!rl.allowed) return rateLimitResponse(rl.resetAt);
+
   const user = await getUser(cookies);
   if (!user) {
     return errorResponse('Authentication required', 401);
@@ -63,6 +68,10 @@ export const GET: APIRoute = async ({ cookies }) => {
 // ─── POST /api/my-setup ───
 // Add a device to the user's setup. Body: { deviceId: string }
 export const POST: APIRoute = async ({ request, cookies }) => {
+  const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown';
+  const rl = rateLimit(`my-setup-post:${ip}`, 30, 15 * 60 * 1000);
+  if (!rl.allowed) return rateLimitResponse(rl.resetAt);
+
   const user = await getUser(cookies);
   if (!user) {
     return errorResponse('Authentication required', 401);
@@ -136,7 +145,11 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 
 // ─── DELETE /api/my-setup ───
 // Remove a device from the user's setup. Query: ?deviceId=xxx
-export const DELETE: APIRoute = async ({ url, cookies }) => {
+export const DELETE: APIRoute = async ({ request, url, cookies }) => {
+  const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown';
+  const rl = rateLimit(`my-setup-delete:${ip}`, 30, 15 * 60 * 1000);
+  if (!rl.allowed) return rateLimitResponse(rl.resetAt);
+
   const user = await getUser(cookies);
   if (!user) {
     return errorResponse('Authentication required', 401);
@@ -204,12 +217,16 @@ export const DELETE: APIRoute = async ({ url, cookies }) => {
 // ─── PATCH /api/my-setup ───
 // Update user profile fields: displayName, username. Body: { displayName?, username? }
 export const PATCH: APIRoute = async ({ request, cookies }) => {
+  const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown';
+  const rl = rateLimit(`my-setup-patch:${ip}`, 20, 15 * 60 * 1000);
+  if (!rl.allowed) return rateLimitResponse(rl.resetAt);
+
   const user = await getUser(cookies);
   if (!user) {
     return errorResponse('Authentication required', 401);
   }
 
-  let body: { displayName?: string; username?: string };
+  let body: { displayName?: string; username?: string; notifyOnReply?: boolean; notifyOnVote?: boolean };
   try {
     body = await request.json();
   } catch {
@@ -245,6 +262,14 @@ export const PATCH: APIRoute = async ({ request, cookies }) => {
     }
 
     updates.username = uname;
+  }
+
+  if (typeof body.notifyOnReply === 'boolean') {
+    updates.notify_on_reply = body.notifyOnReply;
+  }
+
+  if (typeof body.notifyOnVote === 'boolean') {
+    updates.notify_on_vote = body.notifyOnVote;
   }
 
   if (Object.keys(updates).length === 0) {

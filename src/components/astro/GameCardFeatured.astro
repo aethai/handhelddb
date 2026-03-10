@@ -19,7 +19,7 @@ const deck = deckBadge[deckCompatibility ?? ''];
 
 <a
   href={`/games/${slug}`}
-  class="group relative block overflow-hidden rounded-lg border border-[#2A2D35] bg-[#16181D] h-full min-h-[280px] hover:border-[#3A3D45] transition-all"
+  class="group relative block overflow-hidden rounded-lg border border-[#1a1a22] bg-[#0f0f12] h-full min-h-[280px] hover:border-[#25252e] transition-all"
 >
   {headerImage ? (
     <img
@@ -29,7 +29,7 @@ const deck = deckBadge[deckCompatibility ?? ''];
       loading="lazy"
     />
   ) : (
-    <div class="absolute inset-0 bg-gradient-to-br from-[#1E2128] via-[#16181D] to-[#0F1115]"></div>
+    <div class="absolute inset-0 bg-gradient-to-br from-[#141418] via-[#0f0f12] to-[#08080a]"></div>
   )}
 
   <!-- Gradient overlay -->
@@ -46,13 +46,13 @@ const deck = deckBadge[deckCompatibility ?? ''];
 
   <!-- Content at bottom -->
   <div class="absolute bottom-0 left-0 right-0 p-4 sm:p-5 z-10">
-    <h3 class="text-xl sm:text-2xl font-semibold text-white leading-tight group-hover:text-[#93C5FD] transition-colors">
+    <h3 class="text-xl sm:text-2xl font-semibold text-white leading-tight group-hover:text-[#9b8fff] transition-colors">
       {name}
     </h3>
     {genres.length > 0 && (
       <div class="mt-2 flex items-center gap-2 flex-wrap">
         {genres.slice(0, 3).map((genre) => (
-          <span class="rounded bg-white/10 px-2 py-0.5 text-xs text-[#9CA3AF] backdrop-blur-sm">
+          <span class="rounded bg-white/10 px-2 py-0.5 text-xs text-[#8a8a94] backdrop-blur-sm">
             {genre}
           </span>
         ))}

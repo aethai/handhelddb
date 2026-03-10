@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import { getUser } from '@lib/auth/supabase';
 import { supabaseAdmin } from '@lib/db/client';
+import { rateLimit, rateLimitResponse } from '@lib/rate-limit';
 
 const JSON_HEADERS = { 'Content-Type': 'application/json' };
 
@@ -12,6 +13,10 @@ const JSON_HEADERS = { 'Content-Type': 'application/json' };
  * Return unread count only: { count: number }
  */
 export const GET: APIRoute = async ({ request, cookies }) => {
+  const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown';
+  const rl = rateLimit(`notifications-get:${ip}`, 120, 15 * 60 * 1000);
+  if (!rl.allowed) return rateLimitResponse(rl.resetAt);
+
   const user = await getUser(cookies);
   if (!user) {
     return new Response(JSON.stringify({ error: 'Authentication required' }), {
@@ -73,6 +78,10 @@ export const GET: APIRoute = async ({ request, cookies }) => {
  * Body: { action: 'read_all' }    — mark all notifications as read
  */
 export const PATCH: APIRoute = async ({ request, cookies }) => {
+  const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown';
+  const rl = rateLimit(`notifications-patch:${ip}`, 60, 15 * 60 * 1000);
+  if (!rl.allowed) return rateLimitResponse(rl.resetAt);
+
   const user = await getUser(cookies);
   if (!user) {
     return new Response(JSON.stringify({ error: 'Authentication required' }), {

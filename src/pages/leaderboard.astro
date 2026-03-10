@@ -1,0 +1,160 @@
+---
+import BaseLayout from '@layouts/BaseLayout.astro';
+import { supabaseAdmin } from '@lib/db/client';
+
+// ─── Fetch top 50 contributors by points ───
+const { data: topUsers } = await supabaseAdmin
+  .from('users')
+  .select('id, username, display_name, avatar_url, points, level, is_verified_tester, created_at')
+  .gt('points', 0)
+  .order('points', { ascending: false })
+  .limit(50);
+
+// ─── Count reports per user ───
+const userIds = (topUsers ?? []).map(u => u.id);
+let reportCounts: Record<string, number> = {};
+if (userIds.length > 0) {
+  const { data: rCounts } = await supabaseAdmin
+    .from('performance_reports')
+    .select('user_id')
+    .in('user_id', userIds)
+    .eq('moderation_status', 'approved');
+  for (const r of rCounts ?? []) {
+    reportCounts[r.user_id] = (reportCounts[r.user_id] ?? 0) + 1;
+  }
+}
+
+// ─── Level display mapping ───
+const levelMap: Record<string, { label: string; color: string }> = {
+  new_tester: { label: 'New Tester', color: '#6d6882' },
+  tester: { label: 'Tester', color: '#60a5fa' },
+  contributor: { label: 'Contributor', color: '#a78bfa' },
+  expert: { label: 'Expert', color: '#4ade80' },
+};
+
+const rankIcons = ['🥇', '🥈', '🥉'];
+const rankColors = ['#facc15', '#c0c0c0', '#cd7f32'];
+
+// Pre-compute all display data in frontmatter to avoid template issues with < operator
+const users = (topUsers ?? []).map((u, i) => {
+  const rank = i + 1;
+  const isTop3 = rank < 4;
+  const lv = levelMap[u.level ?? 'new_tester'] ?? levelMap.new_tester;
+  return {
+    rank,
+    id: u.id,
+    username: u.username,
+    displayName: u.display_name ?? u.username ?? 'Anonymous',
+    avatar: u.avatar_url,
+    points: u.points ?? 0,
+    levelLabel: lv.label,
+    levelColor: lv.color,
+    isVerified: u.is_verified_tester,
+    reports: reportCounts[u.id] ?? 0,
+    isTop3,
+    rankDisplay: isTop3 ? rankIcons[rank - 1] : `#${rank}`,
+    rankColor: isTop3 ? rankColors[rank - 1] : '#4a4560',
+    rankFontSize: isTop3 ? '18px' : '13px',
+    bgColor: i % 2 === 0 ? '#0a0914' : '#08070c',
+    profileUrl: u.username ? `/profile/${u.username}` : '#',
+  };
+});
+
+const totalUsers = users.length;
+const totalPoints = users.reduce((s, u) => s + u.points, 0);
+const totalReports = users.reduce((s, u) => s + u.reports, 0);
+---
+
+<BaseLayout title="Leaderboard — HandheldDB" description="Top contributors to the HandheldDB community. See who's submitted the most performance reports and earned the most points.">
+
+<div style="background:#08070c;min-height:100vh;">
+  <div style="max-width:800px;margin:0 auto;padding:40px 24px;">
+
+    <!-- Header -->
+    <div style="margin-bottom:32px;">
+      <h1 style="font-family:var(--font-display);font-size:clamp(24px,4vw,36px);font-weight:900;color:#eae6f4;letter-spacing:-0.03em;margin-bottom:6px;">
+        Leaderboard
+      </h1>
+      <p style="font-family:var(--font-display);font-size:13px;color:#6d6882;">
+        Top contributors ranked by points earned from performance reports, votes, and community activity.
+      </p>
+    </div>
+
+    <!-- Stats bar -->
+    <div style="display:flex;gap:24px;margin-bottom:28px;flex-wrap:wrap;">
+      <div>
+        <div style="font-family:var(--font-mono);font-size:18px;font-weight:800;color:#a78bfa;">{totalUsers}</div>
+        <div style="font-family:var(--font-mono);font-size:9px;color:#4a4560;letter-spacing:0.06em;">CONTRIBUTORS</div>
+      </div>
+      <div>
+        <div style="font-family:var(--font-mono);font-size:18px;font-weight:800;color:#4ade80;">{totalReports.toLocaleString()}</div>
+        <div style="font-family:var(--font-mono);font-size:9px;color:#4a4560;letter-spacing:0.06em;">REPORTS</div>
+      </div>
+      <div>
+        <div style="font-family:var(--font-mono);font-size:18px;font-weight:800;color:#facc15;">{totalPoints.toLocaleString()}</div>
+        <div style="font-family:var(--font-mono);font-size:9px;color:#4a4560;letter-spacing:0.06em;">TOTAL POINTS</div>
+      </div>
+    </div>
+
+    <!-- Table -->
+    {users.length === 0 ? (
+      <div style="text-align:center;padding:60px 20px;">
+        <div style="font-family:var(--font-display);font-size:18px;color:#6d6882;margin-bottom:8px;">No contributors yet</div>
+        <p style="font-family:var(--font-display);font-size:13px;color:#4a4560;">Be the first to <a href="/report/new" style="color:#a78bfa;text-decoration:underline;">submit a report</a>!</p>
+      </div>
+    ) : (
+      <div style="border-radius:14px;overflow:hidden;border:1px solid rgba(255,255,255,0.06);">
+        {users.map((u) => (
+          <a href={u.profileUrl} style={`display:flex;align-items:center;gap:12px;padding:12px 16px;background:${u.bgColor};text-decoration:none;transition:background 0.12s;border-bottom:1px solid rgba(255,255,255,0.03);`}>
+            <div style={`font-family:var(--font-mono);font-size:${u.rankFontSize};font-weight:800;color:${u.rankColor};width:32px;text-align:center;flex-shrink:0;`}>
+              {u.rankDisplay}
+            </div>
+
+            <div style="width:32px;height:32px;border-radius:50%;overflow:hidden;flex-shrink:0;background:#12101a;">
+              {u.avatar ? (
+                <img src={u.avatar} alt="" style="width:100%;height:100%;object-fit:cover;" loading="lazy" />
+              ) : (
+                <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-size:14px;font-weight:700;color:#6d6882;">
+                  {u.displayName.charAt(0).toUpperCase()}
+                </div>
+              )}
+            </div>
+
+            <div style="flex:1;min-width:0;">
+              <div style="display:flex;align-items:center;gap:6px;">
+                <span style="font-family:var(--font-display);font-size:13px;font-weight:700;color:#e0dce8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                  {u.displayName}
+                </span>
+                {u.isVerified && (
+                  <span style="font-size:12px;color:#4ade80;" title="Verified Tester">✓</span>
+                )}
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;">
+                <span style={`font-family:var(--font-mono);font-size:9px;font-weight:600;color:${u.levelColor};`}>{u.levelLabel}</span>
+                <span style="font-family:var(--font-mono);font-size:9px;color:#4a4560;">{u.reports} reports</span>
+              </div>
+            </div>
+
+            <div style="text-align:right;flex-shrink:0;">
+              <div style="font-family:var(--font-mono);font-size:16px;font-weight:800;color:#a78bfa;">{u.points.toLocaleString()}</div>
+              <div style="font-family:var(--font-mono);font-size:8px;color:#4a4560;letter-spacing:0.06em;">PTS</div>
+            </div>
+          </a>
+        ))}
+      </div>
+    )}
+
+    <!-- CTA -->
+    <div style="margin-top:32px;text-align:center;">
+      <p style="font-family:var(--font-display);font-size:13px;color:#6d6882;margin-bottom:12px;">
+        Earn points by submitting performance reports and helping the community.
+      </p>
+      <a href="/report/new" style="display:inline-block;font-family:var(--font-mono);font-size:11px;font-weight:700;letter-spacing:0.06em;color:#08070c;background:#a78bfa;padding:12px 28px;border-radius:10px;text-decoration:none;box-shadow:0 0 20px rgba(167,139,250,0.2);transition:all 0.2s;">
+        SUBMIT REPORT
+      </a>
+    </div>
+
+  </div>
+</div>
+
+</BaseLayout>

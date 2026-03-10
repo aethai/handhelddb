@@ -47,14 +47,14 @@ const devicesStr = Array.isArray(article.devices) ? article.devices.join(', ') :
   <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
     <div class="mb-8">
       <div class="flex items-center gap-3 mb-2">
-        <a href="/admin/articles" class="text-[#6B7280] hover:text-white transition-colors">
+        <a href="/admin/articles" class="text-[#55555e] hover:text-white transition-colors">
           <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
           </svg>
         </a>
         <h1 class="text-2xl font-bold text-white">Edit Article</h1>
       </div>
-      <p class="mt-1 text-sm text-[#9CA3AF]">Editing: {article.title}</p>
+      <p class="mt-1 text-sm text-[#8a8a94]">Editing: {article.title}</p>
     </div>
 
     <div class="flex flex-col lg:flex-row gap-8">
@@ -65,25 +65,25 @@ const devicesStr = Array.isArray(article.devices) ? article.devices.join(', ') :
           <!-- Title & Slug -->
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label for="title" class="block text-sm font-medium text-[#9CA3AF] mb-1">Title *</label>
+              <label for="title" class="block text-sm font-medium text-[#8a8a94] mb-1">Title *</label>
               <input
                 type="text"
                 id="title"
                 name="title"
                 required
                 value={article.title}
-                class="w-full rounded-lg border border-[#3A3D45] bg-[#16181D] px-4 py-2.5 text-sm text-white placeholder-[#6B7280] focus:border-[#60A5FA] focus:ring-1 focus:ring-[#60A5FA] focus:outline-none"
+                class="w-full rounded-lg border border-[#25252e] bg-[#0f0f12] px-4 py-2.5 text-sm text-white placeholder-[#55555e] focus:border-[#7c6cf0] focus:ring-1 focus:ring-[#7c6cf0] focus:outline-none"
               />
             </div>
             <div>
-              <label for="slug" class="block text-sm font-medium text-[#9CA3AF] mb-1">Slug</label>
+              <label for="slug" class="block text-sm font-medium text-[#8a8a94] mb-1">Slug</label>
               <input
                 type="text"
                 id="slug"
                 name="slug"
                 value={article.slug}
                 data-manual="true"
-                class="w-full rounded-lg border border-[#3A3D45] bg-[#16181D] px-4 py-2.5 text-sm text-white placeholder-[#6B7280] focus:border-[#60A5FA] focus:ring-1 focus:ring-[#60A5FA] focus:outline-none"
+                class="w-full rounded-lg border border-[#25252e] bg-[#0f0f12] px-4 py-2.5 text-sm text-white placeholder-[#55555e] focus:border-[#7c6cf0] focus:ring-1 focus:ring-[#7c6cf0] focus:outline-none"
               />
             </div>
           </div>
@@ -91,12 +91,12 @@ const devicesStr = Array.isArray(article.devices) ? article.devices.join(', ') :
           <!-- Category & Status -->
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label for="category" class="block text-sm font-medium text-[#9CA3AF] mb-1">Category *</label>
+              <label for="category" class="block text-sm font-medium text-[#8a8a94] mb-1">Category *</label>
               <select
                 id="category"
                 name="category"
                 required
-                class="w-full rounded-lg border border-[#3A3D45] bg-[#16181D] px-4 py-2.5 text-sm text-white focus:border-[#60A5FA] focus:ring-1 focus:ring-[#60A5FA] focus:outline-none"
+                class="w-full rounded-lg border border-[#25252e] bg-[#0f0f12] px-4 py-2.5 text-sm text-white focus:border-[#7c6cf0] focus:ring-1 focus:ring-[#7c6cf0] focus:outline-none"
               >
                 {categories.map(cat => (
                   <option value={cat} selected={article.category === cat}>{categoryLabel(cat)}</option>
@@ -104,11 +104,11 @@ const devicesStr = Array.isArray(article.devices) ? article.devices.join(', ') :
               </select>
             </div>
             <div>
-              <label for="status" class="block text-sm font-medium text-[#9CA3AF] mb-1">Status</label>
+              <label for="status" class="block text-sm font-medium text-[#8a8a94] mb-1">Status</label>
               <select
                 id="status"
                 name="status"
-                class="w-full rounded-lg border border-[#3A3D45] bg-[#16181D] px-4 py-2.5 text-sm text-white focus:border-[#60A5FA] focus:ring-1 focus:ring-[#60A5FA] focus:outline-none"
+                class="w-full rounded-lg border border-[#25252e] bg-[#0f0f12] px-4 py-2.5 text-sm text-white focus:border-[#7c6cf0] focus:ring-1 focus:ring-[#7c6cf0] focus:outline-none"
               >
                 {statuses.map(s => (
                   <option value={s} selected={article.status === s}>{s.replace('_', ' ').replace(/\b\w/g, c => c.toUpperCase())}</option>
@@ -119,123 +119,123 @@ const devicesStr = Array.isArray(article.devices) ? article.devices.join(', ') :
 
           <!-- Lead -->
           <div>
-            <label for="lead" class="block text-sm font-medium text-[#9CA3AF] mb-1">Lead / Summary *</label>
+            <label for="lead" class="block text-sm font-medium text-[#8a8a94] mb-1">Lead / Summary *</label>
             <textarea
               id="lead"
               name="lead"
               required
               rows="3"
-              class="w-full rounded-lg border border-[#3A3D45] bg-[#16181D] px-4 py-2.5 text-sm text-white placeholder-[#6B7280] focus:border-[#60A5FA] focus:ring-1 focus:ring-[#60A5FA] focus:outline-none resize-y"
+              class="w-full rounded-lg border border-[#25252e] bg-[#0f0f12] px-4 py-2.5 text-sm text-white placeholder-[#55555e] focus:border-[#7c6cf0] focus:ring-1 focus:ring-[#7c6cf0] focus:outline-none resize-y"
             >{article.lead}</textarea>
           </div>
 
           <!-- Body -->
           <div>
-            <label for="body" class="block text-sm font-medium text-[#9CA3AF] mb-1">Body (HTML) *</label>
+            <label for="body" class="block text-sm font-medium text-[#8a8a94] mb-1">Body (HTML) *</label>
             <textarea
               id="body"
               name="body"
               required
               rows="16"
-              class="w-full rounded-lg border border-[#3A3D45] bg-[#16181D] px-4 py-2.5 text-sm text-white font-mono placeholder-[#6B7280] focus:border-[#60A5FA] focus:ring-1 focus:ring-[#60A5FA] focus:outline-none resize-y"
+              class="w-full rounded-lg border border-[#25252e] bg-[#0f0f12] px-4 py-2.5 text-sm text-white font-mono placeholder-[#55555e] focus:border-[#7c6cf0] focus:ring-1 focus:ring-[#7c6cf0] focus:outline-none resize-y"
             >{article.body}</textarea>
           </div>
 
           <!-- Cover Image -->
           <div>
-            <label for="cover_image" class="block text-sm font-medium text-[#9CA3AF] mb-1">Cover Image URL</label>
+            <label for="cover_image" class="block text-sm font-medium text-[#8a8a94] mb-1">Cover Image URL</label>
             <input
               type="url"
               id="cover_image"
               name="cover_image"
               value={article.cover_image ?? ''}
-              class="w-full rounded-lg border border-[#3A3D45] bg-[#16181D] px-4 py-2.5 text-sm text-white placeholder-[#6B7280] focus:border-[#60A5FA] focus:ring-1 focus:ring-[#60A5FA] focus:outline-none"
+              class="w-full rounded-lg border border-[#25252e] bg-[#0f0f12] px-4 py-2.5 text-sm text-white placeholder-[#55555e] focus:border-[#7c6cf0] focus:ring-1 focus:ring-[#7c6cf0] focus:outline-none"
               placeholder="https://example.com/image.jpg"
             />
             {article.cover_image && (
-              <img src={article.cover_image} alt="Cover preview" class="mt-2 h-32 rounded-lg object-cover border border-[#3A3D45]" />
+              <img src={article.cover_image} alt="Cover preview" class="mt-2 h-32 rounded-lg object-cover border border-[#25252e]" />
             )}
           </div>
 
           <!-- Tags & Devices -->
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label for="tags" class="block text-sm font-medium text-[#9CA3AF] mb-1">Tags (comma-separated)</label>
+              <label for="tags" class="block text-sm font-medium text-[#8a8a94] mb-1">Tags (comma-separated)</label>
               <input
                 type="text"
                 id="tags"
                 name="tags"
                 value={tagsStr}
-                class="w-full rounded-lg border border-[#3A3D45] bg-[#16181D] px-4 py-2.5 text-sm text-white placeholder-[#6B7280] focus:border-[#60A5FA] focus:ring-1 focus:ring-[#60A5FA] focus:outline-none"
+                class="w-full rounded-lg border border-[#25252e] bg-[#0f0f12] px-4 py-2.5 text-sm text-white placeholder-[#55555e] focus:border-[#7c6cf0] focus:ring-1 focus:ring-[#7c6cf0] focus:outline-none"
                 placeholder="steam-deck, performance, update"
               />
             </div>
             <div>
-              <label for="devices" class="block text-sm font-medium text-[#9CA3AF] mb-1">Devices (comma-separated slugs)</label>
+              <label for="devices" class="block text-sm font-medium text-[#8a8a94] mb-1">Devices (comma-separated slugs)</label>
               <input
                 type="text"
                 id="devices"
                 name="devices"
                 value={devicesStr}
-                class="w-full rounded-lg border border-[#3A3D45] bg-[#16181D] px-4 py-2.5 text-sm text-white placeholder-[#6B7280] focus:border-[#60A5FA] focus:ring-1 focus:ring-[#60A5FA] focus:outline-none"
+                class="w-full rounded-lg border border-[#25252e] bg-[#0f0f12] px-4 py-2.5 text-sm text-white placeholder-[#55555e] focus:border-[#7c6cf0] focus:ring-1 focus:ring-[#7c6cf0] focus:outline-none"
                 placeholder="steam-deck-oled, rog-ally-x"
               />
             </div>
           </div>
 
           <!-- SEO -->
-          <div class="rounded-xl border border-[#2A2D35] bg-[#16181D]/50 p-4 space-y-4">
-            <h3 class="text-sm font-semibold text-[#9CA3AF]">SEO</h3>
+          <div class="rounded-xl border border-[#1a1a22] bg-[#0f0f12]/50 p-4 space-y-4">
+            <h3 class="text-sm font-semibold text-[#8a8a94]">SEO</h3>
             <div>
-              <label for="meta_title" class="block text-sm font-medium text-[#9CA3AF] mb-1">Meta Title</label>
+              <label for="meta_title" class="block text-sm font-medium text-[#8a8a94] mb-1">Meta Title</label>
               <input
                 type="text"
                 id="meta_title"
                 name="meta_title"
                 value={article.meta_title ?? ''}
-                class="w-full rounded-lg border border-[#3A3D45] bg-[#16181D] px-4 py-2.5 text-sm text-white placeholder-[#6B7280] focus:border-[#60A5FA] focus:ring-1 focus:ring-[#60A5FA] focus:outline-none"
+                class="w-full rounded-lg border border-[#25252e] bg-[#0f0f12] px-4 py-2.5 text-sm text-white placeholder-[#55555e] focus:border-[#7c6cf0] focus:ring-1 focus:ring-[#7c6cf0] focus:outline-none"
               />
             </div>
             <div>
-              <label for="meta_description" class="block text-sm font-medium text-[#9CA3AF] mb-1">Meta Description</label>
+              <label for="meta_description" class="block text-sm font-medium text-[#8a8a94] mb-1">Meta Description</label>
               <textarea
                 id="meta_description"
                 name="meta_description"
                 rows="2"
-                class="w-full rounded-lg border border-[#3A3D45] bg-[#16181D] px-4 py-2.5 text-sm text-white placeholder-[#6B7280] focus:border-[#60A5FA] focus:ring-1 focus:ring-[#60A5FA] focus:outline-none resize-y"
+                class="w-full rounded-lg border border-[#25252e] bg-[#0f0f12] px-4 py-2.5 text-sm text-white placeholder-[#55555e] focus:border-[#7c6cf0] focus:ring-1 focus:ring-[#7c6cf0] focus:outline-none resize-y"
               >{article.meta_description ?? ''}</textarea>
             </div>
           </div>
 
           <!-- Article info -->
-          <div class="rounded-xl border border-[#2A2D35] bg-[#16181D]/50 p-4">
-            <h3 class="text-sm font-semibold text-[#9CA3AF] mb-3">Article Info</h3>
+          <div class="rounded-xl border border-[#1a1a22] bg-[#0f0f12]/50 p-4">
+            <h3 class="text-sm font-semibold text-[#8a8a94] mb-3">Article Info</h3>
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
               <div>
-                <span class="text-[#6B7280]">Created</span>
+                <span class="text-[#55555e]">Created</span>
                 <p class="text-white">{new Date(article.created_at).toLocaleDateString()}</p>
               </div>
               <div>
-                <span class="text-[#6B7280]">Updated</span>
+                <span class="text-[#55555e]">Updated</span>
                 <p class="text-white">{new Date(article.updated_at).toLocaleDateString()}</p>
               </div>
               <div>
-                <span class="text-[#6B7280]">Views</span>
+                <span class="text-[#55555e]">Views</span>
                 <p class="text-white">{(article.view_count ?? 0).toLocaleString()}</p>
               </div>
               <div>
-                <span class="text-[#6B7280]">AI Generated</span>
+                <span class="text-[#55555e]">AI Generated</span>
                 <p class="text-white">{article.ai_generated ? 'Yes' : 'No'}</p>
               </div>
             </div>
           </div>
 
           <!-- Actions -->
-          <div class="flex items-center gap-3 pt-4 border-t border-[#2A2D35]">
+          <div class="flex items-center gap-3 pt-4 border-t border-[#1a1a22]">
             <button
               type="submit"
               id="btn-save"
-              class="rounded-lg bg-[#3A3D45] px-5 py-2.5 text-sm font-medium text-white hover:bg-[#4B5563] transition-colors"
+              class="rounded-lg bg-[#25252e] px-5 py-2.5 text-sm font-medium text-white hover:bg-[#35353e] transition-colors"
             >
               Save Changes
             </button>
@@ -243,18 +243,18 @@ const devicesStr = Array.isArray(article.devices) ? article.devices.join(', ') :
               <button
                 type="button"
                 id="btn-publish"
-                class="rounded-lg bg-[#60A5FA] px-5 py-2.5 text-sm font-medium text-white hover:bg-[#3B82F6] transition-colors"
+                class="rounded-lg bg-[#7c6cf0] px-5 py-2.5 text-sm font-medium text-white hover:bg-[#6d5cff] transition-colors"
               >
                 Save &amp; Publish
               </button>
             )}
             <a
               href="/admin/articles"
-              class="rounded-lg border border-[#3A3D45] px-5 py-2.5 text-sm font-medium text-[#9CA3AF] hover:text-white hover:bg-[#2A2D35] transition-colors"
+              class="rounded-lg border border-[#25252e] px-5 py-2.5 text-sm font-medium text-[#8a8a94] hover:text-white hover:bg-[#1a1a22] transition-colors"
             >
               Cancel
             </a>
-            <div id="save-status" class="ml-auto text-sm text-[#6B7280] hidden"></div>
+            <div id="save-status" class="ml-auto text-sm text-[#55555e] hidden"></div>
           </div>
         </form>
       </div>
@@ -329,7 +329,7 @@ const devicesStr = Array.isArray(article.devices) ? article.devices.join(', ') :
       }
 
       saveStatus.textContent = 'Saving...';
-      saveStatus.classList.remove('hidden', 'text-red-400', 'text-[#60A5FA]');
+      saveStatus.classList.remove('hidden', 'text-red-400', 'text-[#7c6cf0]');
 
       try {
         const res = await fetch('/api/admin/articles', {
@@ -347,7 +347,7 @@ const devicesStr = Array.isArray(article.devices) ? article.devices.join(', ') :
         }
 
         saveStatus.textContent = 'Saved successfully!';
-        saveStatus.classList.add('text-[#60A5FA]');
+        saveStatus.classList.add('text-[#7c6cf0]');
         setTimeout(() => saveStatus.classList.add('hidden'), 3000);
       } catch {
         saveStatus.textContent = 'Network error';

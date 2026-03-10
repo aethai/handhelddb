@@ -8,6 +8,8 @@ interface Props {
     genres?: string[] | null;
     developers?: string[] | null;
     metacritic_score?: number | null;
+    steam_review_score?: number | null;
+    steam_review_count?: number | null;
     release_date?: string | null;
     steam_appid?: number | null;
     slug: string;
@@ -54,7 +56,15 @@ if (game.release_date) {
   jsonLd.datePublished = new Date(game.release_date).toISOString().split('T')[0];
 }
 
-if (game.metacritic_score) {
+if (game.steam_review_score && game.steam_review_count) {
+  jsonLd.aggregateRating = {
+    '@type': 'AggregateRating',
+    ratingValue: game.steam_review_score,
+    bestRating: 100,
+    worstRating: 0,
+    reviewCount: game.steam_review_count,
+  };
+} else if (game.metacritic_score) {
   jsonLd.aggregateRating = {
     '@type': 'AggregateRating',
     ratingValue: game.metacritic_score,

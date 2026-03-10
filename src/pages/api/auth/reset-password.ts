@@ -1,11 +1,17 @@
 import type { APIRoute } from 'astro';
 import { createClient } from '@supabase/supabase-js';
 import { setAuthCookies, ensureUserProfile } from '@lib/auth/supabase';
+import { rateLimit, rateLimitResponse } from '@lib/rate-limit';
 
 const supabaseUrl = import.meta.env.SUPABASE_URL ?? process.env.SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.SUPABASE_ANON_KEY ?? process.env.SUPABASE_ANON_KEY;
 
 export const POST: APIRoute = async ({ request, cookies }) => {
+  // Rate limit: 10 reset attempts per IP per hour
+  const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown';
+  const rl = rateLimit(`reset-password:${ip}`, 10, 60 * 60 * 1000);
+  if (!rl.allowed) return rateLimitResponse(rl.resetAt);
+
   const json = (body: object, status = 200) =>
     new Response(JSON.stringify(body), {
       status,

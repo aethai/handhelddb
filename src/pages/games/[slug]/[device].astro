@@ -10,7 +10,7 @@ const user = Astro.locals.user;
 // Fetch game, device, and consensus in parallel
 const [gameRes, deviceRes] = await Promise.all([
   supabaseAdmin.from('games').select('*').eq('slug', slug).single(),
-  supabaseAdmin.from('devices').select('*').eq('slug', deviceSlug).single(),
+  supabaseAdmin.from('devices').select('*').eq('slug', deviceSlug).eq('is_active', true).single(),
 ]);
 
 const game = gameRes.data;
@@ -85,14 +85,14 @@ const deckStatusColors: Record<string, { label: string; class: string }> = {
   verified: { label: 'Verified', class: 'bg-green-500/20 text-green-400 border-green-500/30' },
   playable: { label: 'Playable', class: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30' },
   unsupported: { label: 'Unsupported', class: 'bg-red-500/20 text-red-400 border-red-500/30' },
-  unknown: { label: 'Unknown', class: 'bg-[#6B7280]/20 text-[#9CA3AF] border-[#6B7280]/30' },
+  unknown: { label: 'Unknown', class: 'bg-[#55555e]/20 text-[#8a8a94] border-[#55555e]/30' },
 };
 
 const deckInfo = deckStatusColors[game.deck_compatibility ?? 'unknown'] ?? deckStatusColors.unknown;
 const genres = (game.genres as string[]) ?? [];
 
 const ratingEmoji: Record<string, { icon: string; label: string; class: string }> = {
-  excellent: { icon: '🟢', label: 'Excellent', class: 'text-[#60A5FA]' },
+  excellent: { icon: '🟢', label: 'Excellent', class: 'text-[#7c6cf0]' },
   good: { icon: '🟡', label: 'Good', class: 'text-green-400' },
   fair: { icon: '🟠', label: 'Fair', class: 'text-yellow-400' },
   poor: { icon: '🔴', label: 'Poor', class: 'text-orange-400' },
@@ -120,14 +120,14 @@ function formatBattery(hours: number): string {
 >
   <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
     <!-- Breadcrumb -->
-    <nav class="mb-4 text-sm text-[#6B7280]">
+    <nav class="mb-4 text-sm text-[#55555e]">
       <a href="/" class="hover:text-white transition-colors">Home</a>
       <span class="mx-2">/</span>
       <a href="/games" class="hover:text-white transition-colors">Games</a>
       <span class="mx-2">/</span>
       <a href={`/games/${slug}`} class="hover:text-white transition-colors">{game.name}</a>
       <span class="mx-2">/</span>
-      <span class="text-[#9CA3AF]">{device.name}</span>
+      <span class="text-[#8a8a94]">{device.name}</span>
     </nav>
 
     <div class="flex flex-col lg:flex-row gap-8">
@@ -138,10 +138,10 @@ function formatBattery(hours: number): string {
           {game.header_image && (
             <img src={game.header_image} alt={game.name} class="absolute inset-0 w-full h-full object-cover" />
           )}
-          <div class="absolute inset-0 bg-gradient-to-t from-[#0F1115] via-[#0F1115]/70 to-[#0F1115]/30"></div>
+          <div class="absolute inset-0 bg-gradient-to-t from-[#08080a] via-[#08080a]/70 to-[#08080a]/30"></div>
           <div class="absolute bottom-5 left-6 right-6">
             <h1 class="text-2xl sm:text-3xl font-bold text-white">{game.name}</h1>
-            <p class="mt-1 text-[#60A5FA] font-medium">on {device.name}</p>
+            <p class="mt-1 text-[#7c6cf0] font-medium">on {device.name}</p>
           </div>
         </div>
 
@@ -149,26 +149,26 @@ function formatBattery(hours: number): string {
         {hasReports && (
           <div class="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-3">
             {avgFps != null && (
-              <div class="luxury-card rounded-xl border border-[#2A2D35] bg-[#16181D] p-5 text-center">
+              <div class="luxury-card rounded-xl border border-[#1a1a22] bg-[#0f0f12] p-5 text-center">
                 <p class={`font-mono text-3xl font-bold ${fpsColor(avgFps)}`}>{avgFps}</p>
-                <p class="text-xs text-[#6B7280] mt-1">Avg FPS</p>
+                <p class="text-xs text-[#55555e] mt-1">Avg FPS</p>
               </div>
             )}
             {avgTdp != null && (
-              <div class="luxury-card rounded-xl border border-[#2A2D35] bg-[#16181D] p-5 text-center">
-                <p class="font-mono text-3xl font-bold text-[#60A5FA]">{avgTdp}<span class="text-lg">W</span></p>
-                <p class="text-xs text-[#6B7280] mt-1">Avg TDP</p>
+              <div class="luxury-card rounded-xl border border-[#1a1a22] bg-[#0f0f12] p-5 text-center">
+                <p class="font-mono text-3xl font-bold text-[#7c6cf0]">{avgTdp}<span class="text-lg">W</span></p>
+                <p class="text-xs text-[#55555e] mt-1">Avg TDP</p>
               </div>
             )}
             {avgBattery != null && (
-              <div class="luxury-card rounded-xl border border-[#2A2D35] bg-[#16181D] p-5 text-center">
+              <div class="luxury-card rounded-xl border border-[#1a1a22] bg-[#0f0f12] p-5 text-center">
                 <p class="font-mono text-3xl font-bold text-purple-400">{formatBattery(avgBattery)}</p>
-                <p class="text-xs text-[#6B7280] mt-1">Avg Battery</p>
+                <p class="text-xs text-[#55555e] mt-1">Avg Battery</p>
               </div>
             )}
-            <div class="luxury-card rounded-xl border border-[#2A2D35] bg-[#16181D] p-5 text-center">
+            <div class="luxury-card rounded-xl border border-[#1a1a22] bg-[#0f0f12] p-5 text-center">
               <p class="font-mono text-3xl font-bold text-white">{reportList.length}</p>
-              <p class="text-xs text-[#6B7280] mt-1">Reports</p>
+              <p class="text-xs text-[#55555e] mt-1">Reports</p>
             </div>
           </div>
         )}
@@ -187,21 +187,21 @@ function formatBattery(hours: number): string {
 
         <!-- Battery Estimator -->
         {device.battery_wh && avgTdp && (
-          <div class="mt-6 rounded-xl border border-[#2A2D35] bg-[#16181D] p-5">
-            <h3 class="text-sm font-semibold text-[#60A5FA] mb-3">Battery Estimate</h3>
+          <div class="mt-6 rounded-xl border border-[#1a1a22] bg-[#0f0f12] p-5">
+            <h3 class="text-sm font-semibold text-[#7c6cf0] mb-3">Battery Estimate</h3>
             <div class="flex items-center gap-6">
               <div class="flex-1">
                 <div class="flex items-center justify-between text-sm mb-1">
-                  <span class="text-[#9CA3AF]">With this game at {avgTdp}W</span>
+                  <span class="text-[#8a8a94]">With this game at {avgTdp}W</span>
                   <span class="text-white font-medium">{formatBattery(device.battery_wh / avgTdp)}</span>
                 </div>
-                <div class="h-2 rounded-full bg-[#2A2D35] overflow-hidden">
+                <div class="h-2 rounded-full bg-[#1a1a22] overflow-hidden">
                   <div
-                    class="h-full rounded-full bg-gradient-to-r from-[#60A5FA] to-[#60A5FA]"
+                    class="h-full rounded-full bg-gradient-to-r from-[#7c6cf0] to-[#7c6cf0]"
                     style={`width: ${Math.min(100, (device.battery_wh / avgTdp / 5) * 100)}%`}
                   ></div>
                 </div>
-                <p class="text-xs text-[#4B5563] mt-1">{device.battery_wh} Wh battery / {avgTdp}W average draw</p>
+                <p class="text-xs text-[#35353e] mt-1">{device.battery_wh} Wh battery / {avgTdp}W average draw</p>
               </div>
             </div>
           </div>
@@ -213,7 +213,7 @@ function formatBattery(hours: number): string {
             <h2 class="text-xl font-bold text-white">Performance Reports</h2>
             <a
               href={`/report/new?game=${game.id}&gameName=${encodeURIComponent(game.name)}&device=${device.id}`}
-              class="inline-flex items-center gap-1.5 rounded-lg bg-[#60A5FA] px-3 py-1.5 text-sm font-medium text-white hover:bg-[#3B82F6] transition-colors"
+              class="inline-flex items-center gap-1.5 rounded-lg bg-[#7c6cf0] px-3 py-1.5 text-sm font-medium text-white hover:bg-[#6d5cff] transition-colors"
             >
               <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" /></svg>
               Add Report
@@ -221,17 +221,17 @@ function formatBattery(hours: number): string {
           </div>
 
           {!hasReports ? (
-            <div class="rounded-xl border border-[#2A2D35] bg-[#16181D] p-8 text-center">
-              <div class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-[#2A2D35]">
-                <svg class="h-8 w-8 text-[#4B5563]" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+            <div class="rounded-xl border border-[#1a1a22] bg-[#0f0f12] p-8 text-center">
+              <div class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-[#1a1a22]">
+                <svg class="h-8 w-8 text-[#35353e]" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3v11.25A2.25 2.25 0 006 16.5h2.25M3.75 3h-1.5m1.5 0h16.5m0 0h1.5m-1.5 0v11.25A2.25 2.25 0 0118 16.5h-2.25m-7.5 0h7.5m-7.5 0l-1 3m8.5-3l1 3m0 0l.5 1.5m-.5-1.5h-9.5m0 0l-.5 1.5" />
                 </svg>
               </div>
               <h3 class="text-lg font-semibold text-white">No reports for {device.name} yet</h3>
-              <p class="mt-2 text-sm text-[#9CA3AF]">Be the first to report how {game.name} runs on {device.name}!</p>
+              <p class="mt-2 text-sm text-[#8a8a94]">Be the first to report how {game.name} runs on {device.name}!</p>
               <a
                 href={`/report/new?game=${game.id}&gameName=${encodeURIComponent(game.name)}&device=${device.id}`}
-                class="mt-4 inline-flex items-center gap-2 rounded-lg bg-[#60A5FA] px-4 py-2 text-sm font-medium text-white hover:bg-[#3B82F6] transition-colors"
+                class="mt-4 inline-flex items-center gap-2 rounded-lg bg-[#7c6cf0] px-4 py-2 text-sm font-medium text-white hover:bg-[#6d5cff] transition-colors"
               >
                 <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" /></svg>
                 Submit First Report
@@ -242,20 +242,20 @@ function formatBattery(hours: number): string {
               {reportList.map((report) => {
                 const rating = ratingEmoji[report.overall_rating] ?? ratingEmoji.fair;
                 return (
-                  <div class="luxury-card rounded-xl border border-[#2A2D35] bg-[#16181D] p-5">
+                  <div class="luxury-card rounded-xl border border-[#1a1a22] bg-[#0f0f12] p-5">
                     <div class="flex items-start justify-between gap-4">
                       <div class="flex items-center gap-3">
                         {report.user?.avatar_url ? (
                           <img src={report.user.avatar_url} alt="" class="h-8 w-8 rounded-full" loading="lazy" />
                         ) : (
-                          <div class="h-8 w-8 rounded-full bg-[#60A5FA] flex items-center justify-center text-xs font-bold text-white">
+                          <div class="h-8 w-8 rounded-full bg-[#7c6cf0] flex items-center justify-center text-xs font-bold text-white">
                             {(report.user?.display_name ?? 'A').charAt(0).toUpperCase()}
                           </div>
                         )}
                         <div>
                           <p class="text-sm font-medium text-white">{report.user?.display_name ?? 'Anonymous'}</p>
                           <div class="flex items-center gap-2">
-                            <p class="text-xs text-[#6B7280]">{new Date(report.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</p>
+                            <p class="text-xs text-[#55555e]">{new Date(report.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</p>
                             <span class={`text-xs font-medium ${rating.class}`}>{rating.icon} {rating.label}</span>
                           </div>
                         </div>
@@ -278,56 +278,73 @@ function formatBattery(hours: number): string {
                     <div class="mt-3 grid grid-cols-2 sm:grid-cols-4 gap-3">
                       {report.resolution && (
                         <div>
-                          <p class="text-xs text-[#6B7280]">Resolution</p>
-                          <p class="text-sm text-[#9CA3AF]">{report.resolution}</p>
+                          <p class="text-xs text-[#55555e]">Resolution</p>
+                          <p class="text-sm text-[#8a8a94]">{report.resolution}</p>
                         </div>
                       )}
                       {report.preset && (
                         <div>
-                          <p class="text-xs text-[#6B7280]">Preset</p>
-                          <p class="text-sm text-[#9CA3AF] capitalize">{report.preset.replace('_', ' ')}</p>
+                          <p class="text-xs text-[#55555e]">Preset</p>
+                          <p class="text-sm text-[#8a8a94] capitalize">{report.preset.replace('_', ' ')}</p>
                         </div>
                       )}
                       {report.tdp_limit_watts && (
                         <div>
-                          <p class="text-xs text-[#6B7280]">TDP</p>
-                          <p class="text-sm text-[#9CA3AF]">{report.tdp_limit_watts}W</p>
+                          <p class="text-xs text-[#55555e]">TDP</p>
+                          <p class="text-sm text-[#8a8a94]">{report.tdp_limit_watts}W</p>
                         </div>
                       )}
                       {report.battery_life_hours && (
                         <div>
-                          <p class="text-xs text-[#6B7280]">Battery</p>
-                          <p class="text-sm text-[#9CA3AF]">{formatBattery(report.battery_life_hours)}</p>
+                          <p class="text-xs text-[#55555e]">Battery</p>
+                          <p class="text-sm text-[#8a8a94]">{formatBattery(report.battery_life_hours)}</p>
                         </div>
                       )}
                       {report.thermal && (
                         <div>
-                          <p class="text-xs text-[#6B7280]">Thermal</p>
-                          <p class="text-sm text-[#9CA3AF] capitalize">{report.thermal}</p>
+                          <p class="text-xs text-[#55555e]">Thermal</p>
+                          <p class="text-sm text-[#8a8a94] capitalize">{report.thermal}</p>
                         </div>
                       )}
                       {report.fan_noise && (
                         <div>
-                          <p class="text-xs text-[#6B7280]">Fan</p>
-                          <p class="text-sm text-[#9CA3AF] capitalize">{report.fan_noise}</p>
+                          <p class="text-xs text-[#55555e]">Fan</p>
+                          <p class="text-sm text-[#8a8a94] capitalize">{report.fan_noise}</p>
                         </div>
                       )}
                       {report.fsr_enabled && (
                         <div>
-                          <p class="text-xs text-[#6B7280]">FSR/DLSS</p>
-                          <p class="text-sm text-[#9CA3AF] capitalize">{report.fsr_mode ?? 'Enabled'}</p>
+                          <p class="text-xs text-[#55555e]">FSR/DLSS</p>
+                          <p class="text-sm text-[#8a8a94] capitalize">{report.fsr_mode ?? 'Enabled'}</p>
                         </div>
                       )}
                       {report.fps_stability && (
                         <div>
-                          <p class="text-xs text-[#6B7280]">Stability</p>
-                          <p class="text-sm text-[#9CA3AF] capitalize">{report.fps_stability.replace('_', ' ')}</p>
+                          <p class="text-xs text-[#55555e]">Stability</p>
+                          <p class="text-sm text-[#8a8a94] capitalize">{report.fps_stability.replace('_', ' ')}</p>
+                        </div>
+                      )}
+                      {report.proton_version && (
+                        <div>
+                          <p class="text-xs text-[#55555e]">Proton</p>
+                          <p class="text-sm text-[#8a8a94]">{report.proton_version}</p>
                         </div>
                       )}
                     </div>
 
+                    {report.custom_settings && Object.keys(report.custom_settings).length > 0 && (
+                      <div class="mt-3 flex flex-wrap gap-2">
+                        {Object.entries(report.custom_settings).map(([key, value]) => (
+                          <span class="inline-flex items-center rounded-md bg-[#1a1a22] px-2 py-1 text-xs">
+                            <span class="text-[#8a8a94]">{key}:</span>
+                            <span class="ml-1 text-white">{value}</span>
+                          </span>
+                        ))}
+                      </div>
+                    )}
+
                     {report.notes && (
-                      <p class="mt-3 text-sm text-[#9CA3AF] leading-relaxed">{report.notes}</p>
+                      <p class="mt-3 text-sm text-[#8a8a94] leading-relaxed">{report.notes}</p>
                     )}
                   </div>
                 );
@@ -340,64 +357,64 @@ function formatBattery(hours: number): string {
       <!-- SIDEBAR -->
       <aside class="w-full lg:w-64 flex-shrink-0 space-y-4">
         <!-- Device Quick Specs -->
-        <div class="rounded-xl border border-[#2A2D35] bg-[#16181D] p-5">
-          <h3 class="text-xs font-semibold mb-3 text-[#60A5FA]">{device.name}</h3>
+        <div class="rounded-xl border border-[#1a1a22] bg-[#0f0f12] p-5">
+          <h3 class="text-xs font-semibold mb-3 text-[#7c6cf0]">{device.name}</h3>
           {device.image && (
-            <div class="mb-3 rounded-lg overflow-hidden bg-[#2A2D35]">
+            <div class="mb-3 rounded-lg overflow-hidden bg-[#1a1a22]">
               <img src={device.image} alt={device.name} class="w-full h-auto" loading="lazy" />
             </div>
           )}
           <dl class="space-y-2 text-sm">
             {device.chip && (
-              <div class="flex justify-between"><dt class="text-[#6B7280]">Chip</dt><dd class="text-[#9CA3AF]">{device.chip}</dd></div>
+              <div class="flex justify-between"><dt class="text-[#55555e]">Chip</dt><dd class="text-[#8a8a94]">{device.chip}</dd></div>
             )}
             {device.screen_size && (
-              <div class="flex justify-between"><dt class="text-[#6B7280]">Screen</dt><dd class="text-[#9CA3AF]">{device.screen_size}"</dd></div>
+              <div class="flex justify-between"><dt class="text-[#55555e]">Screen</dt><dd class="text-[#8a8a94]">{device.screen_size}"</dd></div>
             )}
             {device.battery_wh && (
-              <div class="flex justify-between"><dt class="text-[#6B7280]">Battery</dt><dd class="text-[#9CA3AF]">{device.battery_wh} Wh</dd></div>
+              <div class="flex justify-between"><dt class="text-[#55555e]">Battery</dt><dd class="text-[#8a8a94]">{device.battery_wh} Wh</dd></div>
             )}
             {device.tdp_min != null && device.tdp_max != null && (
-              <div class="flex justify-between"><dt class="text-[#6B7280]">TDP Range</dt><dd class="text-[#9CA3AF]">{device.tdp_min}-{device.tdp_max}W</dd></div>
+              <div class="flex justify-between"><dt class="text-[#55555e]">TDP Range</dt><dd class="text-[#8a8a94]">{device.tdp_min}-{device.tdp_max}W</dd></div>
             )}
           </dl>
-          <a href={`/devices/${deviceSlug}`} class="mt-3 block text-center text-xs text-[#60A5FA] hover:text-[#93C5FD]">
+          <a href={`/devices/${deviceSlug}`} class="mt-3 block text-center text-xs text-[#7c6cf0] hover:text-[#9b8fff]">
             Full specs →
           </a>
         </div>
 
         <!-- Game Info -->
-        <div class="rounded-xl border border-[#2A2D35] bg-[#16181D] p-5">
-          <h3 class="text-xs font-semibold mb-3 text-[#60A5FA]">Game Info</h3>
+        <div class="rounded-xl border border-[#1a1a22] bg-[#0f0f12] p-5">
+          <h3 class="text-xs font-semibold mb-3 text-[#7c6cf0]">Game Info</h3>
           <dl class="space-y-2 text-sm">
             {genres.length > 0 && (
-              <div class="flex justify-between"><dt class="text-[#6B7280]">Genres</dt><dd class="text-[#9CA3AF] text-right">{genres.slice(0, 3).join(', ')}</dd></div>
+              <div class="flex justify-between"><dt class="text-[#55555e]">Genres</dt><dd class="text-[#8a8a94] text-right">{genres.slice(0, 3).join(', ')}</dd></div>
             )}
             <div class="flex justify-between items-center">
-              <dt class="text-[#6B7280]">Deck Status</dt>
+              <dt class="text-[#55555e]">Deck Status</dt>
               <dd class={`rounded-md px-2 py-0.5 text-xs font-medium ${deckInfo.class}`}>{deckInfo.label}</dd>
             </div>
             {game.metacritic_score && (
               <div class="flex justify-between items-center">
-                <dt class="text-[#6B7280]">Metacritic</dt>
+                <dt class="text-[#55555e]">Metacritic</dt>
                 <dd class={`text-sm font-bold ${game.metacritic_score >= 75 ? 'text-green-400' : game.metacritic_score >= 50 ? 'text-yellow-400' : 'text-red-400'}`}>{game.metacritic_score}</dd>
               </div>
             )}
           </dl>
-          <a href={`/games/${slug}`} class="mt-3 block text-center text-xs text-[#60A5FA] hover:text-[#93C5FD]">
+          <a href={`/games/${slug}`} class="mt-3 block text-center text-xs text-[#7c6cf0] hover:text-[#9b8fff]">
             All devices →
           </a>
         </div>
 
         <!-- Other Devices -->
         {allDevices.length > 0 && (
-          <div class="rounded-xl border border-[#2A2D35] bg-[#16181D] p-5">
-            <h3 class="text-xs font-semibold mb-3 text-[#60A5FA]">Other Devices</h3>
+          <div class="rounded-xl border border-[#1a1a22] bg-[#0f0f12] p-5">
+            <h3 class="text-xs font-semibold mb-3 text-[#7c6cf0]">Other Devices</h3>
             <div class="space-y-1.5">
               {allDevices.map(d => (
-                <a href={`/games/${slug}/${d.slug}`} class="flex items-center justify-between rounded-lg bg-[#2A2D35] px-3 py-2 text-sm text-[#9CA3AF] hover:bg-[#3A3D45] hover:text-white transition-colors">
+                <a href={`/games/${slug}/${d.slug}`} class="flex items-center justify-between rounded-lg bg-[#1a1a22] px-3 py-2 text-sm text-[#8a8a94] hover:bg-[#25252e] hover:text-white transition-colors">
                   <span>{d.name}</span>
-                  <svg class="h-4 w-4 text-[#4B5563]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
+                  <svg class="h-4 w-4 text-[#35353e]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
                 </a>
               ))}
             </div>

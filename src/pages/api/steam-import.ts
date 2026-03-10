@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import { getUser } from '@lib/auth/supabase';
 import { supabaseAdmin } from '@lib/db/client';
+import { rateLimit, rateLimitResponse } from '@lib/rate-limit';
 
 const STEAM_API_KEY = import.meta.env.STEAM_API_KEY ?? process.env.STEAM_API_KEY;
 
@@ -93,6 +94,11 @@ function parseSteamInput(input: string): { type: 'id'; value: string } | { type:
 }
 
 export const POST: APIRoute = async ({ request, cookies }) => {
+  // Rate limit: 5 imports per IP per hour
+  const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown';
+  const rl = rateLimit(`steam-import:${ip}`, 5, 60 * 60 * 1000);
+  if (!rl.allowed) return rateLimitResponse(rl.resetAt);
+
   // Require authentication
   const user = await getUser(cookies);
   if (!user) {

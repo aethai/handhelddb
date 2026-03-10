@@ -1,6 +1,8 @@
 import type { APIRoute } from 'astro';
 import { getUser } from '@lib/auth/supabase';
 import { supabaseAdmin } from '@lib/db/client';
+import { rateLimit, rateLimitResponse } from '@lib/rate-limit';
+import { createNotification, getGameSlug } from '@lib/notifications';
 
 const JSON_HEADERS = { 'Content-Type': 'application/json' };
 const MAX_DEPTH = 3;
@@ -110,6 +112,11 @@ export const GET: APIRoute = async ({ request }) => {
  * Body for vote:    { action: "vote", commentId, isUpvote }
  */
 export const POST: APIRoute = async ({ request, cookies }) => {
+  // Rate limit: 30 comments/votes per IP per 15 minutes
+  const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown';
+  const rl = rateLimit(`comment:${ip}`, 30, 15 * 60 * 1000);
+  if (!rl.allowed) return rateLimitResponse(rl.resetAt);
+
   const user = await getUser(cookies);
   if (!user) {
     return new Response(JSON.stringify({ error: 'Authentication required' }), {
@@ -133,6 +140,11 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     return handleVote(body, user.id);
   }
 
+  // Route to flag handler
+  if (body.action === 'flag') {
+    return handleFlag(body, user.id);
+  }
+
   // --- Create comment ---
   const { gameId, body: commentBody, parentId } = body as {
     gameId?: string;
@@ -151,10 +163,11 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 
   // Determine depth from parent
   let depth = 0;
+  let parentComment: { id: string; depth: number | null; game_id: string; user_id: string } | null = null;
   if (parentId) {
     const { data: parent } = await supabaseAdmin
       .from('comments')
-      .select('id, depth, game_id')
+      .select('id, depth, game_id, user_id')
       .eq('id', parentId)
       .single();
 
@@ -172,6 +185,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
       });
     }
 
+    parentComment = parent;
     depth = Math.min((parent.depth ?? 0) + 1, MAX_DEPTH);
   }
 
@@ -210,6 +224,18 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     .eq('id', user.id)
     .single();
 
+  // Notify parent comment author about the reply (async, non-blocking)
+  if (parentId && parentComment && parentComment.user_id !== user.id) {
+    const slug = await getGameSlug(gameId!);
+    createNotification({
+      userId: parentComment.user_id,
+      type: 'comment_reply',
+      title: `${userProfile?.display_name ?? 'Someone'} replied to your comment`,
+      body: trimmedBody.slice(0, 100),
+      url: slug ? `/games/${slug}` : undefined,
+    });
+  }
+
   return new Response(
     JSON.stringify({
       comment: {
@@ -222,6 +248,102 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     }),
     { status: 201, headers: JSON_HEADERS },
   );
+};
+
+/**
+ * PATCH /api/comments
+ * Edit a comment (only by the comment author, within 15 minutes).
+ * Body: { commentId, body }
+ */
+export const PATCH: APIRoute = async ({ request, cookies }) => {
+  const user = await getUser(cookies);
+  if (!user) {
+    return new Response(JSON.stringify({ error: 'Authentication required' }), {
+      status: 401,
+      headers: JSON_HEADERS,
+    });
+  }
+
+  let body: { commentId?: string; body?: string };
+  try {
+    body = await request.json();
+  } catch {
+    return new Response(JSON.stringify({ error: 'Invalid JSON' }), {
+      status: 400,
+      headers: JSON_HEADERS,
+    });
+  }
+
+  const { commentId, body: newBody } = body;
+  if (!commentId || typeof newBody !== 'string' || !newBody.trim()) {
+    return new Response(JSON.stringify({ error: 'commentId and body are required' }), {
+      status: 400,
+      headers: JSON_HEADERS,
+    });
+  }
+
+  const trimmedBody = newBody.trim().slice(0, MAX_BODY_LENGTH);
+
+  // Fetch comment and verify ownership
+  const { data: comment } = await supabaseAdmin
+    .from('comments')
+    .select('id, user_id, is_deleted, created_at')
+    .eq('id', commentId)
+    .single();
+
+  if (!comment) {
+    return new Response(JSON.stringify({ error: 'Comment not found' }), {
+      status: 404,
+      headers: JSON_HEADERS,
+    });
+  }
+
+  if (comment.user_id !== user.id) {
+    return new Response(JSON.stringify({ error: 'Not authorized to edit this comment' }), {
+      status: 403,
+      headers: JSON_HEADERS,
+    });
+  }
+
+  if (comment.is_deleted) {
+    return new Response(JSON.stringify({ error: 'Cannot edit a deleted comment' }), {
+      status: 400,
+      headers: JSON_HEADERS,
+    });
+  }
+
+  // Time limit: 15 minutes
+  const ageMs = Date.now() - new Date(comment.created_at).getTime();
+  if (ageMs > 15 * 60 * 1000) {
+    return new Response(JSON.stringify({ error: 'Comments can only be edited within 15 minutes of posting' }), {
+      status: 400,
+      headers: JSON_HEADERS,
+    });
+  }
+
+  const bodyHtml = bodyToHtml(trimmedBody);
+
+  const { error } = await supabaseAdmin
+    .from('comments')
+    .update({
+      body: trimmedBody,
+      body_html: bodyHtml,
+      is_edited: true,
+      edited_at: new Date().toISOString(),
+    })
+    .eq('id', commentId);
+
+  if (error) {
+    console.error('Comment edit failed:', error);
+    return new Response(JSON.stringify({ error: 'Failed to edit comment' }), {
+      status: 500,
+      headers: JSON_HEADERS,
+    });
+  }
+
+  return new Response(JSON.stringify({ success: true, body: trimmedBody, body_html: bodyHtml }), {
+    headers: JSON_HEADERS,
+  });
 };
 
 /**
@@ -286,6 +408,28 @@ export const DELETE: APIRoute = async ({ request, cookies }) => {
 };
 
 /**
+ * Recount comment votes from source-of-truth table (avoids race conditions).
+ */
+async function recountCommentVotes(commentId: string) {
+  const { count: upvotes } = await supabaseAdmin
+    .from('comment_votes')
+    .select('comment_id', { count: 'exact', head: true })
+    .eq('comment_id', commentId)
+    .eq('is_upvote', true);
+
+  const { count: downvotes } = await supabaseAdmin
+    .from('comment_votes')
+    .select('comment_id', { count: 'exact', head: true })
+    .eq('comment_id', commentId)
+    .eq('is_upvote', false);
+
+  await supabaseAdmin
+    .from('comments')
+    .update({ upvotes: upvotes ?? 0, downvotes: downvotes ?? 0 })
+    .eq('id', commentId);
+}
+
+/**
  * Handle vote on a comment. Toggle logic matching report votes.
  */
 async function handleVote(body: Record<string, unknown>, userId: string): Promise<Response> {
@@ -314,26 +458,7 @@ async function handleVote(body: Record<string, unknown>, userId: string): Promis
         .delete()
         .eq('comment_id', commentId)
         .eq('user_id', userId);
-
-      // Decrement counter
-      const { data: comment } = await supabaseAdmin
-        .from('comments')
-        .select('upvotes, downvotes')
-        .eq('id', commentId)
-        .single();
-      if (comment) {
-        if (isUpvote) {
-          await supabaseAdmin
-            .from('comments')
-            .update({ upvotes: Math.max(0, (comment.upvotes ?? 0) - 1) })
-            .eq('id', commentId);
-        } else {
-          await supabaseAdmin
-            .from('comments')
-            .update({ downvotes: Math.max(0, (comment.downvotes ?? 0) - 1) })
-            .eq('id', commentId);
-        }
-      }
+      await recountCommentVotes(commentId);
 
       return new Response(JSON.stringify({ vote: null, action: 'removed' }), {
         headers: JSON_HEADERS,
@@ -345,32 +470,7 @@ async function handleVote(body: Record<string, unknown>, userId: string): Promis
         .update({ is_upvote: isUpvote })
         .eq('comment_id', commentId)
         .eq('user_id', userId);
-
-      // Adjust counters
-      const { data: comment } = await supabaseAdmin
-        .from('comments')
-        .select('upvotes, downvotes')
-        .eq('id', commentId)
-        .single();
-      if (comment) {
-        if (isUpvote) {
-          await supabaseAdmin
-            .from('comments')
-            .update({
-              upvotes: (comment.upvotes ?? 0) + 1,
-              downvotes: Math.max(0, (comment.downvotes ?? 0) - 1),
-            })
-            .eq('id', commentId);
-        } else {
-          await supabaseAdmin
-            .from('comments')
-            .update({
-              upvotes: Math.max(0, (comment.upvotes ?? 0) - 1),
-              downvotes: (comment.downvotes ?? 0) + 1,
-            })
-            .eq('id', commentId);
-        }
-      }
+      await recountCommentVotes(commentId);
 
       return new Response(JSON.stringify({ vote: isUpvote, action: 'changed' }), {
         headers: JSON_HEADERS,
@@ -393,28 +493,89 @@ async function handleVote(body: Record<string, unknown>, userId: string): Promis
     });
   }
 
-  // Increment counter
-  const { data: comment } = await supabaseAdmin
-    .from('comments')
-    .select('upvotes, downvotes')
-    .eq('id', commentId)
-    .single();
-  if (comment) {
-    if (isUpvote) {
-      await supabaseAdmin
-        .from('comments')
-        .update({ upvotes: (comment.upvotes ?? 0) + 1 })
-        .eq('id', commentId);
-    } else {
-      await supabaseAdmin
-        .from('comments')
-        .update({ downvotes: (comment.downvotes ?? 0) + 1 })
-        .eq('id', commentId);
+  await recountCommentVotes(commentId);
+
+  // Notify comment author about upvotes (async, non-blocking)
+  if (isUpvote) {
+    const { data: commentData } = await supabaseAdmin
+      .from('comments')
+      .select('user_id, game_id')
+      .eq('id', commentId)
+      .single();
+    if (commentData && commentData.user_id !== userId) {
+      const slug = await getGameSlug(commentData.game_id);
+      createNotification({
+        userId: commentData.user_id,
+        type: 'vote_received',
+        title: 'Someone upvoted your comment',
+        url: slug ? `/games/${slug}` : undefined,
+      });
     }
   }
 
   return new Response(JSON.stringify({ vote: isUpvote, action: 'created' }), {
     status: 201,
+    headers: JSON_HEADERS,
+  });
+}
+
+/**
+ * Handle flagging a comment for moderation.
+ */
+async function handleFlag(body: Record<string, unknown>, userId: string): Promise<Response> {
+  const { commentId, reason } = body as { commentId?: string; reason?: string };
+
+  if (!commentId) {
+    return new Response(JSON.stringify({ error: 'commentId is required' }), {
+      status: 400,
+      headers: JSON_HEADERS,
+    });
+  }
+
+  // Verify comment exists and is not already flagged
+  const { data: comment } = await supabaseAdmin
+    .from('comments')
+    .select('id, user_id, is_flagged, is_deleted')
+    .eq('id', commentId)
+    .single();
+
+  if (!comment) {
+    return new Response(JSON.stringify({ error: 'Comment not found' }), {
+      status: 404,
+      headers: JSON_HEADERS,
+    });
+  }
+
+  if (comment.is_deleted) {
+    return new Response(JSON.stringify({ error: 'Cannot flag a deleted comment' }), {
+      status: 400,
+      headers: JSON_HEADERS,
+    });
+  }
+
+  // Don't let users flag their own comments
+  if (comment.user_id === userId) {
+    return new Response(JSON.stringify({ error: 'Cannot flag your own comment' }), {
+      status: 400,
+      headers: JSON_HEADERS,
+    });
+  }
+
+  // Set is_flagged on the comment
+  const { error } = await supabaseAdmin
+    .from('comments')
+    .update({ is_flagged: true })
+    .eq('id', commentId);
+
+  if (error) {
+    console.error('Comment flag failed:', error);
+    return new Response(JSON.stringify({ error: 'Failed to flag comment' }), {
+      status: 500,
+      headers: JSON_HEADERS,
+    });
+  }
+
+  return new Response(JSON.stringify({ success: true, flagged: true }), {
     headers: JSON_HEADERS,
   });
 }

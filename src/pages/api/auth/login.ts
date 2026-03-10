@@ -2,6 +2,7 @@ import type { APIRoute } from 'astro';
 import { createClient } from '@supabase/supabase-js';
 import { setAuthCookies, ensureUserProfile } from '@lib/auth/supabase';
 import { createLogger } from '@lib/logger';
+import { rateLimit, rateLimitResponse } from '@lib/rate-limit';
 
 const logger = createLogger('auth:login');
 
@@ -16,6 +17,11 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     });
 
   try {
+    // Rate limit: 10 login attempts per IP per 15 minutes
+    const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown';
+    const rl = rateLimit(`login:${ip}`, 10, 15 * 60 * 1000);
+    if (!rl.allowed) return rateLimitResponse(rl.resetAt);
+
     const body = await request.json();
     const { email, password } = body as { email?: string; password?: string };
 

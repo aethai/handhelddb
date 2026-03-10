@@ -1,273 +1,609 @@
 ---
 import BaseLayout from '@layouts/BaseLayout.astro';
-import GameCard from '@components/astro/GameCard.astro';
-import GameCardFeatured from '@components/astro/GameCardFeatured.astro';
-import SectionHeader from '@components/astro/SectionHeader.astro';
 import SearchBar from '@components/react/SearchBar';
+import GameGrid from '@components/react/GameGrid';
 import { supabaseAdmin } from '@lib/db/client';
+import { getCached, setCache } from '@lib/cache';
 
-// ─── Fetch data ───
-const [devicesRes, gamesRes, gameCountRes, deviceCountRes] = await Promise.all([
+// ─── Cached homepage data (2 min TTL) ───
+const CACHE_KEY = 'homepage:data';
+let _cached = getCached<any>(CACHE_KEY);
+
+if (!_cached) {
+const [
+  devicesRes, topGamesRes, gameCountRes, deviceCountRes,
+  reportCountRes, articlesRes, bestOnDeckRes, trendingRes,
+  mostTestedRes, userCountRes, featuredGameRes,
+] = await Promise.all([
   supabaseAdmin
     .from('devices')
-    .select('slug, name, manufacturer, screen_size, battery_wh, chip, image, msrp_usd, is_active')
+    .select('id, slug, name, manufacturer, chip, battery_wh, msrp_usd, tdp_min, tdp_max')
     .eq('is_active', true)
     .order('name'),
   supabaseAdmin
     .from('games')
-    .select('slug, name, header_image, genres, deck_compatibility')
+    .select('slug, name, header_image, genres, deck_compatibility, metacritic_score, developers, steam_review_score')
     .not('header_image', 'is', null)
+    .not('metacritic_score', 'is', null)
     .order('metacritic_score', { ascending: false, nullsFirst: false })
-    .limit(5),
+    .limit(8),
   supabaseAdmin.from('games').select('*', { count: 'exact', head: true }),
-  supabaseAdmin.from('devices').select('*', { count: 'exact', head: true }),
+  supabaseAdmin.from('devices').select('*', { count: 'exact', head: true }).eq('is_active', true),
+  supabaseAdmin.from('performance_reports').select('*', { count: 'exact', head: true }),
+  supabaseAdmin
+    .from('articles')
+    .select('slug, title, lead, category, tags, devices, published_at, cover_image')
+    .eq('status', 'published')
+    .not('published_at', 'is', null)
+    .order('published_at', { ascending: false })
+    .limit(3),
+  supabaseAdmin
+    .from('consensus_ratings')
+    .select('fps_avg, estimated_battery, overall_verdict, confidence_level, report_count, games(name, slug, header_image, genres), devices(slug, name)')
+    .gte('fps_avg', 55)
+    .order('report_count', { ascending: false })
+    .limit(8),
+  supabaseAdmin
+    .from('performance_reports')
+    .select('fps_avg, overall_rating, created_at, games(name, slug, genres), devices(name)')
+    .eq('moderation_status', 'approved')
+    .order('created_at', { ascending: false })
+    .limit(20),
+  supabaseAdmin
+    .from('consensus_ratings')
+    .select('fps_avg, report_count, overall_verdict, games(name, slug, header_image), devices(slug)')
+    .order('report_count', { ascending: false })
+    .limit(10),
+  supabaseAdmin.from('users').select('*', { count: 'exact', head: true }),
+  supabaseAdmin
+    .from('consensus_ratings')
+    .select('fps_avg, overall_verdict, report_count, games(name, slug, header_image, genres, developers, metacritic_score), devices(name, slug)')
+    .order('report_count', { ascending: false })
+    .limit(5),
 ]);
 
-const devices = (devicesRes.data ?? []).map(d => ({
-  slug: d.slug,
-  name: d.name,
-  manufacturer: d.manufacturer,
-  screenSize: d.screen_size,
-  batteryWh: d.battery_wh,
-  chip: d.chip,
-  image: d.image,
-  msrpUsd: d.msrp_usd,
-}));
-
-const games = (gamesRes.data ?? []).map(g => ({
-  slug: g.slug,
-  name: g.name,
-  headerImage: g.header_image,
-  genres: (g.genres as string[]) ?? [],
-  deckCompatibility: g.deck_compatibility,
-}));
-
+// ─── Process data ───
 const gameCount = gameCountRes.count ?? 0;
 const deviceCount = deviceCountRes.count ?? 0;
-const featuredGame = games[0];
-const restGames = games.slice(1);
+const reportCount = reportCountRes.count ?? 0;
+const userCount = userCountRes.count ?? 0;
+
+const devices = (devicesRes.data ?? []).map(d => ({
+  id: d.id, slug: d.slug, name: d.name, manufacturer: d.manufacturer,
+  chip: d.chip, batteryWh: d.battery_wh, msrpUsd: d.msrp_usd,
+  tdpMin: d.tdp_min, tdpMax: d.tdp_max,
+}));
+
+const gameGrid = (topGamesRes.data ?? []).slice(0, 8).map(g => ({
+  slug: g.slug, name: g.name, headerImage: g.header_image,
+  genres: ((g.genres as string[]) ?? []).slice(0, 2),
+  developers: ((g.developers as string[]) ?? [])[0] ?? '',
+  metacritic: g.metacritic_score, deckCompat: g.deck_compatibility,
+}));
+
+// Featured game for hero — pick one with header_image on Deck
+const featuredRaw = (featuredGameRes.data ?? []).find(r =>
+  (r.games as any)?.header_image && (r.devices as any)?.slug?.includes('deck')
+);
+const featured = featuredRaw ? {
+  name: (featuredRaw.games as any).name,
+  slug: (featuredRaw.games as any).slug,
+  headerImage: (featuredRaw.games as any).header_image,
+  fps: Math.round(featuredRaw.fps_avg ?? 0),
+  verdict: featuredRaw.overall_verdict,
+  device: (featuredRaw.devices as any)?.name ?? '',
+  reports: featuredRaw.report_count ?? 0,
+} : null;
+
+const articles = (articlesRes.data ?? []).map(a => ({
+  slug: a.slug, title: a.title, lead: a.lead, category: a.category,
+  tags: (a.tags as string[]) ?? [], devices: (a.devices as string[]) ?? [],
+  publishedAt: a.published_at ? new Date(a.published_at) : null,
+  coverImage: a.cover_image,
+}));
+
+// Best on Deck — need >= 2 to show section
+const bestOnDeck = (bestOnDeckRes.data ?? [])
+  .filter(r => (r.games as any)?.name && (r.devices as any)?.slug?.includes('deck'))
+  .slice(0, 4)
+  .map(r => ({
+    name: (r.games as any).name, slug: (r.games as any).slug,
+    headerImage: (r.games as any).header_image,
+    fps: Math.round(r.fps_avg ?? 0),
+    battery: r.estimated_battery ? `~${r.estimated_battery.toFixed(0)}h` : '?',
+    reportCount: r.report_count ?? 0,
+  }));
+
+// Cross-dedup: collect slugs already shown in featured + best-on-deck
+const shownSlugs = new Set<string>();
+if (featured) shownSlugs.add(featured.slug);
+for (const b of bestOnDeck) shownSlugs.add(b.slug);
+
+// Trending — deduplicate, exclude already-shown games
+const seenGames = new Set<string>();
+const trending = (trendingRes.data ?? [])
+  .filter(r => {
+    const name = (r.games as any)?.name;
+    const slug = (r.games as any)?.slug;
+    if (!name || seenGames.has(name) || shownSlugs.has(slug)) return false;
+    seenGames.add(name);
+    return true;
+  })
+  .slice(0, 6)
+  .map(r => {
+    const fps = Math.round(r.fps_avg ?? 0);
+    const diffH = Math.round((Date.now() - new Date(r.created_at).getTime()) / 3600000);
+    const timeAgo = diffH < 1 ? 'now' : diffH < 24 ? `${diffH}h ago` : `${Math.round(diffH / 24)}d ago`;
+    return {
+      name: (r.games as any).name, slug: (r.games as any).slug,
+      genres: (((r.games as any).genres as string[]) ?? []).slice(0, 1),
+      device: (r.devices as any)?.name?.replace('ASUS ', '').replace('Lenovo ', '').replace(' OLED', '') ?? '',
+      fps, rating: r.overall_rating, timeAgo,
+    };
+  });
+
+// Most tested — aggregate by game, exclude already-shown
+const gameMap = new Map<string, { name: string; slug: string; rpts: number; devs: number; headerImage: string | null }>();
+for (const r of (mostTestedRes.data ?? [])) {
+  const name = (r.games as any)?.name;
+  const slug = (r.games as any)?.slug;
+  const headerImage = (r.games as any)?.header_image ?? null;
+  if (!name || shownSlugs.has(slug)) continue;
+  const existing = gameMap.get(slug);
+  if (existing) { existing.rpts += r.report_count ?? 0; existing.devs += 1; }
+  else { gameMap.set(slug, { name, slug, rpts: r.report_count ?? 0, devs: 1, headerImage }); }
+}
+const mostTested = Array.from(gameMap.values())
+  .sort((a, b) => b.rpts - a.rpts).slice(0, 6)
+  .map((g, i) => ({ ...g, rank: i + 1 }));
+
+  _cached = { gameCount, deviceCount, reportCount, userCount, devices, gameGrid, featured, articles, bestOnDeck, trending, mostTested };
+  setCache(CACHE_KEY, _cached, 120); // 2 minutes
+}
+
+const { gameCount, deviceCount, reportCount, userCount, devices, gameGrid, featured, articles, bestOnDeck, trending, mostTested } = _cached;
+
+// ─── Helpers ───
+const fmtDate = (d: Date | null) => d ? d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '';
+const fpsColor = (fps: number) => fps >= 55 ? '#4ade80' : fps >= 45 ? '#a3e635' : fps >= 35 ? '#facc15' : fps >= 25 ? '#fb923c' : '#f87171';
+const fpsTierIcon = (fps: number) => fps >= 55 ? '★' : fps >= 45 ? '◆' : fps >= 35 ? '●' : fps >= 25 ? '▼' : '✕';
+const tierLabel = (rating: string | null) => {
+  if (!rating) return { label: 'Unknown', color: '#6d6882' };
+  const map: Record<string, { label: string; color: string }> = {
+    excellent: { label: 'Portable Perfect', color: '#4ade80' },
+    good: { label: 'Commute Ready', color: '#a3e635' },
+    fair: { label: 'Playable', color: '#facc15' },
+    poor: { label: 'Rough Ride', color: '#fb923c' },
+    unplayable: { label: 'Unplayable', color: '#f87171' },
+  };
+  return map[rating] ?? { label: rating, color: '#6d6882' };
+};
+const categoryTag: Record<string, { label: string; color: string }> = {
+  'game_launch': { label: 'EDITORIAL', color: '#a78bfa' },
+  'game_patch': { label: 'UPDATE', color: '#60a5fa' },
+  'os_update': { label: 'UPDATE', color: '#60a5fa' },
+  'performance_analysis': { label: 'EDITORIAL', color: '#a78bfa' },
+  'device_launch': { label: 'UPDATE', color: '#60a5fa' },
+  'editorial': { label: 'EDITORIAL', color: '#a78bfa' },
+  'sale_event': { label: 'GUIDE', color: '#4ade80' },
+};
+
+const featuredDevices = [
+  { name: 'Steam Deck', slug: 'steam-deck-oled', short: 'Deck', color: '#4ea8f0' },
+  { name: 'ROG Ally', slug: 'rog-ally', short: 'Ally', color: '#ff4060' },
+  { name: 'ROG Ally X', slug: 'rog-ally-x', short: 'Ally X', color: '#ff4060' },
+  { name: 'Legion Go', slug: 'legion-go', short: 'Legion', color: '#e04040' },
+  { name: 'Legion Go S', slug: 'legion-go-s', short: 'Go S', color: '#e06040' },
+  { name: 'MSI Claw 8', slug: 'msi-claw-8-ai-plus', short: 'Claw 8', color: '#ff2020' },
+].filter(fd => devices.some(d => d.slug === fd.slug));
+
+const heroFpsColor = featured ? fpsColor(featured.fps) : '#4ade80';
+const heroTier = featured ? tierLabel(featured.verdict) : { label: 'Unknown', color: '#6d6882' };
+
+// Minimum thresholds — graceful degradation
+const showTicker = trending.length >= 3;
+const showBestOnDeck = bestOnDeck.length >= 2;
+const showTrending = trending.length >= 2;
+const showMostTested = mostTested.length >= 2;
+const showCommunityActivity = showTrending || showMostTested;
+const showContributors = userCount >= 10;
+
+// Schema.org
+const siteUrl = import.meta.env.PUBLIC_SITE_URL ?? 'https://handheldgamedb.com';
+const schemaWebSite = {
+  '@context': 'https://schema.org', '@type': 'WebSite',
+  name: 'HandheldDB', url: siteUrl,
+  description: `Performance database for handheld gaming. ${gameCount.toLocaleString()} games, ${deviceCount} devices, ${reportCount.toLocaleString()} community reports.`,
+  potentialAction: { '@type': 'SearchAction', target: `${siteUrl}/games?q={search_term_string}`, 'query-input': 'required name=search_term_string' },
+};
+const schemaItemList = {
+  '@context': 'https://schema.org', '@type': 'ItemList',
+  name: 'Best Games on Steam Deck', numberOfItems: bestOnDeck.length,
+  itemListElement: bestOnDeck.map((g, i) => ({ '@type': 'ListItem', position: i + 1, url: `${siteUrl}/games/${g.slug}`, name: g.name })),
+};
 ---
 
-<BaseLayout title="Handheld GameDB — Performance Database for Handheld Gaming">
+<BaseLayout title="HandheldDB — Does it run on your handheld?" description={`The handheld gaming performance database. ${gameCount.toLocaleString()} games tested across ${deviceCount} devices with ${reportCount.toLocaleString()} community reports. Find optimal settings for Steam Deck, ROG Ally, Legion Go and more.`}>
+
+<script type="application/ld+json" set:html={JSON.stringify(schemaWebSite)} />
+<script type="application/ld+json" set:html={JSON.stringify(schemaItemList)} />
+
+<div class="page-wrap">
 
   <!-- ══════ HERO ══════ -->
-  <section class="relative min-h-[70vh] flex items-center overflow-hidden">
-    <!-- Atmospheric background -->
-    <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_20%_50%,rgba(96,165,250,0.06),transparent_60%),radial-gradient(ellipse_at_80%_80%,rgba(96,165,250,0.03),transparent_50%)]"></div>
+  <section class="hp-hero">
+    <div class="hp-hero-bg">
+      {featured?.headerImage && <img src={featured.headerImage} alt="" class="hp-hero-bg-img" fetchpriority="high" />}
+    </div>
+    <div class="hp-hero-overlay"></div>
+    <div class="hp-hero-grain"></div>
 
-    <div class="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-20 w-full">
-      <div class="grid grid-cols-1 lg:grid-cols-5 gap-8 lg:gap-12 items-center">
+    <div class="hw" style="position:relative;z-index:2;">
+      <div class="hp-hero-content">
+        <h1 class="hp-hero-title">
+          Does it run on your handheld<span style="color:#4ade80;">?</span>
+        </h1>
+        <p class="hp-hero-sub">Real FPS and battery data from <strong style="color:#9890a8;">{reportCount.toLocaleString()}</strong> community reports</p>
 
-        <!-- Left: Editorial text -->
-        <div class="lg:col-span-3">
-          <p class="editorial-label mb-4">Performance Database</p>
-
-          <h1 class="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold text-[#E8EAED] tracking-tight leading-[0.95]">
-            Find the <span class="text-gradient-copper">best settings</span> for every game on your handheld
-          </h1>
-
-          <p class="mt-6 max-w-lg text-lg text-[#9CA3AF] leading-relaxed">
-            Community-driven performance data for Steam Deck, ROG Ally, Legion Go and more. Optimal settings, FPS benchmarks, battery life.
-          </p>
-
-          <!-- Search Bar -->
-          <div class="mt-8 max-w-xl">
-            <SearchBar client:load variant="hero" placeholder="Search games... (e.g. Elden Ring, Cyberpunk 2077)" />
-          </div>
-
-          <!-- Inline Stats -->
-          <div class="mt-10 flex items-center gap-8 sm:gap-12">
-            <div>
-              <span class="text-3xl sm:text-4xl font-bold text-[#60A5FA] font-mono">{gameCount.toLocaleString()}</span>
-              <span class="block text-xs text-[#6B7280] mt-1">Games</span>
-            </div>
-            <div class="h-8 w-px bg-[#2A2D35]"></div>
-            <div>
-              <span class="text-3xl sm:text-4xl font-bold text-[#60A5FA] font-mono">{deviceCount}</span>
-              <span class="block text-xs text-[#6B7280] mt-1">Devices</span>
-            </div>
-            <div class="h-8 w-px bg-[#2A2D35]"></div>
-            <div>
-              <span class="text-3xl sm:text-4xl font-bold text-[#60A5FA] font-mono">0</span>
-              <span class="block text-xs text-[#6B7280] mt-1">Reports</span>
-            </div>
-          </div>
+        <div class="hp-hero-search">
+          <SearchBar client:load variant="hero" placeholder={`Search ${gameCount.toLocaleString()} games...`} />
         </div>
 
-        <!-- Right: Featured game card -->
-        {featuredGame && (
-          <div class="lg:col-span-2 hidden lg:block">
-            <div class="relative">
-              <div class="absolute -inset-4 bg-[radial-gradient(circle,rgba(96,165,250,0.04),transparent_70%)]"></div>
-              <div class="relative rounded-xl overflow-hidden border border-[#2A2D35] shadow-elevated aspect-[460/400]">
-                <GameCardFeatured {...featuredGame} />
-              </div>
-              <p class="text-center mt-3 text-xs text-[#4B5563]">Featured Game</p>
-            </div>
-          </div>
-        )}
+        <div class="hp-device-pills">
+          {featuredDevices.map(d => (
+            <a href={`/devices/${d.slug}`} class="hp-device-pill" style={`--pill-color:${d.color};`}>{d.short}</a>
+          ))}
+          <a href="/devices" class="hp-device-pill hp-device-pill-all">All {deviceCount} →</a>
+        </div>
       </div>
+
+      {/* Desktop: absolute positioned card */}
+      {featured && (
+        <a href={`/games/${featured.slug}`} class="hp-featured-card" style="text-decoration:none;">
+          <div class="hp-featured-inner">
+            <div style="font-family:var(--font-mono);font-size:7px;letter-spacing:0.08em;color:#6d6882;margin-bottom:4px;">MOST TESTED</div>
+            <div style="display:flex;align-items:baseline;gap:6px;margin-bottom:4px;">
+              <span class="hp-featured-fps" style={`color:${heroFpsColor};text-shadow:0 0 20px ${heroFpsColor}40;`}>{featured.fps}</span>
+              <span style="font-family:var(--font-mono);font-size:10px;color:#6d6882;">fps</span>
+              <span style={`font-family:var(--font-mono);font-size:8px;font-weight:700;letter-spacing:0.06em;color:${heroTier.color};background:${heroTier.color}15;padding:2px 6px;border-radius:3px;margin-left:4px;`}>{heroTier.label.toUpperCase()}</span>
+            </div>
+            <div style="font-family:var(--font-display);font-size:15px;font-weight:700;color:#e0dce8;margin-bottom:2px;">{featured.name}</div>
+            <div style="font-family:var(--font-mono);font-size:9px;color:#6d6882;">{featured.device} · {featured.reports} reports</div>
+          </div>
+        </a>
+      )}
+
+      {/* Mobile: inline featured card (visible only on small screens) */}
+      {featured && (
+        <a href={`/games/${featured.slug}`} class="hp-featured-mobile" style="text-decoration:none;">
+          <div style="display:flex;align-items:center;gap:14px;">
+            <div style="flex-shrink:0;">
+              <span class="hp-featured-fps" style={`color:${heroFpsColor};text-shadow:0 0 16px ${heroFpsColor}40;font-size:28px;`}>{featured.fps}</span>
+              <span style="font-family:var(--font-mono);font-size:9px;color:#6d6882;margin-left:2px;">fps</span>
+            </div>
+            <div style="flex:1;min-width:0;">
+              <div style="font-family:var(--font-display);font-size:13px;font-weight:700;color:#e0dce8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{featured.name}</div>
+              <div style="font-family:var(--font-mono);font-size:9px;color:#6d6882;">{featured.device} · {featured.reports} rpts</div>
+            </div>
+            <span style={`font-family:var(--font-mono);font-size:8px;font-weight:700;letter-spacing:0.06em;color:${heroTier.color};background:${heroTier.color}15;padding:3px 8px;border-radius:4px;flex-shrink:0;`}>{heroTier.label.toUpperCase()}</span>
+          </div>
+        </a>
+      )}
     </div>
   </section>
 
-  <!-- ══════ TOP GAMES — BENTO GRID ══════ -->
-  {games.length > 0 && (
-    <section class="py-14 section-spotlight">
-      <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <SectionHeader title="Top Games" subtitle="Highest rated games in the database" href="/games" />
+  <div class="hw">
 
-        <div class="grid grid-cols-2 lg:grid-cols-4 grid-rows-2 gap-3">
-          <!-- Featured: 2col x 2row -->
-          {featuredGame && (
-            <div class="col-span-2 row-span-2">
-              <GameCardFeatured {...featuredGame} />
-            </div>
-          )}
-          <!-- Remaining 4 smaller cards -->
-          {restGames.map((game) => (
-            <GameCard {...game} />
+    <!-- ══════ STATS ══════ -->
+    <section class="hp-stats" aria-label="Site statistics">
+      <div class="hp-stat">
+        <div class="hp-stat-value" data-count={gameCount} aria-live="polite">{gameCount.toLocaleString()}</div>
+        <div class="hp-stat-label">Games</div>
+      </div>
+      <div class="hp-stat-divider" aria-hidden="true"></div>
+      <div class="hp-stat">
+        <div class="hp-stat-value" data-count={reportCount} aria-live="polite">{reportCount.toLocaleString()}</div>
+        <div class="hp-stat-label">Reports</div>
+      </div>
+      <div class="hp-stat-divider" aria-hidden="true"></div>
+      <div class="hp-stat">
+        <div class="hp-stat-value" data-count={deviceCount} aria-live="polite">{deviceCount}</div>
+        <div class="hp-stat-label">Devices</div>
+      </div>
+      {showContributors && (
+        <>
+          <div class="hp-stat-divider"></div>
+          <div class="hp-stat">
+            <div class="hp-stat-value" data-count={userCount}>{userCount.toLocaleString()}</div>
+            <div class="hp-stat-label">Contributors</div>
+          </div>
+        </>
+      )}
+    </section>
+
+    <!-- ══════ TICKER (only if >= 3 unique games) ══════ -->
+    {showTicker && (
+      <div class="hp-ticker" style="margin-bottom:36px;">
+        <div class="hp-ticker-inner">
+          {[...trending, ...trending, ...trending].map((t) => (
+            <a href={`/games/${t.slug}`} class="hp-ticker-item" style="text-decoration:none;">
+              <span style="color:#6a6080;">●</span>
+              {' '}<span style="color:#9890a8;">{t.name}</span>{' on '}{t.device}
+              {' '}<span style={`color:${fpsColor(t.fps)};font-weight:600;`}>{fpsTierIcon(t.fps)} {t.fps} fps</span>
+              {' · '}<span style="color:#4a4560;">{t.timeAgo}</span>
+            </a>
           ))}
         </div>
       </div>
-    </section>
-  )}
+    )}
 
-  <!-- ══════ DEVICES — HORIZONTAL SCROLL ══════ -->
-  {devices.length > 0 && (
-    <section class="py-14">
-      <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <SectionHeader title="Pick Your Device" subtitle="Select your handheld to see compatible games" href="/devices" linkText="All devices" />
+    <!-- ══════ GAME GRID ══════ -->
+    <section style="margin-bottom:40px;">
+      <div class="hp-section-head">
+        <h2>Top Rated</h2>
+        <a href="/games">View all →</a>
       </div>
-      <div class="mx-auto max-w-7xl pl-4 sm:pl-6 lg:pl-8">
-        <div class="flex gap-4 scroll-strip snap-x snap-mandatory pb-4 pr-4">
-          {devices.map((device) => (
-            <a
-              href={`/devices/${device.slug}`}
-              class="luxury-card flex-shrink-0 w-64 sm:w-72 snap-center rounded-xl border border-[#2A2D35] bg-[#16181D] overflow-hidden group"
-            >
-              <div class="h-36 bg-[#1E2128] flex items-center justify-center p-4 overflow-hidden">
-                {device.image ? (
-                  <img src={device.image} alt={device.name} class="h-full w-full object-contain transition-transform group-hover:scale-105" loading="lazy" />
+      <GameGrid client:load games={gameGrid} />
+    </section>
+
+    <!-- ══════ BEST ON DECK (only if >= 2) ══════ -->
+    {showBestOnDeck && (
+      <section style="margin-bottom:40px;">
+        <div class="hp-section-head">
+          <h2>Runs great on <span style="color:#4ade80;">Deck</span></h2>
+          <a href="/games">View all →</a>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px;">
+          {bestOnDeck.map((g, i) => (
+            <a href={`/games/${g.slug}`} class="hp-game-card" style={`animation:rise 0.3s ease ${i * 0.06}s both;`}>
+              <div style="position:relative;height:100px;overflow:hidden;">
+                {g.headerImage ? (
+                  <img src={g.headerImage} alt={g.name} style="width:100%;height:100%;object-fit:cover;" loading="lazy" />
                 ) : (
-                  <svg class="h-16 w-16 text-[#3A3D45]" fill="none" stroke="currentColor" stroke-width="1" viewBox="0 0 24 24">
-                    <rect x="2" y="6" width="20" height="12" rx="3" />
-                  </svg>
+                  <div class="game-art" style="height:100%;background:linear-gradient(135deg,#0e0c16,#1a1828);">
+                    <span class="game-art-label" style="font-size:12px;">{g.name}</span>
+                  </div>
                 )}
+                <div style="position:absolute;inset:0;background:linear-gradient(transparent 20%,#0e0c16);"></div>
+                <div style="position:absolute;top:6px;right:6px;background:rgba(0,0,0,0.75);backdrop-filter:blur(8px);padding:2px 6px;border-radius:5px;display:flex;align-items:baseline;gap:2px;">
+                  <span style={`font-family:var(--font-mono);font-size:16px;font-weight:800;color:${fpsColor(g.fps)};text-shadow:0 0 10px ${fpsColor(g.fps)}40;`}>{g.fps}<span style="font-size:8px;margin-left:1px;opacity:0.6;">{fpsTierIcon(g.fps)}</span></span>
+                  <span style="font-family:var(--font-mono);font-size:7px;color:#8880a0;">fps</span>
+                </div>
               </div>
-              <div class="p-4">
-                <p class="text-[10px] text-[#6B7280]">{device.manufacturer}</p>
-                <p class="text-lg font-semibold text-white group-hover:text-[#60A5FA] transition-colors">{device.name}</p>
-                <div class="mt-2 flex items-center gap-3 text-xs text-[#6B7280]">
-                  <span>{device.chip}</span>
-                  <span class="text-[#2A2D35]">·</span>
-                  <span>{device.batteryWh}Wh</span>
-                  {device.msrpUsd && (
-                    <>
-                      <span class="text-[#2A2D35]">·</span>
-                      <span>${device.msrpUsd}</span>
-                    </>
-                  )}
+              <div style="padding:6px 12px 10px;">
+                <div style="font-family:var(--font-display);font-size:13px;font-weight:700;color:#e0dce8;margin-bottom:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{g.name}</div>
+                <div style="display:flex;align-items:center;justify-content:space-between;">
+                  <span style="font-family:var(--font-mono);font-size:9px;color:#6d6882;">{g.battery}</span>
+                  <span style="font-family:var(--font-mono);font-size:9px;color:#4a4560;">{g.reportCount} rpts</span>
                 </div>
               </div>
             </a>
           ))}
         </div>
+      </section>
+    )}
+
+    <!-- ══════ NEWS ══════ -->
+    {articles.length >= 2 && (
+      <section style="margin-bottom:40px;">
+        <div class="hp-section-head">
+          <h2>Latest News</h2>
+          <a href="/news">All articles →</a>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px;">
+          {articles.map((n, i) => {
+            const tag = categoryTag[n.category] ?? { label: 'NEWS', color: '#60a5fa' };
+            const gradients = [
+              'linear-gradient(135deg,#1a0e2e 0%,#0e0c16 60%,rgba(167,139,250,0.08) 100%)',
+              'linear-gradient(135deg,#0e0c16 0%,#0c1a1a 50%,rgba(74,222,128,0.06) 100%)',
+              'linear-gradient(135deg,#0e0c16 0%,#1a140e 50%,rgba(251,146,60,0.06) 100%)',
+            ];
+            return (
+              <a href={`/news/${n.slug}`} class="hp-game-card" style={`animation:rise 0.3s ease ${i * 0.06}s both;`}>
+                <div style="position:relative;height:110px;overflow:hidden;">
+                  {n.coverImage ? (
+                    <img src={n.coverImage} alt={n.title} style="width:100%;height:100%;object-fit:cover;" loading="lazy" />
+                  ) : (
+                    <div class="game-art" style={`height:100%;background:${gradients[i % gradients.length]};`}>
+                      <span class="game-art-label" style="font-size:11px;">{n.title.split('—')[0]?.trim() ?? n.title}</span>
+                    </div>
+                  )}
+                  <div style="position:absolute;inset:0;background:linear-gradient(transparent 30%,#0e0c16 95%);"></div>
+                </div>
+                <div style="padding:0 14px 14px;">
+                  <span style={`font-family:var(--font-mono);font-size:8px;font-weight:700;letter-spacing:0.08em;color:${tag.color};background:${tag.color}12;padding:2px 6px;border-radius:3px;display:inline-block;margin-bottom:6px;`}>{tag.label}</span>
+                  <h3 style="font-family:var(--font-display);font-size:14px;font-weight:700;color:#e0dce8;line-height:1.3;margin-bottom:4px;">{n.title}</h3>
+                  <div style="font-family:var(--font-mono);font-size:9px;color:#4a4458;">HandheldDB · {fmtDate(n.publishedAt)}</div>
+                </div>
+              </a>
+            );
+          })}
+        </div>
+      </section>
+    )}
+
+    <!-- ══════ COMMUNITY ACTIVITY (only if enough data) ══════ -->
+    {showCommunityActivity && (
+      <section style="margin-bottom:40px;">
+        <div class="hp-section-head">
+          <h2>Community Activity</h2>
+          <a href="/games">Browse all →</a>
+        </div>
+
+        {showTrending && showMostTested ? (
+          <>
+            <div class="hp-activity-tabs" id="activity-tabs" role="tablist" aria-label="Community activity views">
+              <button class="hp-activity-tab active" data-tab="trending" role="tab" aria-selected="true" aria-controls="panel-trending" id="tab-trending">Recent</button>
+              <button class="hp-activity-tab" data-tab="most-tested" role="tab" aria-selected="false" aria-controls="panel-most-tested" id="tab-most-tested">Most Reports</button>
+            </div>
+            <div class="hp-activity-panel active" id="panel-trending" role="tabpanel" aria-labelledby="tab-trending">
+              <div style="border-radius:14px;overflow:hidden;border:1px solid rgba(255,255,255,0.06);">
+                {trending.map((g, i) => {
+                  const gc = fpsColor(g.fps);
+                  const tier = tierLabel(g.rating);
+                  return (
+                    <a href={`/games/${g.slug}`} class="hp-trending-row" style={`border-bottom:${i < trending.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none'};animation:rise 0.25s ease ${i * 0.04}s both;`}>
+                      <div style={`font-family:var(--font-mono);font-size:28px;font-weight:800;color:${gc};text-shadow:0 0 14px ${gc}25;width:50px;text-align:center;letter-spacing:-0.04em;flex-shrink:0;`} aria-label={`${g.fps} fps - ${tierLabel(g.rating).label}`}>{g.fps}<span style="font-size:10px;margin-left:2px;vertical-align:super;opacity:0.6;">{fpsTierIcon(g.fps)}</span></div>
+                      <div style="flex:1;min-width:0;">
+                        <div style="font-family:var(--font-display);font-size:14px;font-weight:700;color:#d0cce0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{g.name}</div>
+                        <div style="font-family:var(--font-mono);font-size:9px;color:#4a4458;">{g.device} · {g.genres.join(' · ')}</div>
+                      </div>
+                      <span style={`font-family:var(--font-mono);font-size:9px;font-weight:700;color:${tier.color};letter-spacing:0.04em;flex-shrink:0;`}>{tier.label.toUpperCase()}</span>
+                      <span style="font-family:var(--font-mono);font-size:9px;color:#4a4560;flex-shrink:0;">{g.timeAgo}</span>
+                    </a>
+                  );
+                })}
+              </div>
+            </div>
+            <div class="hp-activity-panel" id="panel-most-tested" role="tabpanel" aria-labelledby="tab-most-tested">
+              <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px;">
+                {mostTested.map((g, i) => (
+                  <a href={`/games/${g.slug}`} class="hp-game-card" style={`text-align:center;padding:0;animation:rise 0.25s ease ${i * 0.04}s both;`}>
+                    {g.headerImage ? (
+                      <div style="position:relative;height:70px;overflow:hidden;">
+                        <img src={g.headerImage} alt={g.name} style="width:100%;height:100%;object-fit:cover;" loading="lazy" />
+                        <div style="position:absolute;inset:0;background:linear-gradient(transparent 20%,#0e0c16);"></div>
+                        <div style="position:absolute;top:6px;left:6px;font-family:var(--font-mono);font-size:18px;font-weight:900;color:#ffffff18;">#{g.rank}</div>
+                      </div>
+                    ) : (
+                      <div style="height:70px;display:flex;align-items:center;justify-content:center;background:#0a0914;">
+                        <span style="font-family:var(--font-mono);font-size:28px;font-weight:900;color:#1a1828;">#{g.rank}</span>
+                      </div>
+                    )}
+                    <div style="padding:8px 10px 10px;">
+                      <div style="font-family:var(--font-display);font-size:12px;font-weight:700;color:#c8c4d4;margin-bottom:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{g.name}</div>
+                      <div style="font-family:var(--font-mono);font-size:9px;color:#4a4458;">{g.rpts} reports · {g.devs} devices</div>
+                    </div>
+                  </a>
+                ))}
+              </div>
+            </div>
+          </>
+        ) : showTrending ? (
+          <div style="border-radius:14px;overflow:hidden;border:1px solid rgba(255,255,255,0.06);">
+            {trending.map((g, i) => {
+              const gc = fpsColor(g.fps);
+              const tier = tierLabel(g.rating);
+              return (
+                <a href={`/games/${g.slug}`} class="hp-trending-row" style={`border-bottom:${i < trending.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none'};`}>
+                  <div style={`font-family:var(--font-mono);font-size:28px;font-weight:800;color:${gc};text-shadow:0 0 14px ${gc}25;width:50px;text-align:center;letter-spacing:-0.04em;flex-shrink:0;`}>{g.fps}</div>
+                  <div style="flex:1;min-width:0;">
+                    <div style="font-family:var(--font-display);font-size:14px;font-weight:700;color:#d0cce0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{g.name}</div>
+                    <div style="font-family:var(--font-mono);font-size:9px;color:#4a4458;">{g.device} · {g.genres.join(' · ')}</div>
+                  </div>
+                  <span style={`font-family:var(--font-mono);font-size:9px;font-weight:700;color:${tier.color};letter-spacing:0.04em;flex-shrink:0;`}>{tier.label.toUpperCase()}</span>
+                  <span style="font-family:var(--font-mono);font-size:9px;color:#4a4560;flex-shrink:0;">{g.timeAgo}</span>
+                </a>
+              );
+            })}
+          </div>
+        ) : (
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px;">
+            {mostTested.map((g, i) => (
+              <a href={`/games/${g.slug}`} class="hp-game-card" style={`text-align:center;padding:0;animation:rise 0.25s ease ${i * 0.04}s both;`}>
+                {g.headerImage ? (
+                  <div style="position:relative;height:70px;overflow:hidden;">
+                    <img src={g.headerImage} alt={g.name} style="width:100%;height:100%;object-fit:cover;" loading="lazy" />
+                    <div style="position:absolute;inset:0;background:linear-gradient(transparent 20%,#0e0c16);"></div>
+                  </div>
+                ) : (
+                  <div style="height:70px;display:flex;align-items:center;justify-content:center;background:#0a0914;">
+                    <span style="font-family:var(--font-mono);font-size:28px;font-weight:900;color:#1a1828;">#{g.rank}</span>
+                  </div>
+                )}
+                <div style="padding:8px 10px 10px;">
+                  <div style="font-family:var(--font-display);font-size:12px;font-weight:700;color:#c8c4d4;margin-bottom:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{g.name}</div>
+                  <div style="font-family:var(--font-mono);font-size:9px;color:#4a4458;">{g.rpts} reports</div>
+                </div>
+              </a>
+            ))}
+          </div>
+        )}
+      </section>
+    )}
+
+    <!-- ══════ DEVICE STRIP ══════ -->
+    <div class="hp-devices-strip">
+      <span style="font-family:var(--font-mono);font-size:10px;color:#4a4560;flex-shrink:0;">Browse by device</span>
+      <div class="hp-devices-scroll">
+        {devices.slice(0, 8).map(d => (
+          <a href={`/devices/${d.slug}`} class="hp-device-chip">{d.name.replace('ASUS ', '').replace('Lenovo ', '')}</a>
+        ))}
+        <a href="/devices" class="hp-device-chip" style="color:#a78bfa;border-color:rgba(167,139,250,0.15);">All {deviceCount} →</a>
+      </div>
+    </div>
+
+    <!-- ══════ CTA ══════ -->
+    <section style="margin-bottom:40px;">
+      <div class="hp-cta">
+        <div class="hp-cta-glow"></div>
+        <div style="position:relative;z-index:1;">
+          <h2 style="font-family:var(--font-display);font-size:clamp(20px,3vw,26px);font-weight:800;color:#eae6f4;margin-bottom:6px;">Got a handheld?</h2>
+          <p style="font-family:var(--font-display);font-size:13px;color:#6d6882;margin-bottom:16px;">
+            Your benchmarks help the community. 5 minutes per report.
+          </p>
+          <div style="display:flex;gap:20px;flex-wrap:wrap;">
+            <div>
+              <div style="font-family:var(--font-mono);font-size:13px;font-weight:700;color:#c8c4d4;">{reportCount.toLocaleString()}</div>
+              <div style="font-family:var(--font-mono);font-size:8px;color:#4a4560;letter-spacing:0.04em;">REPORTS</div>
+            </div>
+            <div>
+              <div style="font-family:var(--font-mono);font-size:13px;font-weight:700;color:#c8c4d4;">{gameCount.toLocaleString()}</div>
+              <div style="font-family:var(--font-mono);font-size:8px;color:#4a4560;letter-spacing:0.04em;">GAMES</div>
+            </div>
+            <div>
+              <div style="font-family:var(--font-mono);font-size:13px;font-weight:700;color:#c8c4d4;">{deviceCount}</div>
+              <div style="font-family:var(--font-mono);font-size:8px;color:#4a4560;letter-spacing:0.04em;">DEVICES</div>
+            </div>
+          </div>
+        </div>
+        <a href="/report/new" class="hp-cta-btn">SUBMIT A REPORT</a>
       </div>
     </section>
-  )}
 
-  <!-- ══════ HOW IT WORKS — ASYMMETRIC ══════ -->
-  <section class="py-16 section-atmospheric">
-    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+  </div>
+</div>
 
-        <!-- Left: Pull quote -->
-        <div>
-          <p class="editorial-label mb-6">How It Works</p>
-          <blockquote class="pull-quote">
-            The community tells the truth. Real performance data from real gamers, not marketing specs.
-          </blockquote>
-          <p class="mt-6 text-[#9CA3AF] leading-relaxed max-w-md">
-            Every report is submitted by a real user, voted on by the community, and aggregated into consensus recommendations you can trust.
-          </p>
-        </div>
+<script>
+  // Tab switching with ARIA
+  document.querySelectorAll('.hp-activity-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      const target = tab.getAttribute('data-tab');
+      document.querySelectorAll('.hp-activity-tab').forEach(t => {
+        t.classList.remove('active');
+        t.setAttribute('aria-selected', 'false');
+      });
+      document.querySelectorAll('.hp-activity-panel').forEach(p => p.classList.remove('active'));
+      tab.classList.add('active');
+      tab.setAttribute('aria-selected', 'true');
+      document.getElementById(`panel-${target}`)?.classList.add('active');
+    });
+  });
 
-        <!-- Right: Numbered steps -->
-        <div class="space-y-8">
-          <div class="flex gap-5">
-            <span class="step-number">01</span>
-            <div>
-              <h3 class="text-lg font-semibold text-white">Search Your Game</h3>
-              <p class="mt-1 text-sm text-[#9CA3AF] leading-relaxed">
-                Instant search across {gameCount.toLocaleString()}+ games. Filter by device, genre, or compatibility.
-              </p>
-            </div>
-          </div>
-          <div class="flex gap-5">
-            <span class="step-number">02</span>
-            <div>
-              <h3 class="text-lg font-semibold text-white">Get Best Settings</h3>
-              <p class="mt-1 text-sm text-[#9CA3AF] leading-relaxed">
-                3 TDP profiles per game: Battery Saver, Balanced, Performance. With FPS, thermal, and battery data.
-              </p>
-            </div>
-          </div>
-          <div class="flex gap-5">
-            <span class="step-number">03</span>
-            <div>
-              <h3 class="text-lg font-semibold text-white">Share Your Results</h3>
-              <p class="mt-1 text-sm text-[#9CA3AF] leading-relaxed">
-                Submit performance reports, earn points, climb the leaderboard. Every report helps the community.
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ══════ CTA — SPLIT ══════ -->
-  <section class="py-0">
-    <div class="grid grid-cols-1 lg:grid-cols-2 min-h-[300px]">
-      <!-- Left: atmospheric -->
-      <div class="flex items-center justify-center p-12 lg:p-16 relative overflow-hidden">
-        <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(96,165,250,0.03),transparent_70%)]"></div>
-        <div class="relative text-center lg:text-right">
-          <h2 class="text-4xl sm:text-5xl font-bold text-white leading-tight">
-            Got a<br />handheld?
-          </h2>
-          <p class="mt-4 text-[#6B7280] text-lg">
-            Your data matters to the community.
-          </p>
-        </div>
-      </div>
-
-      <!-- Right: accent tinted -->
-      <div class="flex items-center justify-center p-12 lg:p-16 bg-gradient-to-br from-[#60A5FA]/5 to-[#3B82F6]/3 border-l border-[#2A2D35]">
-        <div class="text-center lg:text-left">
-          <p class="text-[#9CA3AF] mb-6 max-w-sm">
-            Every performance report helps thousands of gamers optimize their experience. Be one of the first testers.
-          </p>
-          <div class="flex flex-col sm:flex-row gap-3 justify-center lg:justify-start">
-            <a
-              href="/report/new"
-              class="inline-flex items-center justify-center gap-2 rounded-xl bg-[#60A5FA] px-8 py-3.5 text-sm font-semibold text-[#0F1115] hover:bg-[#93C5FD] transition-colors"
-            >
-              <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
-              </svg>
-              Submit a Report
-            </a>
-            <a
-              href="/auth/login"
-              class="inline-flex items-center justify-center gap-2 rounded-xl border border-[#3A3D45] px-8 py-3.5 text-sm font-semibold text-[#9CA3AF] hover:border-[#60A5FA] hover:text-white transition-colors"
-            >
-              Sign in with Steam
-            </a>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
+  // Animated stat counters
+  const counters = document.querySelectorAll('.hp-stat-value[data-count]');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const el = entry.target as HTMLElement;
+        const target = parseInt(el.dataset.count ?? '0', 10);
+        if (target === 0) return;
+        const start = performance.now();
+        const duration = 1200;
+        const format = (n: number) => n.toLocaleString();
+        const animate = (now: number) => {
+          const progress = Math.min((now - start) / duration, 1);
+          const eased = 1 - Math.pow(1 - progress, 3);
+          el.textContent = format(Math.round(eased * target));
+          if (progress < 1) requestAnimationFrame(animate);
+        };
+        el.textContent = '0';
+        requestAnimationFrame(animate);
+        observer.unobserve(el);
+      }
+    });
+  }, { threshold: 0.3 });
+  counters.forEach(c => observer.observe(c));
+</script>
 
 </BaseLayout>

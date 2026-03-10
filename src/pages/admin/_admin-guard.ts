@@ -1,3 +1,4 @@
+import type { AstroGlobal } from 'astro';
 import { supabaseAdmin } from '@lib/db/client';
 
 /**
@@ -9,7 +10,7 @@ import { supabaseAdmin } from '@lib/db/client';
  *   const redirect = await requireAdmin(Astro);
  *   if (redirect) return redirect;
  */
-export async function requireAdmin(Astro: any) {
+export async function requireAdmin(Astro: AstroGlobal) {
   const user = Astro.locals.user;
   if (!user) return Astro.redirect('/auth/login');
 

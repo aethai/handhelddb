@@ -1,13 +1,45 @@
 import type { APIRoute } from 'astro';
 import { getUser } from '@lib/auth/supabase';
 import { supabaseAdmin } from '@lib/db/client';
+import { rateLimit, rateLimitResponse } from '@lib/rate-limit';
+import { createNotification, getGameSlug } from '@lib/notifications';
+
+const JSON_HEADERS = { 'Content-Type': 'application/json' };
+
+/**
+ * Recount votes from the source-of-truth table and update the denormalized counters.
+ * This avoids race conditions from read-then-update patterns.
+ */
+async function recountReportVotes(reportId: string) {
+  const { count: upvotes } = await supabaseAdmin
+    .from('report_votes')
+    .select('id', { count: 'exact', head: true })
+    .eq('report_id', reportId)
+    .eq('is_upvote', true);
+
+  const { count: downvotes } = await supabaseAdmin
+    .from('report_votes')
+    .select('id', { count: 'exact', head: true })
+    .eq('report_id', reportId)
+    .eq('is_upvote', false);
+
+  await supabaseAdmin
+    .from('performance_reports')
+    .update({ upvotes: upvotes ?? 0, downvotes: downvotes ?? 0 })
+    .eq('id', reportId);
+}
 
 export const POST: APIRoute = async ({ request, cookies }) => {
+  // Rate limit: 60 votes per IP per 15 minutes
+  const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown';
+  const rl = rateLimit(`vote:${ip}`, 60, 15 * 60 * 1000);
+  if (!rl.allowed) return rateLimitResponse(rl.resetAt);
+
   const user = await getUser(cookies);
   if (!user) {
     return new Response(JSON.stringify({ error: 'Authentication required' }), {
       status: 401,
-      headers: { 'Content-Type': 'application/json' },
+      headers: JSON_HEADERS,
     });
   }
 
@@ -17,14 +49,14 @@ export const POST: APIRoute = async ({ request, cookies }) => {
   } catch {
     return new Response(JSON.stringify({ error: 'Invalid JSON' }), {
       status: 400,
-      headers: { 'Content-Type': 'application/json' },
+      headers: JSON_HEADERS,
     });
   }
 
   if (!body.reportId || typeof body.isUpvote !== 'boolean') {
     return new Response(JSON.stringify({ error: 'reportId and isUpvote required' }), {
       status: 400,
-      headers: { 'Content-Type': 'application/json' },
+      headers: JSON_HEADERS,
     });
   }
 
@@ -40,59 +72,21 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     if (existing.is_upvote === body.isUpvote) {
       // Same vote — remove it (toggle off)
       await supabaseAdmin.from('report_votes').delete().eq('id', existing.id);
-
-      // Decrement counter on report
-      const field = body.isUpvote ? 'upvotes' : 'downvotes';
-      const { data: report } = await supabaseAdmin
-        .from('performance_reports')
-        .select(field)
-        .eq('id', body.reportId)
-        .single();
-      if (report) {
-        await supabaseAdmin
-          .from('performance_reports')
-          .update({ [field]: Math.max(0, (report[field] ?? 0) - 1) })
-          .eq('id', body.reportId);
-      }
+      await recountReportVotes(body.reportId);
 
       return new Response(JSON.stringify({ vote: null, action: 'removed' }), {
-        headers: { 'Content-Type': 'application/json' },
+        headers: JSON_HEADERS,
       });
     } else {
-      // Changed vote direction — update
+      // Changed vote direction
       await supabaseAdmin
         .from('report_votes')
         .update({ is_upvote: body.isUpvote })
         .eq('id', existing.id);
-
-      // Adjust counters
-      const { data: report } = await supabaseAdmin
-        .from('performance_reports')
-        .select('upvotes, downvotes')
-        .eq('id', body.reportId)
-        .single();
-      if (report) {
-        if (body.isUpvote) {
-          await supabaseAdmin
-            .from('performance_reports')
-            .update({
-              upvotes: (report.upvotes ?? 0) + 1,
-              downvotes: Math.max(0, (report.downvotes ?? 0) - 1),
-            })
-            .eq('id', body.reportId);
-        } else {
-          await supabaseAdmin
-            .from('performance_reports')
-            .update({
-              upvotes: Math.max(0, (report.upvotes ?? 0) - 1),
-              downvotes: (report.downvotes ?? 0) + 1,
-            })
-            .eq('id', body.reportId);
-        }
-      }
+      await recountReportVotes(body.reportId);
 
       return new Response(JSON.stringify({ vote: body.isUpvote, action: 'changed' }), {
-        headers: { 'Content-Type': 'application/json' },
+        headers: JSON_HEADERS,
       });
     }
   }
@@ -108,26 +102,32 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     console.error('Vote insert failed:', error);
     return new Response(JSON.stringify({ error: 'Failed to save vote' }), {
       status: 500,
-      headers: { 'Content-Type': 'application/json' },
+      headers: JSON_HEADERS,
     });
   }
 
-  // Increment counter
-  const field = body.isUpvote ? 'upvotes' : 'downvotes';
-  const { data: report } = await supabaseAdmin
-    .from('performance_reports')
-    .select(field)
-    .eq('id', body.reportId)
-    .single();
-  if (report) {
-    await supabaseAdmin
+  await recountReportVotes(body.reportId);
+
+  // Notify report author about upvotes (async, non-blocking)
+  if (body.isUpvote) {
+    const { data: report } = await supabaseAdmin
       .from('performance_reports')
-      .update({ [field]: (report[field] ?? 0) + 1 })
-      .eq('id', body.reportId);
+      .select('user_id, game_id')
+      .eq('id', body.reportId)
+      .single();
+    if (report && report.user_id && report.user_id !== user.id) {
+      const slug = await getGameSlug(report.game_id);
+      createNotification({
+        userId: report.user_id,
+        type: 'vote_received',
+        title: 'Someone upvoted your performance report',
+        url: slug ? `/games/${slug}` : undefined,
+      });
+    }
   }
 
   return new Response(JSON.stringify({ vote: body.isUpvote, action: 'created' }), {
     status: 201,
-    headers: { 'Content-Type': 'application/json' },
+    headers: JSON_HEADERS,
   });
 };

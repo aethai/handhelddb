@@ -2,45 +2,40 @@
 const currentYear = new Date().getFullYear();
 ---
 
-<div class="metallic-line"></div>
-<footer class="border-t border-[#2A2D35] bg-[#0F1115] py-8 mt-16">
-  <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-    <!-- Mini CTA -->
-    <p class="text-center text-sm text-[#6B7280] mb-8">
-      Help build the database &mdash; <a href="/report/new" class="text-[#60A5FA] hover:text-[#93C5FD] underline underline-offset-2">submit your first report</a>
-    </p>
-
-    <div class="grid grid-cols-2 gap-8 md:grid-cols-3">
-      <div>
-        <h3 class="text-sm font-semibold text-[#60A5FA]">Browse</h3>
-        <ul class="mt-3 space-y-2">
-          <li><a href="/games" class="text-sm text-[#9CA3AF] hover:text-[#60A5FA]">Games</a></li>
-          <li><a href="/devices" class="text-sm text-[#9CA3AF] hover:text-[#60A5FA]">Devices</a></li>
-          <li><a href="/discover" class="text-sm text-[#9CA3AF] hover:text-[#60A5FA]">Discover</a></li>
-          <li><a href="/compare" class="text-sm text-[#9CA3AF] hover:text-[#60A5FA]">Compare</a></li>
-          <li><a href="/news" class="text-sm text-[#9CA3AF] hover:text-[#60A5FA]">News</a></li>
-        </ul>
+<footer style="border-top:1px solid rgba(255,255,255,0.04);">
+  <div style="max-width:960px;margin:0 auto;padding:28px 24px 20px;">
+    <div style="display:flex;gap:40px;margin-bottom:16px;flex-wrap:wrap;">
+      <!-- Brand -->
+      <div style="flex:1;min-width:200px;">
+        <div style="font-family:var(--font-display);font-weight:800;font-size:14px;color:#c8c4d4;margin-bottom:4px;">HandheldDB</div>
+        <p style="font-family:var(--font-display);font-size:11px;color:#4a4560;line-height:1.5;">Community-powered performance database for handheld gaming devices.</p>
       </div>
-      <div>
-        <h3 class="text-sm font-semibold text-[#60A5FA]">Contribute</h3>
-        <ul class="mt-3 space-y-2">
-          <li><a href="/report/new" class="text-sm text-[#9CA3AF] hover:text-[#60A5FA]">Submit Report</a></li>
-          <li><a href="/auth/login" class="text-sm text-[#9CA3AF] hover:text-[#60A5FA]">Sign In</a></li>
-        </ul>
-      </div>
-      <div>
-        <h3 class="text-sm font-semibold text-[#60A5FA]">About</h3>
-        <ul class="mt-3 space-y-2">
-          <li><a href="/about" class="text-sm text-[#9CA3AF] hover:text-[#60A5FA]">About Us</a></li>
-          <li><a href="/privacy" class="text-sm text-[#9CA3AF] hover:text-[#60A5FA]">Privacy</a></li>
-          <li><a href="/terms" class="text-sm text-[#9CA3AF] hover:text-[#60A5FA]">Terms</a></li>
-        </ul>
+      <!-- Link columns -->
+      <div style="display:flex;gap:40px;flex-wrap:wrap;">
+        <div>
+          <div style="font-family:var(--font-mono);font-size:9px;color:#4a4560;letter-spacing:0.08em;margin-bottom:6px;">BROWSE</div>
+          <a href="/games" style="display:block;font-family:var(--font-display);font-size:11px;color:#6d6882;margin-bottom:4px;text-decoration:none;transition:color 0.15s;">Games</a>
+          <a href="/devices" style="display:block;font-family:var(--font-display);font-size:11px;color:#6d6882;margin-bottom:4px;text-decoration:none;transition:color 0.15s;">Devices</a>
+          <a href="/compare" style="display:block;font-family:var(--font-display);font-size:11px;color:#6d6882;margin-bottom:4px;text-decoration:none;transition:color 0.15s;">Compare</a>
+          <a href="/news" style="display:block;font-family:var(--font-display);font-size:11px;color:#6d6882;margin-bottom:4px;text-decoration:none;transition:color 0.15s;">News</a>
+        </div>
+        <div>
+          <div style="font-family:var(--font-mono);font-size:9px;color:#4a4560;letter-spacing:0.08em;margin-bottom:6px;">COMMUNITY</div>
+          <a href="/report/new" style="display:block;font-family:var(--font-display);font-size:11px;color:#6d6882;margin-bottom:4px;text-decoration:none;transition:color 0.15s;">Submit Report</a>
+          <a href="/discover" style="display:block;font-family:var(--font-display);font-size:11px;color:#6d6882;margin-bottom:4px;text-decoration:none;transition:color 0.15s;">Discover</a>
+          <a href="/leaderboard" style="display:block;font-family:var(--font-display);font-size:11px;color:#6d6882;margin-bottom:4px;text-decoration:none;transition:color 0.15s;">Leaderboard</a>
+        </div>
+        <div>
+          <div style="font-family:var(--font-mono);font-size:9px;color:#4a4560;letter-spacing:0.08em;margin-bottom:6px;">ABOUT</div>
+          <a href="/about" style="display:block;font-family:var(--font-display);font-size:11px;color:#6d6882;margin-bottom:4px;text-decoration:none;transition:color 0.15s;">About</a>
+          <a href="/privacy" style="display:block;font-family:var(--font-display);font-size:11px;color:#6d6882;margin-bottom:4px;text-decoration:none;transition:color 0.15s;">Privacy</a>
+          <a href="/terms" style="display:block;font-family:var(--font-display);font-size:11px;color:#6d6882;margin-bottom:4px;text-decoration:none;transition:color 0.15s;">Terms</a>
+          <a href="/about#contact" style="display:block;font-family:var(--font-display);font-size:11px;color:#6d6882;margin-bottom:4px;text-decoration:none;transition:color 0.15s;">Contact</a>
+        </div>
       </div>
     </div>
-    <div class="mt-8 border-t border-[#2A2D35] pt-6 text-center">
-      <p class="text-sm text-[#6B7280] font-mono">
-        &copy; {currentYear} Handheld GameDB. Not affiliated with Valve, ASUS, or Lenovo.
-      </p>
+    <div style="font-family:var(--font-mono);font-size:9px;color:#2a2838;text-align:center;padding-top:12px;border-top:1px solid rgba(255,255,255,0.04);">
+      {currentYear} HandheldDB
     </div>
   </div>
 </footer>

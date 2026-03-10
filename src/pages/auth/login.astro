@@ -1,6 +1,7 @@
 ---
 import BaseLayout from '@layouts/BaseLayout.astro';
 import { getUser } from '@lib/auth/supabase';
+import { supabaseAdmin } from '@lib/db/client';
 
 // Redirect if already logged in
 const user = await getUser(Astro.cookies);
@@ -11,6 +12,14 @@ if (user) {
 const redirectTo = Astro.url.searchParams.get('redirect') ?? '/';
 const errorParam = Astro.url.searchParams.get('error');
 const registered = Astro.url.searchParams.get('registered');
+
+// Fetch live stats for the branding panel
+const [{ count: gameCount }, { count: deviceCount }] = await Promise.all([
+  supabaseAdmin.from('games').select('id', { count: 'exact', head: true }),
+  supabaseAdmin.from('devices').select('id', { count: 'exact', head: true }).eq('is_active', true),
+]);
+const gamesDisplay = gameCount ? `${Math.floor(gameCount / 100) * 100}+` : '9,800+';
+const devicesDisplay = deviceCount ? `${deviceCount}+` : '10+';
 ---
 
 <BaseLayout title="Sign In" noindex>
@@ -19,7 +28,7 @@ const registered = Astro.url.searchParams.get('registered');
     <!-- ═══════════════════════════════════════════
          LEFT PANEL — Atmospheric branding (desktop only)
          ═══════════════════════════════════════════ -->
-    <div class="hidden lg:flex lg:w-[45%] relative overflow-hidden flex-col items-center justify-center p-12 bg-[#16181D]">
+    <div class="hidden lg:flex lg:w-[45%] relative overflow-hidden flex-col items-center justify-center p-12 bg-[#0f0f12]">
       <!-- Radial glow background -->
       <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_50%_50%,rgba(96,165,250,0.06),transparent_70%)]"></div>
       <!-- Subtle grain texture -->
@@ -27,7 +36,7 @@ const registered = Astro.url.searchParams.get('registered');
 
       <div class="relative z-10 flex flex-col items-center text-center max-w-sm">
         <!-- Logo -->
-        <svg class="h-20 w-20 text-[#60A5FA] mb-8" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <svg class="h-20 w-20 text-[#7c6cf0] mb-8" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
           <rect x="4" y="8" width="24" height="16" rx="4" stroke="currentColor" stroke-width="2" />
           <circle cx="11" cy="16" r="2" fill="currentColor" />
           <circle cx="21" cy="14" r="1.5" fill="currentColor" />
@@ -40,26 +49,26 @@ const registered = Astro.url.searchParams.get('registered');
         <h2 class="text-2xl font-bold text-white leading-tight">
           The Performance<br />Database for<br />Handheld Gaming
         </h2>
-        <p class="mt-4 text-sm text-[#6B7280] leading-relaxed">
+        <p class="mt-4 text-sm text-[#55555e] leading-relaxed">
           Community-driven FPS data, settings, and battery life for every game on every handheld device.
         </p>
 
         <!-- Stats -->
         <div class="mt-12 flex gap-8">
           <div class="text-center">
-            <p class="text-2xl font-bold text-white font-mono">2,400+</p>
-            <p class="text-xs text-[#6B7280] uppercase tracking-wider mt-1">Games</p>
+            <p class="text-2xl font-bold text-white font-mono">{gamesDisplay}</p>
+            <p class="text-xs text-[#55555e] uppercase tracking-wider mt-1">Games</p>
           </div>
-          <div class="w-px bg-[#2A2D35]"></div>
+          <div class="w-px bg-[#1a1a22]"></div>
           <div class="text-center">
-            <p class="text-2xl font-bold text-white font-mono">15+</p>
-            <p class="text-xs text-[#6B7280] uppercase tracking-wider mt-1">Devices</p>
+            <p class="text-2xl font-bold text-white font-mono">{devicesDisplay}</p>
+            <p class="text-xs text-[#55555e] uppercase tracking-wider mt-1">Devices</p>
           </div>
         </div>
       </div>
 
       <!-- Bottom border accent -->
-      <div class="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#60A5FA]/30 to-transparent"></div>
+      <div class="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#7c6cf0]/30 to-transparent"></div>
     </div>
 
     <!-- ═══════════════════════════════════════════
@@ -69,7 +78,7 @@ const registered = Astro.url.searchParams.get('registered');
       <div class="w-full max-w-md">
         <!-- Mobile logo (hidden on desktop where left panel shows) -->
         <div class="lg:hidden text-center mb-8">
-          <svg class="h-12 w-12 text-[#60A5FA] mx-auto mb-3" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <svg class="h-12 w-12 text-[#7c6cf0] mx-auto mb-3" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
             <rect x="4" y="8" width="24" height="16" rx="4" stroke="currentColor" stroke-width="2" />
             <circle cx="11" cy="16" r="2" fill="currentColor" />
             <circle cx="21" cy="14" r="1.5" fill="currentColor" />
@@ -77,20 +86,20 @@ const registered = Astro.url.searchParams.get('registered');
             <circle cx="21" cy="18" r="1.5" fill="currentColor" />
             <circle cx="19" cy="16" r="1.5" fill="currentColor" />
           </svg>
-          <span class="text-sm text-[#9CA3AF]">Handheld GameDB</span>
+          <span class="text-sm text-[#8a8a94]">Handheld GameDB</span>
         </div>
 
         <!-- Header -->
         <div class="mb-8">
           <h1 class="text-2xl font-bold text-white">Welcome back</h1>
-          <p class="mt-2 text-sm text-[#9CA3AF]">
+          <p class="mt-2 text-sm text-[#8a8a94]">
             Sign in to submit reports, earn points, and help the community.
           </p>
         </div>
 
         <!-- Success message (after registration) -->
         {registered && (
-          <div class="rounded-lg border border-[#60A5FA]/20 bg-[#60A5FA]/10 px-4 py-3 mb-6 text-sm text-[#60A5FA]">
+          <div class="rounded-lg border border-[#7c6cf0]/20 bg-[#7c6cf0]/10 px-4 py-3 mb-6 text-sm text-[#7c6cf0]">
             Account created successfully! Sign in to continue.
           </div>
         )}
@@ -106,7 +115,7 @@ const registered = Astro.url.searchParams.get('registered');
           <input type="hidden" name="redirect" value={redirectTo} />
 
           <div>
-            <label for="email" class="block text-sm font-medium text-[#9CA3AF] mb-1.5">Email address</label>
+            <label for="email" class="block text-sm font-medium text-[#8a8a94] mb-1.5">Email address</label>
             <input
               type="email"
               id="email"
@@ -114,12 +123,12 @@ const registered = Astro.url.searchParams.get('registered');
               required
               autocomplete="email"
               placeholder="you@example.com"
-              class="w-full rounded-xl border border-[#3A3D45] bg-[#16181D] px-4 py-3 text-sm text-white placeholder-[#6B7280] focus:border-[#60A5FA] focus:outline-none focus:ring-1 focus:ring-[#60A5FA] transition-colors"
+              class="w-full rounded-xl border border-[#25252e] bg-[#0f0f12] px-4 py-3 text-sm text-white placeholder-[#55555e] focus:border-[#7c6cf0] focus:outline-none focus:ring-1 focus:ring-[#7c6cf0] transition-colors"
             />
           </div>
 
           <div>
-            <label for="password" class="block text-sm font-medium text-[#9CA3AF] mb-1.5">Password</label>
+            <label for="password" class="block text-sm font-medium text-[#8a8a94] mb-1.5">Password</label>
             <div class="relative">
               <input
                 type="password"
@@ -128,12 +137,12 @@ const registered = Astro.url.searchParams.get('registered');
                 required
                 autocomplete="current-password"
                 placeholder="Your password"
-                class="w-full rounded-xl border border-[#3A3D45] bg-[#16181D] px-4 py-3 pr-10 text-sm text-white placeholder-[#6B7280] focus:border-[#60A5FA] focus:outline-none focus:ring-1 focus:ring-[#60A5FA] transition-colors"
+                class="w-full rounded-xl border border-[#25252e] bg-[#0f0f12] px-4 py-3 pr-10 text-sm text-white placeholder-[#55555e] focus:border-[#7c6cf0] focus:outline-none focus:ring-1 focus:ring-[#7c6cf0] transition-colors"
               />
               <button
                 type="button"
                 id="toggle-password"
-                class="absolute right-3 top-1/2 -translate-y-1/2 text-[#6B7280] hover:text-[#9CA3AF] transition-colors"
+                class="absolute right-3 top-1/2 -translate-y-1/2 text-[#55555e] hover:text-[#8a8a94] transition-colors"
                 aria-label="Toggle password visibility"
               >
                 <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
@@ -145,7 +154,7 @@ const registered = Astro.url.searchParams.get('registered');
           </div>
 
           <div class="flex justify-end">
-            <a href="/auth/forgot-password" class="text-sm text-[#6B7280] hover:text-[#60A5FA] transition-colors">
+            <a href="/auth/forgot-password" class="text-sm text-[#55555e] hover:text-[#7c6cf0] transition-colors">
               Forgot your password?
             </a>
           </div>
@@ -153,7 +162,7 @@ const registered = Astro.url.searchParams.get('registered');
           <button
             type="submit"
             id="submit-btn"
-            class="w-full rounded-xl bg-[#60A5FA] px-4 py-3 text-sm font-semibold text-white hover:bg-[#3B82F6] focus:outline-none focus:ring-2 focus:ring-[#60A5FA] focus:ring-offset-2 focus:ring-offset-[#0F1115] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            class="w-full rounded-xl bg-[#7c6cf0] px-4 py-3 text-sm font-semibold text-white hover:bg-[#6d5cff] focus:outline-none focus:ring-2 focus:ring-[#7c6cf0] focus:ring-offset-2 focus:ring-offset-[#08080a] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Sign in
           </button>
@@ -162,10 +171,10 @@ const registered = Astro.url.searchParams.get('registered');
         <!-- Divider -->
         <div class="relative my-6">
           <div class="absolute inset-0 flex items-center">
-            <div class="w-full border-t border-[#2A2D35]"></div>
+            <div class="w-full border-t border-[#1a1a22]"></div>
           </div>
           <div class="relative flex justify-center text-xs">
-            <span class="bg-[#0F1115] px-3 text-[#6B7280]">or continue with</span>
+            <span class="bg-[#08080a] px-3 text-[#55555e]">or continue with</span>
           </div>
         </div>
 
@@ -173,7 +182,7 @@ const registered = Astro.url.searchParams.get('registered');
         <div class="space-y-3">
           <a
             href={`/auth/callback/google?redirect=${encodeURIComponent(redirectTo)}`}
-            class="flex w-full items-center justify-center gap-3 rounded-xl border border-[#3A3D45] bg-[#16181D] px-4 py-3 text-sm font-medium text-white hover:border-[#60A5FA]/30 hover:bg-[#16181D]/80 transition-colors"
+            class="flex w-full items-center justify-center gap-3 rounded-xl border border-[#25252e] bg-[#0f0f12] px-4 py-3 text-sm font-medium text-white hover:border-[#7c6cf0]/30 hover:bg-[#0f0f12]/80 transition-colors"
           >
             <svg class="h-5 w-5" viewBox="0 0 24 24">
               <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1Z"/>
@@ -187,7 +196,7 @@ const registered = Astro.url.searchParams.get('registered');
           <!-- Steam login placeholder -->
           <button
             disabled
-            class="flex w-full items-center justify-center gap-3 rounded-xl border border-[#2A2D35] bg-[#16181D]/50 px-4 py-3 text-sm font-medium text-[#6B7280] cursor-not-allowed"
+            class="flex w-full items-center justify-center gap-3 rounded-xl border border-[#1a1a22] bg-[#0f0f12]/50 px-4 py-3 text-sm font-medium text-[#55555e] cursor-not-allowed"
           >
             <svg class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
               <path d="M11.979 0C5.678 0 .511 4.86.022 10.96l6.432 2.658a3.387 3.387 0 0 1 1.912-.588c.063 0 .125.002.188.006l2.861-4.142V8.83a4.528 4.528 0 0 1 4.524-4.524 4.528 4.528 0 0 1 4.524 4.524 4.528 4.528 0 0 1-4.524 4.524h-.105l-4.076 2.911c0 .052.004.105.004.159 0 1.875-1.515 3.396-3.39 3.396a3.406 3.406 0 0 1-3.363-2.924L.533 14.294A11.979 11.979 0 0 0 11.979 24c6.627 0 12-5.373 12-12S18.606 0 11.979 0Z"/>
@@ -197,19 +206,19 @@ const registered = Astro.url.searchParams.get('registered');
         </div>
 
         <!-- Register link -->
-        <p class="mt-8 text-center text-sm text-[#6B7280]">
+        <p class="mt-8 text-center text-sm text-[#55555e]">
           Don't have an account?
-          <a href={`/auth/register?redirect=${encodeURIComponent(redirectTo)}`} class="text-[#60A5FA] hover:text-[#93C5FD] transition-colors font-medium">
+          <a href={`/auth/register?redirect=${encodeURIComponent(redirectTo)}`} class="text-[#7c6cf0] hover:text-[#9b8fff] transition-colors font-medium">
             Create one
           </a>
         </p>
 
         <!-- Info -->
-        <div class="mt-6 rounded-xl border border-[#2A2D35] bg-[#16181D]/50 p-4">
-          <p class="text-xs text-[#6B7280] leading-relaxed">
+        <div class="mt-6 rounded-xl border border-[#1a1a22] bg-[#0f0f12]/50 p-4">
+          <p class="text-xs text-[#55555e] leading-relaxed">
             By signing in, you agree to our
-            <a href="/terms" class="text-[#60A5FA] hover:text-[#93C5FD]">Terms of Service</a> and
-            <a href="/privacy" class="text-[#60A5FA] hover:text-[#93C5FD]">Privacy Policy</a>.
+            <a href="/terms" class="text-[#7c6cf0] hover:text-[#9b8fff]">Terms of Service</a> and
+            <a href="/privacy" class="text-[#7c6cf0] hover:text-[#9b8fff]">Privacy Policy</a>.
             We only use your account to identify you and never share your data.
           </p>
         </div>

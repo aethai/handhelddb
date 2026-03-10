@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import { getUser } from '@lib/auth/supabase';
 import { supabaseAdmin } from '@lib/db/client';
+import { rateLimit, rateLimitResponse } from '@lib/rate-limit';
 
 const JSON_HEADERS = { 'Content-Type': 'application/json' };
 
@@ -53,6 +54,10 @@ export const GET: APIRoute = async ({ request, cookies }) => {
  * Body: { gameId: string }
  */
 export const POST: APIRoute = async ({ request, cookies }) => {
+  const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown';
+  const rl = rateLimit(`follow:${ip}`, 60, 15 * 60 * 1000);
+  if (!rl.allowed) return rateLimitResponse(rl.resetAt);
+
   const user = await getUser(cookies);
   if (!user) {
     return new Response(JSON.stringify({ error: 'Authentication required' }), {

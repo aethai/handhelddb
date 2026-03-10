@@ -1,15 +1,31 @@
 import type { APIRoute } from 'astro';
 import { supabaseAdmin } from '@lib/db/client';
 
+// Paginated fetch to get all rows beyond Supabase's 1000-row default limit
+async function fetchAllGames() {
+  const allGames: { slug: string; updated_at: string | null }[] = [];
+  const PAGE_SIZE = 1000;
+  let offset = 0;
+  while (true) {
+    const { data } = await supabaseAdmin
+      .from('games')
+      .select('slug, updated_at')
+      .order('name')
+      .range(offset, offset + PAGE_SIZE - 1);
+    if (!data || data.length === 0) break;
+    allGames.push(...data);
+    if (data.length < PAGE_SIZE) break;
+    offset += PAGE_SIZE;
+  }
+  return allGames;
+}
+
 export const GET: APIRoute = async () => {
   const baseUrl = (import.meta.env.PUBLIC_SITE_URL ?? 'https://handhelddb.com').replace(/\/+$/, '');
 
   // Fetch all data in parallel
-  const [gamesResult, devicesResult, articlesResult, consensusResult] = await Promise.all([
-    supabaseAdmin
-      .from('games')
-      .select('slug, updated_at')
-      .order('name'),
+  const [games, devicesResult, articlesResult, consensusResult] = await Promise.all([
+    fetchAllGames(),
     supabaseAdmin
       .from('devices')
       .select('slug, updated_at')
@@ -26,7 +42,6 @@ export const GET: APIRoute = async () => {
       .limit(50000),
   ]);
 
-  const games = gamesResult.data ?? [];
   const devices = devicesResult.data ?? [];
   const articles = articlesResult.data ?? [];
   const consensusCombos = consensusResult.data ?? [];
@@ -41,6 +56,7 @@ export const GET: APIRoute = async () => {
     { loc: '/discover', changefreq: 'daily',   priority: '0.8' },
     { loc: '/news',     changefreq: 'daily',   priority: '0.8' },
     { loc: '/compare',  changefreq: 'weekly',  priority: '0.8' },
+    { loc: '/leaderboard', changefreq: 'daily', priority: '0.7' },
   ];
 
   const urlEntries: string[] = [];

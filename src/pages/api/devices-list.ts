@@ -1,10 +1,14 @@
 import type { APIRoute } from 'astro';
 import { supabaseAdmin } from '@lib/db/client';
 import { getCached, setCache } from '@lib/cache';
+import { rateLimit, rateLimitResponse } from '@lib/rate-limit';
 
 // ─── GET /api/devices-list ───
 // Returns all active devices. Used by the DevicePicker component.
-export const GET: APIRoute = async () => {
+export const GET: APIRoute = async ({ request }) => {
+  const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown';
+  const rl = rateLimit(`devices-list:${ip}`, 120, 15 * 60 * 1000);
+  if (!rl.allowed) return rateLimitResponse(rl.resetAt);
   const cacheKey = 'api:devices-list';
   let devices = getCached<unknown[]>(cacheKey);
 

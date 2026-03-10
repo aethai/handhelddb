@@ -21,6 +21,49 @@ const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY!;
 const MODEL = 'claude-haiku-4-5-20251001';
 const BATCH_LIMIT = 10;
 
+// Try to find a cover image from games table based on title/tags
+async function findCoverImage(title: string, tags: string[]): Promise<string | null> {
+  // Extract candidate game name from title (text before : – — or common verbs)
+  const splitter = /\s*(?::|–|—)/;
+  const titlePart = title.split(splitter)[0]?.trim();
+
+  const candidates: string[] = [];
+  if (titlePart && titlePart.length > 3) candidates.push(titlePart);
+
+  // Tags that look like game names (skip generic tags)
+  const genericTags = new Set(['steam-deck', 'handheld-gaming', 'linux-gaming', 'mods', 'combat', 'indie',
+    'roguelike', 'deckbuilder', 'strategy', 'proton', 'steamos', 'co-op-gaming', 'demo', 'early-access',
+    'game-design', 'card-games', 'new-content', 'player-count', 'monthly-rankings', 'community-data',
+    'handheld-gaming-trends', 'controller-support', 'game-launcher', 'replay-value', 'handheld-optimization',
+    'compatibility', 'steam-deck-verified', 'steam-deck-compatible', 'handheld-ports']);
+  for (const tag of tags) {
+    if (!genericTags.has(tag.toLowerCase()) && tag.length > 3) {
+      candidates.push(tag.replace(/-/g, ' '));
+    }
+  }
+
+  for (const candidate of candidates) {
+    const { data } = await supabase
+      .from('games')
+      .select('header_image')
+      .ilike('name', candidate)
+      .not('header_image', 'is', null)
+      .limit(1);
+    if (data?.[0]?.header_image) return data[0].header_image;
+
+    // Partial match
+    const { data: partials } = await supabase
+      .from('games')
+      .select('header_image')
+      .ilike('name', `%${candidate}%`)
+      .not('header_image', 'is', null)
+      .limit(1);
+    if (partials?.[0]?.header_image) return partials[0].header_image;
+  }
+
+  return null;
+}
+
 const VALID_CATEGORIES = [
   'device_launch', 'device_update', 'os_update', 'driver_update',
   'game_patch', 'game_launch', 'sale_event', 'performance_analysis',
@@ -226,12 +269,22 @@ ${(item.content ?? '').slice(0, 3000)}`;
 
       const slug = await ensureUniqueSlug(slugify(result.title ?? item.title));
 
+      // Try to find a cover image from related games
+      const coverImage = await findCoverImage(
+        result.title ?? item.title,
+        result.tags ?? [],
+      );
+      if (coverImage) {
+        console.log(`  -> Found cover image from games DB`);
+      }
+
       const article = {
         slug,
         title: (result.title ?? item.title).slice(0, 500),
         lead: (result.lead ?? '').slice(0, 1000),
         body: (result.body_html ?? '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim(),
         body_html: result.body_html ?? '',
+        cover_image: coverImage,
         category,
         tags: result.tags ?? [],
         devices,

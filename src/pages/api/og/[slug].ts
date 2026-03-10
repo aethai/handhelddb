@@ -1,12 +1,17 @@
 import type { APIRoute } from 'astro';
 import { supabaseAdmin } from '@lib/db/client';
+import { rateLimit, rateLimitResponse } from '@lib/rate-limit';
 
 /**
  * Generate an OG image as SVG for a game page.
  * Usage: /api/og/elden-ring → SVG 1200x630
  * Can optionally include device: /api/og/elden-ring?device=steam-deck-oled
  */
-export const GET: APIRoute = async ({ params, url }) => {
+export const GET: APIRoute = async ({ params, url, request }) => {
+  const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown';
+  const rl = rateLimit(`og:${ip}`, 60, 15 * 60 * 1000);
+  if (!rl.allowed) return rateLimitResponse(rl.resetAt);
+
   const { slug } = params;
   const deviceSlug = url.searchParams.get('device');
 
@@ -14,10 +19,10 @@ export const GET: APIRoute = async ({ params, url }) => {
     return new Response('Not found', { status: 404 });
   }
 
-  // Fetch game
+  // Fetch game (include id for consensus lookup)
   const { data: game } = await supabaseAdmin
     .from('games')
-    .select('name, header_image, genres, deck_compatibility, metacritic_score, developers')
+    .select('id, name, header_image, genres, deck_compatibility, metacritic_score, developers')
     .eq('slug', slug)
     .single();
 
@@ -44,7 +49,7 @@ export const GET: APIRoute = async ({ params, url }) => {
       const { data: consensus } = await supabaseAdmin
         .from('consensus_ratings')
         .select('fps_avg, recommended_preset, overall_verdict')
-        .eq('game_id', (await supabaseAdmin.from('games').select('id').eq('slug', slug).single()).data?.id ?? '')
+        .eq('game_id', game.id)
         .eq('device_id', device.id)
         .single();
 
@@ -64,7 +69,7 @@ export const GET: APIRoute = async ({ params, url }) => {
     verified: { bg: '#22c55e', text: '#ffffff', label: 'Verified' },
     playable: { bg: '#eab308', text: '#000000', label: 'Playable' },
     unsupported: { bg: '#ef4444', text: '#ffffff', label: 'Unsupported' },
-    unknown: { bg: '#6b7280', text: '#ffffff', label: 'Unknown' },
+    unknown: { bg: '#55555e', text: '#ffffff', label: 'Unknown' },
   };
   const deck = deckColors[game.deck_compatibility ?? 'unknown'] ?? deckColors.unknown;
 
@@ -76,7 +81,7 @@ export const GET: APIRoute = async ({ params, url }) => {
     poor: '#f97316',
     unplayable: '#ef4444',
   };
-  const verdictColor = verdictColors[consensusVerdict] ?? '#9ca3af';
+  const verdictColor = verdictColors[consensusVerdict] ?? '#8a8a94';
 
   // Escape XML
   const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -109,7 +114,7 @@ export const GET: APIRoute = async ({ params, url }) => {
   </text>
 
   <!-- Developer + genres -->
-  <text x="60" y="325" fill="#9ca3af" font-family="system-ui, sans-serif" font-size="18">
+  <text x="60" y="325" fill="#8a8a94" font-family="system-ui, sans-serif" font-size="18">
     ${esc(developer)}${developer && genres ? ' · ' : ''}${esc(genres)}
   </text>
 
@@ -131,7 +136,7 @@ export const GET: APIRoute = async ({ params, url }) => {
   <!-- Device performance section -->
   <rect x="60" y="410" width="1080" height="1" fill="#374151"/>
 
-  <text x="60" y="458" fill="#9ca3af" font-family="system-ui, sans-serif" font-size="14" text-transform="uppercase" letter-spacing="2">
+  <text x="60" y="458" fill="#8a8a94" font-family="system-ui, sans-serif" font-size="14" text-transform="uppercase" letter-spacing="2">
     PERFORMANCE ON
   </text>
   <text x="60" y="490" fill="#ffffff" font-family="system-ui, sans-serif" font-size="28" font-weight="bold">
@@ -143,7 +148,7 @@ export const GET: APIRoute = async ({ params, url }) => {
   <text x="700" y="480" fill="${verdictColor}" font-family="system-ui, sans-serif" font-size="64" font-weight="bold" text-anchor="middle">
     ${Math.round(consensusFps)}
   </text>
-  <text x="700" y="510" fill="#9ca3af" font-family="system-ui, sans-serif" font-size="18" text-anchor="middle">
+  <text x="700" y="510" fill="#8a8a94" font-family="system-ui, sans-serif" font-size="18" text-anchor="middle">
     AVG FPS
   </text>
   ` : ''}
@@ -152,7 +157,7 @@ export const GET: APIRoute = async ({ params, url }) => {
   <text x="900" y="480" fill="#d1d5db" font-family="system-ui, sans-serif" font-size="28" font-weight="600" text-anchor="middle">
     ${esc(consensusPreset.charAt(0).toUpperCase() + consensusPreset.slice(1).replace('_', ' '))}
   </text>
-  <text x="900" y="510" fill="#9ca3af" font-family="system-ui, sans-serif" font-size="18" text-anchor="middle">
+  <text x="900" y="510" fill="#8a8a94" font-family="system-ui, sans-serif" font-size="18" text-anchor="middle">
     PRESET
   </text>
   ` : ''}
@@ -161,14 +166,14 @@ export const GET: APIRoute = async ({ params, url }) => {
   <text x="1080" y="480" fill="${verdictColor}" font-family="system-ui, sans-serif" font-size="28" font-weight="600" text-anchor="middle" text-transform="capitalize">
     ${esc(consensusVerdict.charAt(0).toUpperCase() + consensusVerdict.slice(1))}
   </text>
-  <text x="1080" y="510" fill="#9ca3af" font-family="system-ui, sans-serif" font-size="18" text-anchor="middle">
+  <text x="1080" y="510" fill="#8a8a94" font-family="system-ui, sans-serif" font-size="18" text-anchor="middle">
     VERDICT
   </text>
   ` : ''}
   ` : `
   <!-- No device — show general card -->
   <rect x="60" y="410" width="1080" height="1" fill="#374151"/>
-  <text x="60" y="458" fill="#6b7280" font-family="system-ui, sans-serif" font-size="16">
+  <text x="60" y="458" fill="#55555e" font-family="system-ui, sans-serif" font-size="16">
     Check performance data for Steam Deck, ROG Ally, Legion Go &amp; more
   </text>
   `}
@@ -178,7 +183,7 @@ export const GET: APIRoute = async ({ params, url }) => {
   <text x="60" y="595" fill="#4ade80" font-family="system-ui, sans-serif" font-size="20" font-weight="bold">
     Handheld GameDB
   </text>
-  <text x="280" y="595" fill="#6b7280" font-family="system-ui, sans-serif" font-size="16">
+  <text x="280" y="595" fill="#55555e" font-family="system-ui, sans-serif" font-size="16">
     handheldgamedb.com
   </text>
 </svg>`;

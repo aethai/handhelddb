@@ -66,8 +66,8 @@ export default function VoteButtons({ reportId, initialUpvotes, initialDownvotes
         disabled={loading}
         className={`p-1 rounded transition-colors ${
           vote === true
-            ? 'text-[#60A5FA] hover:text-[#93C5FD]'
-            : 'text-[#6B7280] hover:text-gray-300'
+            ? 'text-[#7c6cf0] hover:text-[#9b8fff]'
+            : 'text-[#55555e] hover:text-gray-300'
         }`}
         title="Helpful"
       >
@@ -76,7 +76,7 @@ export default function VoteButtons({ reportId, initialUpvotes, initialDownvotes
         </svg>
       </button>
       <span className={`text-xs font-medium min-w-[1.5rem] text-center ${
-        score > 0 ? 'text-[#60A5FA]' : score < 0 ? 'text-red-400' : 'text-[#6B7280]'
+        score > 0 ? 'text-[#7c6cf0]' : score < 0 ? 'text-red-400' : 'text-[#55555e]'
       }`}>
         {score > 0 ? `+${score}` : score}
       </span>
@@ -86,7 +86,7 @@ export default function VoteButtons({ reportId, initialUpvotes, initialDownvotes
         className={`p-1 rounded transition-colors ${
           vote === false
             ? 'text-red-400 hover:text-red-300'
-            : 'text-[#6B7280] hover:text-gray-300'
+            : 'text-[#55555e] hover:text-gray-300'
         }`}
         title="Not helpful"
       >

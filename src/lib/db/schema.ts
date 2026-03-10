@@ -346,6 +346,7 @@ export const performanceReports = pgTable(
     gameVersion: text('game_version'),
     steamBuildId: text('steam_build_id'),
     osVersion: text('os_version'),
+    protonVersion: text('proton_version'),
     gpuDriverVersion: text('gpu_driver_version'),
 
     // Quality & moderation

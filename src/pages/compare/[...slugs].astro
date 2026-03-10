@@ -1,51 +1,100 @@
 ---
 import BaseLayout from '@layouts/BaseLayout.astro';
 import PerformanceBadge from '@components/astro/PerformanceBadge.astro';
+import { supabaseAdmin } from '@lib/db/client';
 
 const { slugs } = Astro.params;
-const deviceSlugs = slugs?.split('/') ?? ['steam-deck-oled', 'rog-ally-x'];
-
-// ─── Mock comparison data ───
-const devicesData: Record<string, any> = {
-  'steam-deck-oled': {
-    name: 'Steam Deck OLED', manufacturer: 'Valve',
-    chip: 'AMD Van Gogh', gpu: 'RDNA 2, 8 CUs', ram: '16 GB LPDDR5', storage: '512 GB',
-    screen: '7.4" HDR OLED', resolution: '1280x800', battery: '50 Wh',
-    tdp: '3-15W', weight: '640g', os: 'SteamOS 3.6', price: '$549',
-    tested: 487, at60: 142, at40: 198, avgBattery: '2.4h',
-  },
-  'rog-ally-x': {
-    name: 'ROG Ally X', manufacturer: 'ASUS',
-    chip: 'Ryzen Z1 Extreme', gpu: 'RDNA 3, 12 CUs', ram: '24 GB LPDDR5X', storage: '1 TB',
-    screen: '7.0" IPS', resolution: '1920x1080', battery: '80 Wh',
-    tdp: '9-30W', weight: '678g', os: 'Windows 11', price: '$799',
-    tested: 312, at60: 187, at40: 89, avgBattery: '2.1h',
-  },
-  'legion-go': {
-    name: 'Legion Go', manufacturer: 'Lenovo',
-    chip: 'Ryzen Z1 Extreme', gpu: 'RDNA 3, 12 CUs', ram: '16 GB LPDDR5X', storage: '512 GB',
-    screen: '8.8" IPS', resolution: '2560x1600', battery: '49.2 Wh',
-    tdp: '8-30W', weight: '854g', os: 'Windows 11', price: '$699',
-    tested: 198, at60: 95, at40: 68, avgBattery: '1.6h',
-  },
-};
-
-const selected = deviceSlugs.map(s => devicesData[s]).filter(Boolean);
-if (selected.length < 2) {
-  selected.push(devicesData['steam-deck-oled'], devicesData['rog-ally-x']);
+const deviceSlugs = slugs?.split('/').filter(Boolean) ?? ['steam-deck-oled', 'rog-ally-x'];
+if (deviceSlugs.length < 2) {
+  return Astro.redirect('/compare');
 }
-const [a, b] = selected;
 
-const sharedGames = [
-  { name: 'Elden Ring', fpsA: 40, fpsB: 50, battA: '2.1h', battB: '2.3h' },
-  { name: 'Cyberpunk 2077', fpsA: 35, fpsB: 48, battA: '1.8h', battB: '1.9h' },
-  { name: 'Hades II', fpsA: 60, fpsB: 60, battA: '3.5h', battB: '3.8h' },
-  { name: "Baldur's Gate 3", fpsA: 38, fpsB: 48, battA: '2.0h', battB: '2.1h' },
-  { name: 'Stardew Valley', fpsA: 60, fpsB: 60, battA: '6.0h', battB: '5.5h' },
-  { name: 'God of War Ragnarok', fpsA: 34, fpsB: 52, battA: '1.7h', battB: '1.5h' },
-  { name: 'Helldivers 2', fpsA: 32, fpsB: 45, battA: '1.6h', battB: '1.7h' },
-  { name: 'Palworld', fpsA: 40, fpsB: 50, battA: '2.2h', battB: '2.0h' },
-];
+// Fetch real devices from DB
+const { data: devices } = await supabaseAdmin
+  .from('devices')
+  .select('*')
+  .in('slug', deviceSlugs.slice(0, 2))
+  .eq('is_active', true);
+
+if (!devices || devices.length < 2) {
+  return Astro.redirect('/compare');
+}
+
+// Sort to match URL order
+const deviceA = devices.find(d => d.slug === deviceSlugs[0]) ?? devices[0];
+const deviceB = devices.find(d => d.slug === deviceSlugs[1]) ?? devices[1];
+
+// Helper to build device display object from real DB data
+function buildDevice(d: any) {
+  return {
+    name: d.name,
+    manufacturer: d.manufacturer,
+    chip: d.chip ?? 'Unknown',
+    gpu: d.gpu ?? 'Unknown',
+    ram: d.ram_gb ? `${d.ram_gb} GB` : 'Unknown',
+    storage: d.storage_gb ? `${d.storage_gb} GB` : 'Unknown',
+    screen: d.screen_size ? `${d.screen_size}" ${d.screen_type ?? ''}`.trim() : 'Unknown',
+    resolution: d.screen_resolution ?? 'Unknown',
+    battery: d.battery_wh ? `${d.battery_wh} Wh` : 'Unknown',
+    tdp: d.tdp_min != null && d.tdp_max != null ? `${d.tdp_min}-${d.tdp_max}W` : 'Unknown',
+    weight: d.weight_grams ? `${d.weight_grams}g` : 'Unknown',
+    os: d.default_os ?? 'Unknown',
+    price: d.msrp_usd ? `$${d.msrp_usd}` : 'N/A',
+  };
+}
+
+const a = buildDevice(deviceA);
+const b = buildDevice(deviceB);
+
+// Fetch report counts per device
+const [reportsA, reportsB] = await Promise.all([
+  supabaseAdmin.from('performance_reports').select('id', { count: 'exact', head: true }).eq('device_id', deviceA.id).eq('moderation_status', 'approved'),
+  supabaseAdmin.from('performance_reports').select('id', { count: 'exact', head: true }).eq('device_id', deviceB.id).eq('moderation_status', 'approved'),
+]);
+const testedA = reportsA.count ?? 0;
+const testedB = reportsB.count ?? 0;
+
+// Fetch consensus data for shared games (games that have consensus on BOTH devices)
+const [consensusA, consensusB] = await Promise.all([
+  supabaseAdmin.from('consensus_ratings').select('game_id, fps_avg, estimated_battery, games(name, slug)').eq('device_id', deviceA.id).not('fps_avg', 'is', null),
+  supabaseAdmin.from('consensus_ratings').select('game_id, fps_avg, estimated_battery, games(name, slug)').eq('device_id', deviceB.id).not('fps_avg', 'is', null),
+]);
+
+const mapA = new Map((consensusA.data ?? []).map(c => [c.game_id, c]));
+const mapB = new Map((consensusB.data ?? []).map(c => [c.game_id, c]));
+
+// Find games present in both
+type SharedGame = { name: string; slug: string; fpsA: number; fpsB: number; battA: string; battB: string };
+const sharedGames: SharedGame[] = [];
+for (const [gameId, cA] of mapA) {
+  const cB = mapB.get(gameId);
+  if (cB && cA.fps_avg && cB.fps_avg) {
+    const battA = cA.estimated_battery ? `${cA.estimated_battery.toFixed(1)}h` : '—';
+    const battB = cB.estimated_battery ? `${cB.estimated_battery.toFixed(1)}h` : '—';
+    sharedGames.push({
+      name: (cA.games as any)?.name ?? 'Unknown',
+      slug: (cA.games as any)?.slug ?? '',
+      fpsA: Math.round(cA.fps_avg),
+      fpsB: Math.round(cB.fps_avg),
+      battA, battB,
+    });
+  }
+}
+sharedGames.sort((x, y) => y.fpsA + y.fpsB - (x.fpsA + x.fpsB));
+const displayGames = sharedGames.slice(0, 20);
+
+// Count games at FPS thresholds
+const at60A = sharedGames.filter(g => g.fpsA >= 60).length;
+const at40A = sharedGames.filter(g => g.fpsA >= 40 && g.fpsA < 60).length;
+const at60B = sharedGames.filter(g => g.fpsB >= 60).length;
+const at40B = sharedGames.filter(g => g.fpsB >= 40 && g.fpsB < 60).length;
+
+// Average battery from shared games
+function avgBatt(games: SharedGame[], key: 'battA' | 'battB'): string {
+  const vals = games.map(g => parseFloat(g[key])).filter(v => !isNaN(v));
+  if (vals.length === 0) return '—';
+  return (vals.reduce((a, b) => a + b, 0) / vals.length).toFixed(1) + 'h';
+}
 
 const specs = [
   { label: 'Chip', a: a.chip, b: b.chip },
@@ -61,34 +110,64 @@ const specs = [
   { label: 'Price', a: a.price, b: b.price },
 ];
 
-// Determine spec winners for highlighting
 function specWinner(label: string, valA: string, valB: string): 'a' | 'b' | 'tie' {
   if (valA === valB) return 'tie';
-  // Numeric comparisons where higher is better
   const higherBetter = ['RAM', 'Storage', 'Battery'];
-  // Numeric comparisons where lower is better
   const lowerBetter = ['Weight', 'Price'];
-
   const numA = parseFloat(valA.replace(/[^0-9.]/g, ''));
   const numB = parseFloat(valB.replace(/[^0-9.]/g, ''));
-
   if (isNaN(numA) || isNaN(numB)) return 'tie';
-
   if (higherBetter.includes(label)) return numA > numB ? 'a' : 'b';
   if (lowerBetter.includes(label)) return numA < numB ? 'a' : 'b';
   return 'tie';
 }
+
+// Dynamic verdicts based on real spec comparison
+function buildVerdicts(da: any, db: any): { verdictA: string[]; verdictB: string[] } {
+  const va: string[] = [];
+  const vb: string[] = [];
+  if (da.battery_wh && db.battery_wh) {
+    if (da.battery_wh > db.battery_wh) va.push(`Larger battery (${da.battery_wh} Wh vs ${db.battery_wh} Wh)`);
+    else if (db.battery_wh > da.battery_wh) vb.push(`Larger battery (${db.battery_wh} Wh vs ${da.battery_wh} Wh)`);
+  }
+  if (da.weight_grams && db.weight_grams) {
+    if (da.weight_grams < db.weight_grams) va.push(`Lighter (${da.weight_grams}g vs ${db.weight_grams}g)`);
+    else if (db.weight_grams < da.weight_grams) vb.push(`Lighter (${db.weight_grams}g vs ${da.weight_grams}g)`);
+  }
+  if (da.ram_gb && db.ram_gb) {
+    if (da.ram_gb > db.ram_gb) va.push(`More RAM (${da.ram_gb}GB vs ${db.ram_gb}GB)`);
+    else if (db.ram_gb > da.ram_gb) vb.push(`More RAM (${db.ram_gb}GB vs ${da.ram_gb}GB)`);
+  }
+  if (da.msrp_usd && db.msrp_usd) {
+    if (da.msrp_usd < db.msrp_usd) va.push(`Lower price ($${da.msrp_usd} vs $${db.msrp_usd})`);
+    else if (db.msrp_usd < da.msrp_usd) vb.push(`Lower price ($${db.msrp_usd} vs $${da.msrp_usd})`);
+  }
+  if (da.tdp_max && db.tdp_max) {
+    if (da.tdp_max > db.tdp_max) va.push(`Higher max TDP (${da.tdp_max}W)`);
+    else if (db.tdp_max > da.tdp_max) vb.push(`Higher max TDP (${db.tdp_max}W)`);
+  }
+  const avgFpsA = sharedGames.length > 0 ? sharedGames.reduce((s, g) => s + g.fpsA, 0) / sharedGames.length : 0;
+  const avgFpsB = sharedGames.length > 0 ? sharedGames.reduce((s, g) => s + g.fpsB, 0) / sharedGames.length : 0;
+  if (avgFpsA > avgFpsB + 3) va.push(`Higher avg FPS in shared games (${Math.round(avgFpsA)} vs ${Math.round(avgFpsB)})`);
+  else if (avgFpsB > avgFpsA + 3) vb.push(`Higher avg FPS in shared games (${Math.round(avgFpsB)} vs ${Math.round(avgFpsA)})`);
+  if (da.default_os?.includes('SteamOS')) va.push('SteamOS + ProtonDB ecosystem');
+  if (db.default_os?.includes('SteamOS')) vb.push('SteamOS + ProtonDB ecosystem');
+  if (da.default_os?.includes('Windows') && !db.default_os?.includes('Windows')) va.push('Full Windows game compatibility');
+  if (db.default_os?.includes('Windows') && !da.default_os?.includes('Windows')) vb.push('Full Windows game compatibility');
+  return { verdictA: va.slice(0, 5), verdictB: vb.slice(0, 5) };
+}
+const { verdictA, verdictB } = buildVerdicts(deviceA, deviceB);
 ---
 
 <BaseLayout title={`${a.name} vs ${b.name} — Compare Handhelds`} description={`Side-by-side comparison of ${a.name} and ${b.name}. Specs, game performance, FPS benchmarks, and battery life.`}>
   <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
     <!-- Breadcrumb -->
-    <nav class="mb-6 text-sm text-[#6B7280]">
+    <nav class="mb-6 text-sm text-[#55555e]">
       <a href="/" class="hover:text-white transition-colors">Home</a>
-      <span class="mx-2 text-[#3A3D45]">/</span>
+      <span class="mx-2 text-[#25252e]">/</span>
       <a href="/compare" class="hover:text-white transition-colors">Compare</a>
-      <span class="mx-2 text-[#3A3D45]">/</span>
-      <span class="text-[#9CA3AF]">{a.name} vs {b.name}</span>
+      <span class="mx-2 text-[#25252e]">/</span>
+      <span class="text-[#8a8a94]">{a.name} vs {b.name}</span>
     </nav>
 
     <!-- ═══════════════════════════════════════════
@@ -96,50 +175,50 @@ function specWinner(label: string, valA: string, valB: string): 'a' | 'b' | 'tie
          ═══════════════════════════════════════════ -->
     <div class="relative grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8 mb-10">
       <!-- Device A -->
-      <div class="rounded-2xl border-2 border-[#60A5FA]/30 bg-gradient-to-br from-[#16181D] to-[#0F1115] p-6 sm:p-8 text-center relative overflow-hidden">
-        <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-[#60A5FA]/50 to-transparent"></div>
-        <p class="text-xs text-[#60A5FA] font-semibold">{a.manufacturer}</p>
+      <div class="rounded-2xl border-2 border-[#7c6cf0]/30 bg-gradient-to-br from-[#0f0f12] to-[#08080a] p-6 sm:p-8 text-center relative overflow-hidden">
+        <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-[#7c6cf0]/50 to-transparent"></div>
+        <p class="text-xs text-[#7c6cf0] font-semibold">{a.manufacturer}</p>
         <h2 class="text-2xl sm:text-3xl font-bold text-white mt-2">{a.name}</h2>
-        <div class="mt-4 flex justify-center gap-6 text-sm text-[#9CA3AF]">
+        <div class="mt-4 flex justify-center gap-6 text-sm text-[#8a8a94]">
           <div class="text-center">
-            <p class="text-xl font-bold text-white font-mono">{a.tested}</p>
-            <p class="text-xs text-[#6B7280] mt-0.5">Games tested</p>
+            <p class="text-xl font-bold text-white font-mono">{testedA}</p>
+            <p class="text-xs text-[#55555e] mt-0.5">Games tested</p>
           </div>
-          <div class="w-px bg-[#2A2D35]"></div>
+          <div class="w-px bg-[#1a1a22]"></div>
           <div class="text-center">
             <p class="text-xl font-bold text-white font-mono">{a.price}</p>
-            <p class="text-xs text-[#6B7280] mt-0.5">MSRP</p>
+            <p class="text-xs text-[#55555e] mt-0.5">MSRP</p>
           </div>
         </div>
       </div>
 
       <!-- VS Divider -->
       <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10 hidden md:flex">
-        <div class="h-16 w-16 rounded-full bg-[#0F1115] border-2 border-[#2A2D35] flex items-center justify-center shadow-lg shadow-black/50">
-          <span class="text-lg font-bold text-[#60A5FA]">VS</span>
+        <div class="h-16 w-16 rounded-full bg-[#08080a] border-2 border-[#1a1a22] flex items-center justify-center shadow-lg shadow-black/50">
+          <span class="text-lg font-bold text-[#7c6cf0]">VS</span>
         </div>
       </div>
       <!-- Mobile VS -->
       <div class="flex md:hidden items-center justify-center -my-2">
-        <div class="h-10 w-10 rounded-full bg-[#0F1115] border-2 border-[#2A2D35] flex items-center justify-center">
-          <span class="text-xs font-bold text-[#60A5FA]">VS</span>
+        <div class="h-10 w-10 rounded-full bg-[#08080a] border-2 border-[#1a1a22] flex items-center justify-center">
+          <span class="text-xs font-bold text-[#7c6cf0]">VS</span>
         </div>
       </div>
 
       <!-- Device B -->
-      <div class="rounded-2xl border-2 border-blue-500/30 bg-gradient-to-br from-[#16181D] to-[#0F1115] p-6 sm:p-8 text-center relative overflow-hidden">
+      <div class="rounded-2xl border-2 border-blue-500/30 bg-gradient-to-br from-[#0f0f12] to-[#08080a] p-6 sm:p-8 text-center relative overflow-hidden">
         <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-blue-500/50 to-transparent"></div>
         <p class="text-xs text-blue-400 font-semibold">{b.manufacturer}</p>
         <h2 class="text-2xl sm:text-3xl font-bold text-white mt-2">{b.name}</h2>
-        <div class="mt-4 flex justify-center gap-6 text-sm text-[#9CA3AF]">
+        <div class="mt-4 flex justify-center gap-6 text-sm text-[#8a8a94]">
           <div class="text-center">
-            <p class="text-xl font-bold text-white font-mono">{b.tested}</p>
-            <p class="text-xs text-[#6B7280] mt-0.5">Games tested</p>
+            <p class="text-xl font-bold text-white font-mono">{testedB}</p>
+            <p class="text-xs text-[#55555e] mt-0.5">Games tested</p>
           </div>
-          <div class="w-px bg-[#2A2D35]"></div>
+          <div class="w-px bg-[#1a1a22]"></div>
           <div class="text-center">
             <p class="text-xl font-bold text-white font-mono">{b.price}</p>
-            <p class="text-xs text-[#6B7280] mt-0.5">MSRP</p>
+            <p class="text-xs text-[#55555e] mt-0.5">MSRP</p>
           </div>
         </div>
       </div>
@@ -148,29 +227,29 @@ function specWinner(label: string, valA: string, valB: string): 'a' | 'b' | 'tie
     <!-- ═══════════════════════════════════════════
          SPEC COMPARISON TABLE with winner highlighting
          ═══════════════════════════════════════════ -->
-    <div class="rounded-2xl border border-[#2A2D35] bg-[#16181D] overflow-hidden mb-8">
-      <div class="px-6 py-4 border-b border-[#2A2D35] flex items-center gap-3">
-        <svg class="h-5 w-5 text-[#60A5FA]" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+    <div class="rounded-2xl border border-[#1a1a22] bg-[#0f0f12] overflow-hidden mb-8">
+      <div class="px-6 py-4 border-b border-[#1a1a22] flex items-center gap-3">
+        <svg class="h-5 w-5 text-[#7c6cf0]" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25ZM6.75 12h.008v.008H6.75V12Zm0 3h.008v.008H6.75V15Zm0 3h.008v.008H6.75V18Z" />
         </svg>
         <h2 class="text-lg font-bold text-white">Specifications</h2>
       </div>
       <!-- Column headers -->
-      <div class="grid grid-cols-3 px-6 py-3 border-b border-[#2A2D35] bg-[#0F1115]/50">
-        <div class="text-xs text-[#6B7280] font-medium">Spec</div>
-        <div class="text-center text-xs text-[#60A5FA] font-medium">{a.name.split(' ').slice(-1)}</div>
+      <div class="grid grid-cols-3 px-6 py-3 border-b border-[#1a1a22] bg-[#08080a]/50">
+        <div class="text-xs text-[#55555e] font-medium">Spec</div>
+        <div class="text-center text-xs text-[#7c6cf0] font-medium">{a.name.split(' ').slice(-1)}</div>
         <div class="text-center text-xs text-blue-400 font-medium">{b.name.split(' ').slice(-1)}</div>
       </div>
-      <div class="divide-y divide-[#2A2D35]/50">
+      <div class="divide-y divide-[#1a1a22]/50">
         {specs.map((s) => {
           const winner = specWinner(s.label, s.a, s.b);
           return (
-            <div class="grid grid-cols-3 px-6 py-3.5 text-sm hover:bg-[#0F1115]/30 transition-colors">
-              <div class="text-[#6B7280] font-medium">{s.label}</div>
-              <div class={`text-center ${winner === 'a' ? 'text-white font-semibold bg-[#60A5FA]/10 -mx-2 px-2 rounded-lg' : 'text-[#9CA3AF]'}`}>
+            <div class="grid grid-cols-3 px-6 py-3.5 text-sm hover:bg-[#08080a]/30 transition-colors">
+              <div class="text-[#55555e] font-medium">{s.label}</div>
+              <div class={`text-center ${winner === 'a' ? 'text-white font-semibold bg-[#7c6cf0]/10 -mx-2 px-2 rounded-lg' : 'text-[#8a8a94]'}`}>
                 {s.a}
               </div>
-              <div class={`text-center ${winner === 'b' ? 'text-white font-semibold bg-blue-500/10 -mx-2 px-2 rounded-lg' : 'text-[#9CA3AF]'}`}>
+              <div class={`text-center ${winner === 'b' ? 'text-white font-semibold bg-blue-500/10 -mx-2 px-2 rounded-lg' : 'text-[#8a8a94]'}`}>
                 {s.b}
               </div>
             </div>
@@ -183,42 +262,42 @@ function specWinner(label: string, valA: string, valB: string): 'a' | 'b' | 'tie
          PERFORMANCE STATS SIDE-BY-SIDE
          ═══════════════════════════════════════════ -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-      <div class="rounded-2xl border border-[#60A5FA]/20 bg-[#16181D] p-6">
-        <h3 class="text-sm font-semibold text-[#60A5FA] mb-4">{a.name} Performance</h3>
+      <div class="rounded-2xl border border-[#7c6cf0]/20 bg-[#0f0f12] p-6">
+        <h3 class="text-sm font-semibold text-[#7c6cf0] mb-4">{a.name} Performance</h3>
         <div class="grid grid-cols-2 gap-3">
-          <div class="rounded-xl bg-[#0F1115] border border-[#2A2D35] p-4 text-center">
-            <p class="text-2xl font-bold text-green-400 font-mono">{a.at60}</p>
-            <p class="text-xs text-[#6B7280] mt-1">60+ FPS</p>
+          <div class="rounded-xl bg-[#08080a] border border-[#1a1a22] p-4 text-center">
+            <p class="text-2xl font-bold text-green-400 font-mono">{at60A}</p>
+            <p class="text-xs text-[#55555e] mt-1">60+ FPS</p>
           </div>
-          <div class="rounded-xl bg-[#0F1115] border border-[#2A2D35] p-4 text-center">
-            <p class="text-2xl font-bold text-[#60A5FA] font-mono">{a.at40}</p>
-            <p class="text-xs text-[#6B7280] mt-1">40+ FPS</p>
+          <div class="rounded-xl bg-[#08080a] border border-[#1a1a22] p-4 text-center">
+            <p class="text-2xl font-bold text-[#7c6cf0] font-mono">{at40A}</p>
+            <p class="text-xs text-[#55555e] mt-1">40+ FPS</p>
           </div>
         </div>
         <div class="mt-4 flex items-center justify-center gap-2 text-sm">
-          <svg class="h-4 w-4 text-[#6B7280]" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+          <svg class="h-4 w-4 text-[#55555e]" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" d="M21 10.5h.375c.621 0 1.125.504 1.125 1.125v2.25c0 .621-.504 1.125-1.125 1.125H21M3.75 18h15A2.25 2.25 0 0 0 21 15.75v-6a2.25 2.25 0 0 0-2.25-2.25h-15A2.25 2.25 0 0 0 1.5 9.75v6A2.25 2.25 0 0 0 3.75 18Z" />
           </svg>
-          <span class="text-[#9CA3AF]">Avg battery: <span class="text-white font-medium font-mono">{a.avgBattery}</span></span>
+          <span class="text-[#8a8a94]">Avg battery: <span class="text-white font-medium font-mono">{avgBatt(sharedGames, 'battA')}</span></span>
         </div>
       </div>
-      <div class="rounded-2xl border border-blue-500/20 bg-[#16181D] p-6">
+      <div class="rounded-2xl border border-blue-500/20 bg-[#0f0f12] p-6">
         <h3 class="text-sm font-semibold text-blue-400 mb-4">{b.name} Performance</h3>
         <div class="grid grid-cols-2 gap-3">
-          <div class="rounded-xl bg-[#0F1115] border border-[#2A2D35] p-4 text-center">
-            <p class="text-2xl font-bold text-green-400 font-mono">{b.at60}</p>
-            <p class="text-xs text-[#6B7280] mt-1">60+ FPS</p>
+          <div class="rounded-xl bg-[#08080a] border border-[#1a1a22] p-4 text-center">
+            <p class="text-2xl font-bold text-green-400 font-mono">{at60B}</p>
+            <p class="text-xs text-[#55555e] mt-1">60+ FPS</p>
           </div>
-          <div class="rounded-xl bg-[#0F1115] border border-[#2A2D35] p-4 text-center">
-            <p class="text-2xl font-bold text-blue-400 font-mono">{b.at40}</p>
-            <p class="text-xs text-[#6B7280] mt-1">40+ FPS</p>
+          <div class="rounded-xl bg-[#08080a] border border-[#1a1a22] p-4 text-center">
+            <p class="text-2xl font-bold text-blue-400 font-mono">{at40B}</p>
+            <p class="text-xs text-[#55555e] mt-1">40+ FPS</p>
           </div>
         </div>
         <div class="mt-4 flex items-center justify-center gap-2 text-sm">
-          <svg class="h-4 w-4 text-[#6B7280]" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+          <svg class="h-4 w-4 text-[#55555e]" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" d="M21 10.5h.375c.621 0 1.125.504 1.125 1.125v2.25c0 .621-.504 1.125-1.125 1.125H21M3.75 18h15A2.25 2.25 0 0 0 21 15.75v-6a2.25 2.25 0 0 0-2.25-2.25h-15A2.25 2.25 0 0 0 1.5 9.75v6A2.25 2.25 0 0 0 3.75 18Z" />
           </svg>
-          <span class="text-[#9CA3AF]">Avg battery: <span class="text-white font-medium font-mono">{b.avgBattery}</span></span>
+          <span class="text-[#8a8a94]">Avg battery: <span class="text-white font-medium font-mono">{avgBatt(sharedGames, 'battB')}</span></span>
         </div>
       </div>
     </div>
@@ -226,32 +305,38 @@ function specWinner(label: string, valA: string, valB: string): 'a' | 'b' | 'tie
     <!-- ═══════════════════════════════════════════
          GAME-BY-GAME FPS BAR CHART COMPARISON
          ═══════════════════════════════════════════ -->
-    <div class="rounded-2xl border border-[#2A2D35] bg-[#16181D] overflow-hidden mb-8">
-      <div class="px-6 py-4 border-b border-[#2A2D35] flex items-center justify-between">
+    <div class="rounded-2xl border border-[#1a1a22] bg-[#0f0f12] overflow-hidden mb-8">
+      <div class="px-6 py-4 border-b border-[#1a1a22] flex items-center justify-between">
         <div class="flex items-center gap-3">
-          <svg class="h-5 w-5 text-[#60A5FA]" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+          <svg class="h-5 w-5 text-[#7c6cf0]" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z" />
           </svg>
           <div>
             <h2 class="text-lg font-bold text-white">Game-by-Game Comparison</h2>
-            <p class="text-xs text-[#6B7280] mt-0.5">{sharedGames.length} games tested on both devices</p>
+            <p class="text-xs text-[#55555e] mt-0.5">{sharedGames.length} games tested on both devices</p>
           </div>
         </div>
         <!-- Legend -->
         <div class="hidden sm:flex items-center gap-4 text-xs">
           <div class="flex items-center gap-1.5">
-            <div class="h-2.5 w-6 rounded-full bg-[#60A5FA]"></div>
-            <span class="text-[#9CA3AF]">{a.name.split(' ').slice(-1)}</span>
+            <div class="h-2.5 w-6 rounded-full bg-[#7c6cf0]"></div>
+            <span class="text-[#8a8a94]">{a.name.split(' ').slice(-1)}</span>
           </div>
           <div class="flex items-center gap-1.5">
             <div class="h-2.5 w-6 rounded-full bg-blue-400"></div>
-            <span class="text-[#9CA3AF]">{b.name.split(' ').slice(-1)}</span>
+            <span class="text-[#8a8a94]">{b.name.split(' ').slice(-1)}</span>
           </div>
         </div>
       </div>
 
-      <div class="divide-y divide-[#2A2D35]/50">
-        {sharedGames.map((g) => {
+      <div class="divide-y divide-[#1a1a22]/50">
+        {displayGames.length === 0 && (
+          <div class="px-6 py-12 text-center">
+            <p class="text-[#55555e] text-sm">No games have been tested on both devices yet.</p>
+            <p class="text-[#55555e]/60 text-xs mt-1">Submit performance reports to see comparisons here.</p>
+          </div>
+        )}
+        {displayGames.map((g) => {
           const diff = g.fpsB - g.fpsA;
           const maxFps = 60;
           const barWidthA = Math.min((g.fpsA / maxFps) * 100, 100);
@@ -260,33 +345,33 @@ function specWinner(label: string, valA: string, valB: string): 'a' | 'b' | 'tie
           const winnerB = g.fpsB > g.fpsA;
           const tie = g.fpsA === g.fpsB;
           return (
-            <div class="px-6 py-4 hover:bg-[#0F1115]/30 transition-colors">
+            <div class="px-6 py-4 hover:bg-[#08080a]/30 transition-colors">
               <div class="flex items-center justify-between mb-3">
                 <h4 class="font-medium text-white text-sm">{g.name}</h4>
                 <div class="flex items-center gap-3 text-xs">
-                  <span class="text-[#6B7280]">{g.battA} / {g.battB}</span>
+                  <span class="text-[#55555e]">{g.battA} / {g.battB}</span>
                   {!tie && (
-                    <span class={diff > 0 ? 'text-blue-400 font-medium' : 'text-[#60A5FA] font-medium'}>
+                    <span class={diff > 0 ? 'text-blue-400 font-medium' : 'text-[#7c6cf0] font-medium'}>
                       {diff > 0 ? `+${diff} FPS` : `${diff} FPS`}
                     </span>
                   )}
-                  {tie && <span class="text-[#6B7280]">Tied</span>}
+                  {tie && <span class="text-[#55555e]">Tied</span>}
                 </div>
               </div>
               <!-- FPS Bar Chart -->
               <div class="space-y-1.5">
                 <div class="flex items-center gap-3">
-                  <span class="text-[10px] text-[#6B7280] w-8 text-right font-mono">{g.fpsA}</span>
-                  <div class="flex-1 h-3 rounded-full bg-[#0F1115] overflow-hidden">
+                  <span class="text-[10px] text-[#55555e] w-8 text-right font-mono">{g.fpsA}</span>
+                  <div class="flex-1 h-3 rounded-full bg-[#08080a] overflow-hidden">
                     <div
-                      class={`h-3 rounded-full transition-all ${winnerA ? 'bg-[#60A5FA]' : 'bg-[#60A5FA]/50'}`}
+                      class={`h-3 rounded-full transition-all ${winnerA ? 'bg-[#7c6cf0]' : 'bg-[#7c6cf0]/50'}`}
                       style={`width: ${barWidthA}%`}
                     ></div>
                   </div>
                 </div>
                 <div class="flex items-center gap-3">
-                  <span class="text-[10px] text-[#6B7280] w-8 text-right font-mono">{g.fpsB}</span>
-                  <div class="flex-1 h-3 rounded-full bg-[#0F1115] overflow-hidden">
+                  <span class="text-[10px] text-[#55555e] w-8 text-right font-mono">{g.fpsB}</span>
+                  <div class="flex-1 h-3 rounded-full bg-[#08080a] overflow-hidden">
                     <div
                       class={`h-3 rounded-full transition-all ${winnerB ? 'bg-blue-400' : 'bg-blue-400/50'}`}
                       style={`width: ${barWidthB}%`}
@@ -300,8 +385,8 @@ function specWinner(label: string, valA: string, valB: string): 'a' | 'b' | 'tie
       </div>
 
       <!-- 60 FPS reference line note -->
-      <div class="px-6 py-3 border-t border-[#2A2D35] bg-[#0F1115]/30">
-        <p class="text-[10px] text-[#6B7280] text-center">Bar width proportional to 60 FPS target. Full bar = 60+ FPS.</p>
+      <div class="px-6 py-3 border-t border-[#1a1a22] bg-[#08080a]/30">
+        <p class="text-[10px] text-[#55555e] text-center">Bar width proportional to 60 FPS target. Full bar = 60+ FPS.</p>
       </div>
     </div>
 
@@ -310,48 +395,30 @@ function specWinner(label: string, valA: string, valB: string): 'a' | 'b' | 'tie
          ═══════════════════════════════════════════ -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
       <!-- Device A Verdict -->
-      <div class="rounded-2xl border-2 border-[#60A5FA]/25 bg-gradient-to-br from-[#60A5FA]/[0.03] to-transparent p-6 relative overflow-hidden">
-        <div class="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-[#60A5FA]/40 via-[#60A5FA]/20 to-transparent"></div>
+      <div class="rounded-2xl border-2 border-[#7c6cf0]/25 bg-gradient-to-br from-[#7c6cf0]/[0.03] to-transparent p-6 relative overflow-hidden">
+        <div class="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-[#7c6cf0]/40 via-[#7c6cf0]/20 to-transparent"></div>
         <div class="flex items-center gap-2 mb-4">
-          <div class="h-8 w-8 rounded-lg bg-[#60A5FA]/15 flex items-center justify-center">
-            <svg class="h-4 w-4 text-[#60A5FA]" fill="currentColor" viewBox="0 0 20 20">
+          <div class="h-8 w-8 rounded-lg bg-[#7c6cf0]/15 flex items-center justify-center">
+            <svg class="h-4 w-4 text-[#7c6cf0]" fill="currentColor" viewBox="0 0 20 20">
               <path fill-rule="evenodd" d="M10.868 2.884c-.321-.772-1.415-.772-1.736 0l-1.83 4.401-4.753.381c-.833.067-1.171 1.107-.536 1.651l3.62 3.102-1.106 4.637c-.194.813.691 1.456 1.405 1.02L10 15.591l4.069 2.485c.713.436 1.598-.207 1.404-1.02l-1.106-4.637 3.62-3.102c.635-.544.297-1.584-.536-1.65l-4.752-.382-1.831-4.401z" clip-rule="evenodd" />
             </svg>
           </div>
-          <h3 class="font-bold text-[#60A5FA] text-lg">{a.name} excels at</h3>
+          <h3 class="font-bold text-[#7c6cf0] text-lg">{a.name} excels at</h3>
         </div>
-        <ul class="space-y-2.5 text-sm text-[#9CA3AF]">
-          <li class="flex items-start gap-2">
-            <svg class="h-4 w-4 text-[#60A5FA] mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
-            </svg>
-            Better battery life in most games
-          </li>
-          <li class="flex items-start gap-2">
-            <svg class="h-4 w-4 text-[#60A5FA] mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
-            </svg>
-            Lighter weight (640g vs {b.weight})
-          </li>
-          <li class="flex items-start gap-2">
-            <svg class="h-4 w-4 text-[#60A5FA] mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
-            </svg>
-            HDR OLED display
-          </li>
-          <li class="flex items-start gap-2">
-            <svg class="h-4 w-4 text-[#60A5FA] mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
-            </svg>
-            SteamOS + ProtonDB ecosystem
-          </li>
-          <li class="flex items-start gap-2">
-            <svg class="h-4 w-4 text-[#60A5FA] mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
-            </svg>
-            Lower price ({a.price})
-          </li>
-        </ul>
+        {verdictA.length > 0 ? (
+          <ul class="space-y-2.5 text-sm text-[#8a8a94]">
+            {verdictA.map((v) => (
+              <li class="flex items-start gap-2">
+                <svg class="h-4 w-4 text-[#7c6cf0] mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                </svg>
+                {v}
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p class="text-sm text-[#55555e] italic">Not enough data to determine advantages yet.</p>
+        )}
       </div>
 
       <!-- Device B Verdict -->
@@ -365,38 +432,20 @@ function specWinner(label: string, valA: string, valB: string): 'a' | 'b' | 'tie
           </div>
           <h3 class="font-bold text-blue-400 text-lg">{b.name} excels at</h3>
         </div>
-        <ul class="space-y-2.5 text-sm text-[#9CA3AF]">
-          <li class="flex items-start gap-2">
-            <svg class="h-4 w-4 text-blue-400 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
-            </svg>
-            Higher FPS in demanding games (+10-15fps avg)
-          </li>
-          <li class="flex items-start gap-2">
-            <svg class="h-4 w-4 text-blue-400 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
-            </svg>
-            More RAM (24GB vs 16GB)
-          </li>
-          <li class="flex items-start gap-2">
-            <svg class="h-4 w-4 text-blue-400 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
-            </svg>
-            Higher native resolution (1080p)
-          </li>
-          <li class="flex items-start gap-2">
-            <svg class="h-4 w-4 text-blue-400 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
-            </svg>
-            Windows game compatibility
-          </li>
-          <li class="flex items-start gap-2">
-            <svg class="h-4 w-4 text-blue-400 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
-            </svg>
-            Larger battery capacity (80Wh)
-          </li>
-        </ul>
+        {verdictB.length > 0 ? (
+          <ul class="space-y-2.5 text-sm text-[#8a8a94]">
+            {verdictB.map((v) => (
+              <li class="flex items-start gap-2">
+                <svg class="h-4 w-4 text-blue-400 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                </svg>
+                {v}
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p class="text-sm text-[#55555e] italic">Not enough data to determine advantages yet.</p>
+        )}
       </div>
     </div>
   </div>

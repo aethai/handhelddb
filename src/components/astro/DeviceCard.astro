@@ -26,15 +26,15 @@ const {
 
 <a
   href={`/devices/${slug}`}
-  class="luxury-card group block rounded-lg border border-[#2A2D35] bg-[#16181D] p-5 transition-all hover:border-[#3A3D45]"
+  class="luxury-card group block rounded-lg border border-[#1a1a22] bg-[#0f0f12] p-5 transition-all hover:border-[#25252e]"
 >
   <div class="flex items-start gap-4">
     <!-- Device Image -->
-    <div class="flex-shrink-0 w-20 h-20 rounded-lg bg-[#2A2D35] flex items-center justify-center overflow-hidden">
+    <div class="flex-shrink-0 w-20 h-20 rounded-lg bg-[#1a1a22] flex items-center justify-center overflow-hidden">
       {image ? (
         <img src={image} alt={name} class="h-full w-full object-cover" loading="lazy" />
       ) : (
-        <svg class="h-10 w-10 text-[#4B5563]" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+        <svg class="h-10 w-10 text-[#35353e]" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
           <rect x="5" y="3" width="14" height="18" rx="3" />
           <line x1="9" y1="18" x2="15" y2="18" />
         </svg>
@@ -43,12 +43,12 @@ const {
 
     <!-- Device Info -->
     <div class="flex-1 min-w-0">
-      <p class="text-xs text-[#60A5FA]">{manufacturer}</p>
-      <h3 class="font-semibold text-white group-hover:text-[#60A5FA] transition-colors">
+      <p class="text-xs text-[#7c6cf0]">{manufacturer}</p>
+      <h3 class="font-semibold text-white group-hover:text-[#7c6cf0] transition-colors">
         {name}
       </h3>
 
-      <div class="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-[#9CA3AF]">
+      <div class="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-[#8a8a94]">
         {chip && <span>{chip}</span>}
         {screenSize && <span>{screenSize}"</span>}
         {batteryWh && <span>{batteryWh} Wh</span>}
@@ -56,7 +56,7 @@ const {
       </div>
 
       {testedGames > 0 && (
-        <p class="mt-2 text-xs text-[#60A5FA]">{testedGames} games tested</p>
+        <p class="mt-2 text-xs text-[#7c6cf0]">{testedGames} games tested</p>
       )}
     </div>
   </div>

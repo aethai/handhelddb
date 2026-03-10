@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import ErrorBoundary from './ErrorBoundary';
 
 /* ───── Types ───── */
 
@@ -71,7 +72,7 @@ function getInitials(name: string | null): string {
 
 /* ───── Main Component ───── */
 
-export default function CommentSection({ gameId, currentUserId }: Props) {
+function CommentSectionInner({ gameId, currentUserId }: Props) {
   const [comments, setComments] = useState<Comment[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -147,7 +148,7 @@ export default function CommentSection({ gameId, currentUserId }: Props) {
       <h3 className="text-lg font-semibold text-white">
         Comments{' '}
         {total > 0 && (
-          <span className="text-sm font-normal text-[#6B7280]">({total})</span>
+          <span className="text-sm font-normal text-[#55555e]">({total})</span>
         )}
       </h3>
 
@@ -168,7 +169,7 @@ export default function CommentSection({ gameId, currentUserId }: Props) {
       {/* Loading */}
       {loading ? (
         <div className="flex items-center justify-center py-12">
-          <svg className="h-6 w-6 animate-spin text-[#6B7280]" viewBox="0 0 24 24" fill="none">
+          <svg className="h-6 w-6 animate-spin text-[#55555e]" viewBox="0 0 24 24" fill="none">
             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
             <path
               className="opacity-75"
@@ -179,7 +180,7 @@ export default function CommentSection({ gameId, currentUserId }: Props) {
         </div>
       ) : comments.length === 0 ? (
         <div className="text-center py-8">
-          <p className="text-sm text-[#6B7280]">No comments yet. Be the first to share your thoughts!</p>
+          <p className="text-sm text-[#55555e]">No comments yet. Be the first to share your thoughts!</p>
         </div>
       ) : (
         <>
@@ -204,7 +205,7 @@ export default function CommentSection({ gameId, currentUserId }: Props) {
               <button
                 onClick={() => fetchComments(offset, true)}
                 disabled={loadingMore}
-                className="rounded-lg border border-[#3A3D45] px-5 py-2 text-sm text-gray-300 hover:border-[#4B5563] hover:text-white transition-colors disabled:opacity-50"
+                className="rounded-lg border border-[#25252e] px-5 py-2 text-sm text-gray-300 hover:border-[#35353e] hover:text-white transition-colors disabled:opacity-50"
               >
                 {loadingMore ? (
                   <span className="flex items-center gap-2">
@@ -279,6 +280,17 @@ function CommentThread({ node, gameId, currentUserId, onReply, onVote, onDelete 
   const [voteLoading, setVoteLoading] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [userVote, setUserVote] = useState<boolean | null>(null);
+  const [editing, setEditing] = useState(false);
+  const [editBody, setEditBody] = useState(comment.body ?? '');
+  const [editLoading, setEditLoading] = useState(false);
+  const [editError, setEditError] = useState<string | null>(null);
+  const [flagLoading, setFlagLoading] = useState(false);
+  const [flagged, setFlagged] = useState(comment.is_flagged);
+
+  // Can edit if own comment, within 15 minutes, not deleted
+  const isOwn = currentUserId === comment.user_id;
+  const ageMs = Date.now() - new Date(comment.created_at).getTime();
+  const canEdit = isOwn && !comment.is_deleted && ageMs < 15 * 60 * 1000;
 
   const indentLevel = Math.min(comment.depth, MAX_DEPTH);
 
@@ -329,6 +341,53 @@ function CommentThread({ node, gameId, currentUserId, onReply, onVote, onDelete 
     }
   };
 
+  const handleEdit = async () => {
+    if (!editBody.trim() || editLoading) return;
+    setEditLoading(true);
+    setEditError(null);
+
+    try {
+      const res = await fetch('/api/comments', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ commentId: comment.id, body: editBody.trim() }),
+      });
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.error ?? 'Failed to edit');
+
+      onVote(comment.id, {
+        body: result.body,
+        body_html: result.body_html,
+        is_edited: true,
+      });
+      setEditing(false);
+    } catch (e) {
+      setEditError((e as Error).message);
+    } finally {
+      setEditLoading(false);
+    }
+  };
+
+  const handleFlag = async () => {
+    if (flagLoading || flagged) return;
+    setFlagLoading(true);
+
+    try {
+      const res = await fetch('/api/comments', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'flag', commentId: comment.id }),
+      });
+      if (res.ok) {
+        setFlagged(true);
+      }
+    } catch {
+      // Ignore
+    } finally {
+      setFlagLoading(false);
+    }
+  };
+
   const handleDelete = async () => {
     if (deleteLoading) return;
     if (!confirm('Delete this comment? This cannot be undone.')) return;
@@ -357,7 +416,7 @@ function CommentThread({ node, gameId, currentUserId, onReply, onVote, onDelete 
   if (comment.is_deleted) {
     return (
       <div style={{ paddingLeft: indentLevel > 0 ? `${indentLevel * 24}px` : undefined }}>
-        <div className="rounded-lg border border-[#2A2D35]/50 bg-[#16181D]/30 px-4 py-3 my-1">
+        <div className="rounded-lg border border-[#1a1a22]/50 bg-[#0f0f12]/30 px-4 py-3 my-1">
           <p className="text-sm text-gray-600 italic">[deleted]</p>
         </div>
         {node.children.length > 0 && (
@@ -383,7 +442,7 @@ function CommentThread({ node, gameId, currentUserId, onReply, onVote, onDelete 
 
   return (
     <div style={{ paddingLeft: indentLevel > 0 ? `${indentLevel * 24}px` : undefined }}>
-      <div className="rounded-lg border border-[#2A2D35] bg-[#16181D]/50 px-4 py-3 my-1">
+      <div className="rounded-lg border border-[#1a1a22] bg-[#0f0f12]/50 px-4 py-3 my-1">
         {/* Header: avatar + name + time */}
         <div className="flex items-center gap-2.5 mb-2">
           {comment.user.avatar_url ? (
@@ -394,7 +453,7 @@ function CommentThread({ node, gameId, currentUserId, onReply, onVote, onDelete 
             />
           ) : (
             <div className="flex h-7 w-7 items-center justify-center rounded-full bg-gray-700 flex-shrink-0">
-              <span className="text-[10px] font-bold text-[#9CA3AF]">
+              <span className="text-[10px] font-bold text-[#8a8a94]">
                 {getInitials(comment.user.display_name)}
               </span>
             </div>
@@ -410,13 +469,34 @@ function CommentThread({ node, gameId, currentUserId, onReply, onVote, onDelete 
           )}
         </div>
 
-        {/* Body */}
-        <div
-          className="text-sm text-gray-300 leading-relaxed mb-2"
-          dangerouslySetInnerHTML={{ __html: comment.body_html ?? '' }}
-        />
+        {/* Body (or edit form) */}
+        {editing ? (
+          <div className="mb-2 space-y-2">
+            <textarea
+              value={editBody}
+              onChange={e => setEditBody(e.target.value)}
+              maxLength={5000}
+              rows={3}
+              className="w-full rounded-lg border border-[#25252e] bg-[#1a1a22] py-2.5 px-4 text-sm text-white placeholder-[#55555e] focus:border-[#7c6cf0] focus:outline-none focus:ring-1 focus:ring-[#7c6cf0] resize-none"
+              onKeyDown={e => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); handleEdit(); } }}
+              autoFocus
+            />
+            {editError && <p className="text-xs text-red-400">{editError}</p>}
+            <div className="flex items-center gap-2 justify-end">
+              <button onClick={() => { setEditing(false); setEditBody(comment.body ?? ''); setEditError(null); }} className="rounded-lg px-3 py-1.5 text-xs text-[#8a8a94] hover:text-white transition-colors">Cancel</button>
+              <button onClick={handleEdit} disabled={!editBody.trim() || editLoading} className="rounded-lg bg-[#7c6cf0] px-4 py-1.5 text-xs font-medium text-white hover:bg-[#6d5cff] transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                {editLoading ? 'Saving...' : 'Save'}
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div
+            className="text-sm text-gray-300 leading-relaxed mb-2"
+            dangerouslySetInnerHTML={{ __html: comment.body_html ?? '' }}
+          />
+        )}
 
-        {/* Actions: vote + reply + delete */}
+        {/* Actions: vote + reply + edit + flag + delete */}
         <div className="flex items-center gap-3">
           {/* Vote buttons */}
           <div className="flex items-center gap-1">
@@ -425,8 +505,8 @@ function CommentThread({ node, gameId, currentUserId, onReply, onVote, onDelete 
               disabled={voteLoading}
               className={`p-1 rounded transition-colors ${
                 userVote === true
-                  ? 'text-[#60A5FA] hover:text-[#93C5FD]'
-                  : 'text-gray-600 hover:text-[#9CA3AF]'
+                  ? 'text-[#7c6cf0] hover:text-[#9b8fff]'
+                  : 'text-gray-600 hover:text-[#8a8a94]'
               }`}
               title="Upvote"
             >
@@ -436,7 +516,7 @@ function CommentThread({ node, gameId, currentUserId, onReply, onVote, onDelete 
             </button>
             <span
               className={`text-xs font-medium min-w-[1.25rem] text-center ${
-                score > 0 ? 'text-[#60A5FA]' : score < 0 ? 'text-red-400' : 'text-gray-600'
+                score > 0 ? 'text-[#7c6cf0]' : score < 0 ? 'text-red-400' : 'text-gray-600'
               }`}
             >
               {score}
@@ -447,7 +527,7 @@ function CommentThread({ node, gameId, currentUserId, onReply, onVote, onDelete 
               className={`p-1 rounded transition-colors ${
                 userVote === false
                   ? 'text-red-400 hover:text-red-300'
-                  : 'text-gray-600 hover:text-[#9CA3AF]'
+                  : 'text-gray-600 hover:text-[#8a8a94]'
               }`}
               title="Downvote"
             >
@@ -467,14 +547,39 @@ function CommentThread({ node, gameId, currentUserId, onReply, onVote, onDelete 
                 }
                 setShowReplyForm(s => !s);
               }}
-              className="text-xs text-gray-600 hover:text-[#9CA3AF] transition-colors"
+              className="text-xs text-gray-600 hover:text-[#8a8a94] transition-colors"
             >
               Reply
             </button>
           )}
 
+          {/* Edit button (own comment, within 15 min) */}
+          {canEdit && !editing && (
+            <button
+              onClick={() => setEditing(true)}
+              className="text-xs text-gray-600 hover:text-[#8a8a94] transition-colors"
+            >
+              Edit
+            </button>
+          )}
+
+          {/* Flag button (other users' comments) */}
+          {currentUserId && !isOwn && !flagged && (
+            <button
+              onClick={handleFlag}
+              disabled={flagLoading}
+              className="text-xs text-gray-600 hover:text-orange-400 transition-colors"
+              title="Report this comment"
+            >
+              {flagLoading ? '...' : 'Flag'}
+            </button>
+          )}
+          {flagged && !isOwn && (
+            <span className="text-xs text-orange-400/60">Flagged</span>
+          )}
+
           {/* Delete button (only for comment author) */}
-          {currentUserId && currentUserId === comment.user_id && (
+          {currentUserId && isOwn && (
             <button
               onClick={handleDelete}
               disabled={deleteLoading}
@@ -487,7 +592,7 @@ function CommentThread({ node, gameId, currentUserId, onReply, onVote, onDelete 
 
         {/* Inline reply form */}
         {showReplyForm && (
-          <div className="mt-3 pt-3 border-t border-[#2A2D35]">
+          <div className="mt-3 pt-3 border-t border-[#1a1a22]">
             <CommentForm
               gameId={gameId}
               currentUserId={currentUserId}
@@ -547,11 +652,11 @@ function CommentForm({ gameId, currentUserId, parentId, parentDepth, onSubmit, o
 
   if (!currentUserId) {
     return (
-      <div className="rounded-lg border border-[#2A2D35] bg-[#16181D]/50 px-4 py-4 text-center">
-        <p className="text-sm text-[#6B7280] mb-2">Sign in to join the conversation</p>
+      <div className="rounded-lg border border-[#1a1a22] bg-[#0f0f12]/50 px-4 py-4 text-center">
+        <p className="text-sm text-[#55555e] mb-2">Sign in to join the conversation</p>
         <a
           href={'/auth/login?redirect=' + encodeURIComponent(typeof window !== 'undefined' ? window.location.pathname : '/')}
-          className="inline-flex items-center gap-2 rounded-lg bg-[#60A5FA] px-4 py-2 text-sm font-medium text-white hover:bg-[#60A5FA] transition-colors"
+          className="inline-flex items-center gap-2 rounded-lg bg-[#7c6cf0] px-4 py-2 text-sm font-medium text-white hover:bg-[#7c6cf0] transition-colors"
         >
           Sign in
         </a>
@@ -603,7 +708,7 @@ function CommentForm({ gameId, currentUserId, parentId, parentDepth, onSubmit, o
         maxLength={5000}
         rows={compact ? 2 : 3}
         placeholder={parentId ? 'Write a reply...' : 'Share your thoughts on this game...'}
-        className="w-full rounded-lg border border-[#3A3D45] bg-[#2A2D35] py-2.5 px-4 text-sm text-white placeholder-[#6B7280] focus:border-[#60A5FA] focus:outline-none focus:ring-1 focus:ring-[#60A5FA] resize-none"
+        className="w-full rounded-lg border border-[#25252e] bg-[#1a1a22] py-2.5 px-4 text-sm text-white placeholder-[#55555e] focus:border-[#7c6cf0] focus:outline-none focus:ring-1 focus:ring-[#7c6cf0] resize-none"
       />
       {error && (
         <p className="text-xs text-red-400">{error}</p>
@@ -617,7 +722,7 @@ function CommentForm({ gameId, currentUserId, parentId, parentDepth, onSubmit, o
           {onCancel && (
             <button
               onClick={onCancel}
-              className="rounded-lg px-3 py-1.5 text-xs text-[#9CA3AF] hover:text-white transition-colors"
+              className="rounded-lg px-3 py-1.5 text-xs text-[#8a8a94] hover:text-white transition-colors"
             >
               Cancel
             </button>
@@ -625,7 +730,7 @@ function CommentForm({ gameId, currentUserId, parentId, parentDepth, onSubmit, o
           <button
             onClick={handleSubmit}
             disabled={!body.trim() || submitting}
-            className="rounded-lg bg-[#60A5FA] px-4 py-1.5 text-xs font-medium text-white hover:bg-[#60A5FA] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5"
+            className="rounded-lg bg-[#7c6cf0] px-4 py-1.5 text-xs font-medium text-white hover:bg-[#7c6cf0] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5"
           >
             {submitting && (
               <svg className="h-3 w-3 animate-spin" viewBox="0 0 24 24" fill="none">
@@ -638,5 +743,13 @@ function CommentForm({ gameId, currentUserId, parentId, parentDepth, onSubmit, o
         </div>
       </div>
     </div>
+  );
+}
+
+export default function CommentSection(props: Props) {
+  return (
+    <ErrorBoundary>
+      <CommentSectionInner {...props} />
+    </ErrorBoundary>
   );
 }

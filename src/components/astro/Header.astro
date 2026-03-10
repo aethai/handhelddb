@@ -15,100 +15,99 @@ const navLinks = [
   { href: '/games', label: 'Games' },
   { href: '/devices', label: 'Devices' },
   { href: '/discover', label: 'Discover' },
-  { href: '/news', label: 'News' },
   { href: '/compare', label: 'Compare' },
+  { href: '/news', label: 'News' },
 ];
 ---
 
-<header class="sticky top-0 z-50 bg-[#0F1115]/90 backdrop-blur-md border-b border-[#2A2D35]">
-  <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-    <div class="flex h-16 items-center justify-between">
+<header style="position:sticky;top:0;z-index:50;background:#08070cee;backdrop-filter:blur(20px);border-bottom:1px solid rgba(255,255,255,0.06);">
+  <div style="max-width:960px;margin:0 auto;padding:11px 24px;display:flex;align-items:center;justify-content:space-between;">
+    <div style="display:flex;align-items:center;gap:24px;">
       <!-- Logo -->
-      <a href="/" class="flex items-center gap-2 text-lg font-bold text-white hover:text-[#93C5FD] transition-colors">
-        <svg class="h-8 w-8 text-[#60A5FA]" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <rect x="4" y="8" width="24" height="16" rx="4" stroke="currentColor" stroke-width="2" />
-          <circle cx="11" cy="16" r="2" fill="currentColor" />
-          <circle cx="21" cy="14" r="1.5" fill="currentColor" />
-          <circle cx="23" cy="16" r="1.5" fill="currentColor" />
-          <circle cx="21" cy="18" r="1.5" fill="currentColor" />
-          <circle cx="19" cy="16" r="1.5" fill="currentColor" />
-        </svg>
-        <span class="hidden sm:inline text-sm font-semibold">Handheld GameDB</span>
+      <a href="/" style="display:flex;align-items:center;gap:7px;text-decoration:none;">
+        <div style="width:22px;height:22px;border-radius:6px;background:rgba(167,139,250,0.12);border:1px solid rgba(167,139,250,0.2);display:flex;align-items:center;justify-content:center;">
+          <div style="width:6px;height:6px;border-radius:2px;background:#a78bfa;"></div>
+        </div>
+        <span style="font-family:var(--font-display);font-weight:800;font-size:15px;color:#eae6f4;">HandheldDB</span>
       </a>
 
       <!-- Navigation (desktop) -->
-      <nav class="hidden md:flex items-center gap-6">
+      <nav class="hidden md:flex" style="gap:20px;">
         {navLinks.map(({ href, label }) => {
           const isActive = currentPath.startsWith(href);
           return (
             <a
               href={href}
-              class={`relative text-sm font-medium transition-colors after:absolute after:bottom-0 after:left-0 after:h-0.5 after:bg-[#60A5FA] after:transition-all ${isActive ? 'text-[#E8EAED] after:w-full' : 'text-[#9CA3AF] hover:text-[#E8EAED] after:w-0 hover:after:w-full'}`}
+              style={`font-family:var(--font-mono);font-size:11px;color:${isActive ? '#9890a8' : '#4a4458'};text-decoration:none;transition:color 0.15s;`}
             >
               {label}
             </a>
           );
         })}
       </nav>
+    </div>
 
-      <!-- Search + Auth + Hamburger -->
-      <div class="flex items-center gap-3">
-        <div class="hidden md:block">
-          <SearchBar client:load variant="header" placeholder="Search games..." />
-        </div>
-        {user && (
-          <NotificationBell client:load />
-        )}
-        <a
-          href="/report/new"
-          class="hidden sm:inline-flex items-center gap-1.5 rounded-lg bg-[#60A5FA] px-3 py-1.5 text-sm font-medium text-[#0F1115] hover:bg-[#93C5FD] transition-colors"
-        >
-          <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
-          </svg>
-          Report
-        </a>
-        {user ? (
-          <div class="relative group">
-            <button class="flex items-center gap-2 rounded-lg border border-[#3A3D45] px-2 py-1 hover:border-[#60A5FA] transition-colors">
-              {avatarUrl ? (
-                <img src={avatarUrl} alt="" class="h-6 w-6 rounded-full" />
-              ) : (
-                <div class="h-6 w-6 rounded-full bg-[#60A5FA] flex items-center justify-center text-xs font-bold text-[#0F1115]">
-                  {displayName.charAt(0).toUpperCase()}
-                </div>
-              )}
-              <span class="hidden sm:inline text-sm text-[#9CA3AF]">{displayName}</span>
-            </button>
-            <div class="absolute right-0 mt-2 w-48 rounded-xl border border-[#3A3D45] bg-[#16181D] shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50">
-              <div class="p-2 space-y-1">
-                <a href="/profile" class="block rounded-lg px-3 py-2 text-sm text-[#9CA3AF] hover:bg-[#1E2128] hover:text-white">Profile</a>
-                <a href="/auth/logout" class="block rounded-lg px-3 py-2 text-sm text-red-400 hover:bg-[#1E2128] hover:text-red-300">Sign out</a>
+    <!-- Right side -->
+    <div style="display:flex;align-items:center;gap:12px;">
+      <!-- Search (desktop) -->
+      <div class="hidden md:block">
+        <SearchBar client:load variant="header" placeholder="Search games..." />
+      </div>
+
+      {user && (
+        <NotificationBell client:load />
+      )}
+
+      <!-- Submit button -->
+      <a
+        href="/report/new"
+        class="hidden sm:inline-flex"
+        style="font-family:var(--font-mono);font-size:9px;font-weight:700;color:#08070c;background:#a78bfa;padding:6px 14px;border-radius:6px;letter-spacing:0.04em;box-shadow:0 0 16px rgba(167,139,250,0.2);text-decoration:none;transition:all 0.2s;"
+      >
+        SUBMIT
+      </a>
+
+      {user ? (
+        <div class="relative group">
+          <button style="display:flex;align-items:center;gap:6px;border-radius:8px;border:1px solid rgba(255,255,255,0.09);padding:4px 8px;background:none;cursor:pointer;transition:border-color 0.15s;">
+            {avatarUrl ? (
+              <img src={avatarUrl} alt="" style="height:24px;width:24px;border-radius:50%;" />
+            ) : (
+              <div style="height:24px;width:24px;border-radius:50%;background:#a78bfa;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#08070c;">
+                {displayName.charAt(0).toUpperCase()}
               </div>
+            )}
+            <span class="hidden sm:inline" style="font-size:12px;color:#9890a8;">{displayName}</span>
+          </button>
+          <div class="absolute right-0 mt-2 w-48 rounded-xl bg-[#0e0c16] shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50" style="border:1px solid rgba(255,255,255,0.09);">
+            <div style="padding:8px;">
+              <a href="/profile" style="display:block;border-radius:8px;padding:8px 12px;font-size:13px;color:#9890a8;text-decoration:none;transition:background 0.1s;">Profile</a>
+              <a href="/auth/logout" style="display:block;border-radius:8px;padding:8px 12px;font-size:13px;color:#f87171;text-decoration:none;transition:background 0.1s;">Sign out</a>
             </div>
           </div>
-        ) : (
-          <a
-            href="/auth/login"
-            class="hidden md:inline-flex rounded-lg border border-[#3A3D45] px-3 py-1.5 text-sm font-medium text-[#9CA3AF] hover:border-[#60A5FA] hover:text-white transition-colors"
-          >
-            Sign in
-          </a>
-        )}
-
-        <!-- Hamburger button (mobile only) -->
-        <button
-          id="mobile-menu-btn"
-          type="button"
-          class="md:hidden inline-flex items-center justify-center rounded-lg border border-[#3A3D45] p-2 text-[#9CA3AF] hover:border-[#60A5FA] hover:text-white transition-colors"
-          aria-label="Open menu"
-          aria-expanded="false"
+        </div>
+      ) : (
+        <a
+          href="/auth/login"
+          class="hidden md:inline-flex"
+          style="font-family:var(--font-mono);font-size:10px;color:#6d6882;text-decoration:none;transition:color 0.15s;"
         >
-          <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
-          </svg>
-        </button>
-      </div>
+          Sign in
+        </a>
+      )}
+
+      <!-- Hamburger (mobile) -->
+      <button
+        id="mobile-menu-btn"
+        type="button"
+        class="md:hidden"
+        style="display:flex;flex-direction:column;justify-content:center;gap:4px;padding:4px;background:none;border:none;cursor:pointer;"
+        aria-label="Open menu"
+        aria-expanded="false"
+      >
+        <div style="width:16px;height:1.5px;background:#6d6882;border-radius:1px;"></div>
+        <div style="width:12px;height:1.5px;background:#6d6882;border-radius:1px;"></div>
+      </button>
     </div>
   </div>
 </header>
@@ -122,16 +121,17 @@ const navLinks = [
 <!-- Mobile menu drawer -->
 <nav
   id="mobile-menu-drawer"
-  class="fixed top-0 right-0 z-[70] h-full w-72 bg-[#0F1115] border-l border-[#2A2D35] shadow-2xl translate-x-full transition-transform duration-300 ease-in-out"
+  class="fixed top-0 right-0 z-[70] h-full w-72 translate-x-full transition-transform duration-300 ease-in-out"
+  style="background:#08070c;border-left:1px solid rgba(255,255,255,0.06);box-shadow:0 0 40px rgba(0,0,0,0.5);"
 >
   <div class="flex h-full flex-col">
     <!-- Drawer header -->
-    <div class="flex items-center justify-between border-b border-[#2A2D35] px-5 py-4">
-      <span class="text-sm font-semibold text-white">Menu</span>
+    <div style="display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,0.06);padding:16px 20px;">
+      <span style="font-family:var(--font-display);font-size:14px;font-weight:700;color:#eae6f4;">Menu</span>
       <button
         id="mobile-menu-close"
         type="button"
-        class="rounded-lg p-1.5 text-[#9CA3AF] hover:text-white transition-colors"
+        style="padding:6px;color:#6d6882;background:none;border:none;cursor:pointer;"
         aria-label="Close menu"
       >
         <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -140,15 +140,21 @@ const navLinks = [
       </button>
     </div>
 
+    <!-- Mobile Search -->
+    <div style="padding:12px 12px 0;">
+      <SearchBar client:load variant="header" placeholder="Search games..." />
+    </div>
+
     <!-- Nav links -->
-    <div class="flex-1 overflow-y-auto px-3 py-4">
-      <div class="space-y-1">
+    <div style="flex:1;overflow-y:auto;padding:16px 12px;">
+      <div style="display:flex;flex-direction:column;gap:4px;">
         {navLinks.map(({ href, label }) => {
           const isActive = currentPath.startsWith(href);
           return (
             <a
               href={href}
-              class={`mobile-menu-link block rounded-lg px-4 py-3 text-sm font-medium transition-colors ${isActive ? 'text-white bg-[#16181D]' : 'text-[#9CA3AF] hover:bg-[#16181D] hover:text-white'}`}
+              class="mobile-menu-link"
+              style={`display:block;border-radius:8px;padding:12px 16px;font-size:14px;font-weight:500;text-decoration:none;transition:all 0.15s;color:${isActive ? '#eae6f4' : '#9890a8'};background:${isActive ? '#0e0c16' : 'transparent'};`}
             >
               {label}
             </a>
@@ -156,49 +162,45 @@ const navLinks = [
         })}
       </div>
 
-      <!-- Divider -->
-      <div class="my-4 border-t border-[#2A2D35]"></div>
+      <div style="margin:16px 0;border-top:1px solid rgba(255,255,255,0.06);"></div>
 
-      <!-- Report button -->
       <a
         href="/report/new"
-        class="mobile-menu-link flex items-center gap-2 rounded-lg bg-[#60A5FA]/10 border border-[#60A5FA]/20 px-4 py-3 text-sm font-medium text-[#60A5FA] hover:bg-[#60A5FA]/20 transition-colors"
+        class="mobile-menu-link"
+        style="display:flex;align-items:center;gap:8px;border-radius:8px;background:rgba(167,139,250,0.1);border:1px solid rgba(167,139,250,0.2);padding:12px 16px;font-size:14px;font-weight:600;color:#a78bfa;text-decoration:none;transition:background 0.15s;"
       >
-        <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <svg style="width:16px;height:16px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
         </svg>
         Submit Report
       </a>
     </div>
 
-    <!-- Auth section at bottom -->
-    <div class="border-t border-[#2A2D35] px-3 py-4">
+    <!-- Auth at bottom -->
+    <div style="border-top:1px solid rgba(255,255,255,0.06);padding:16px 12px;">
       {user ? (
-        <div class="space-y-2">
-          <div class="flex items-center gap-3 px-4 py-2">
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <div style="display:flex;align-items:center;gap:12px;padding:8px 16px;">
             {avatarUrl ? (
-              <img src={avatarUrl} alt="" class="h-8 w-8 rounded-full" />
+              <img src={avatarUrl} alt="" style="height:32px;width:32px;border-radius:50%;" />
             ) : (
-              <div class="h-8 w-8 rounded-full bg-[#60A5FA] flex items-center justify-center text-sm font-bold text-[#0F1115]">
+              <div style="height:32px;width:32px;border-radius:50%;background:#a78bfa;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#08070c;">
                 {displayName.charAt(0).toUpperCase()}
               </div>
             )}
-            <div class="min-w-0">
-              <p class="truncate text-sm font-medium text-white">{displayName}</p>
-              <p class="truncate text-xs text-[#6B7280]">{user.email}</p>
+            <div style="min-width:0;">
+              <p style="font-size:14px;font-weight:500;color:#eae6f4;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{displayName}</p>
+              <p style="font-size:11px;color:#6d6882;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{user.email}</p>
             </div>
           </div>
-          <a href="/profile" class="mobile-menu-link block rounded-lg px-4 py-2.5 text-sm text-[#9CA3AF] hover:bg-[#16181D] hover:text-white transition-colors">
-            Profile
-          </a>
-          <a href="/auth/logout" class="mobile-menu-link block rounded-lg px-4 py-2.5 text-sm text-red-400 hover:bg-[#16181D] hover:text-red-300 transition-colors">
-            Sign out
-          </a>
+          <a href="/profile" class="mobile-menu-link" style="display:block;border-radius:8px;padding:10px 16px;font-size:13px;color:#9890a8;text-decoration:none;">Profile</a>
+          <a href="/auth/logout" class="mobile-menu-link" style="display:block;border-radius:8px;padding:10px 16px;font-size:13px;color:#f87171;text-decoration:none;">Sign out</a>
         </div>
       ) : (
         <a
           href="/auth/login"
-          class="mobile-menu-link flex items-center justify-center gap-2 rounded-lg border border-[#3A3D45] px-4 py-3 text-sm font-medium text-[#9CA3AF] hover:border-[#60A5FA] hover:text-white transition-colors"
+          class="mobile-menu-link"
+          style="display:flex;align-items:center;justify-content:center;gap:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.09);padding:12px 16px;font-size:14px;font-weight:500;color:#9890a8;text-decoration:none;transition:all 0.15s;"
         >
           Sign in
         </a>
@@ -242,13 +244,11 @@ const navLinks = [
     closeBtn!.addEventListener('click', closeMenu);
     _backdrop.addEventListener('click', closeMenu);
 
-    // Close on link click
     const links = _drawer.querySelectorAll('.mobile-menu-link');
     links.forEach((link) => {
       link.addEventListener('click', closeMenu);
     });
 
-    // Close on Escape key
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape' && _btn.getAttribute('aria-expanded') === 'true') {
         closeMenu();
@@ -256,9 +256,6 @@ const navLinks = [
     });
   }
 
-  // Run on initial load
   initMobileMenu();
-
-  // Re-run after Astro client-side navigation (View Transitions)
   document.addEventListener('astro:after-swap', initMobileMenu);
 </script>

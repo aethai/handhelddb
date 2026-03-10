@@ -1,18 +1,19 @@
 ---
 import BaseLayout from '@layouts/BaseLayout.astro';
-import PerformanceBadge from '@components/astro/PerformanceBadge.astro';
 import GameJsonLd from '@components/astro/GameJsonLd.astro';
 import BreadcrumbJsonLd from '@components/astro/BreadcrumbJsonLd.astro';
 import CommentSection from '@components/react/CommentSection';
+import GameDetailPanel from '@components/react/GameDetailPanel';
 import FollowButton from '@components/react/FollowButton';
 import { supabaseAdmin } from '@lib/db/client';
 
 const { slug } = Astro.params;
+const currentUser = Astro.locals.user;
 
-// Fetch game from Supabase
+// ── Fetch game (must happen first — we need game.id) ──
 const { data: game, error } = await supabaseAdmin
   .from('games')
-  .select('*')
+  .select('id, name, slug, header_image, capsule_image, genres, developers, publishers, tags, short_description, description, release_date, price_usd, is_free_to_play, metacritic_score, steam_review_score, deck_compatibility, steam_appid, protondb_tier, hltb_main_hours, performance_tier')
   .eq('slug', slug)
   .single();
 
@@ -20,64 +21,182 @@ if (error || !game) {
   return Astro.redirect('/games');
 }
 
-// Fetch all devices for sidebar "Quick Verdict" (placeholder until we have reports)
-const { data: devicesData } = await supabaseAdmin
-  .from('devices')
-  .select('slug, name')
-  .eq('is_active', true)
-  .order('name')
-  .limit(6);
+// ── Parallel batch 1: devices, consensus, follow state, follower count ──
+const [
+  { data: devicesData },
+  { data: consensusData },
+  { data: followData },
+  followerCountResult,
+] = await Promise.all([
+  supabaseAdmin
+    .from('devices')
+    .select('id, slug, name, manufacturer, chip, screen_resolution, battery_wh, tdp_min, tdp_max, image')
+    .eq('is_active', true)
+    .order('name')
+    .limit(15),
+  supabaseAdmin
+    .from('consensus_ratings')
+    .select('*')
+    .eq('game_id', game.id),
+  currentUser
+    ? supabaseAdmin
+        .from('game_follows')
+        .select('id')
+        .eq('game_id', game.id)
+        .eq('user_id', currentUser.id)
+        .maybeSingle()
+    : Promise.resolve({ data: null }),
+  supabaseAdmin
+    .from('game_follows')
+    .select('id', { count: 'exact', head: true })
+    .eq('game_id', game.id),
+]);
+const followerCount = followerCountResult.count ?? 0;
 
-const deckStatusColors: Record<string, { label: string; class: string }> = {
-  verified: { label: 'Verified', class: 'bg-green-500/20 text-green-400 border-green-500/30' },
-  playable: { label: 'Playable', class: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30' },
-  unsupported: { label: 'Unsupported', class: 'bg-red-500/20 text-red-400 border-red-500/30' },
-  unknown: { label: 'Unknown', class: 'bg-[#6B7280]/20 text-[#9CA3AF] border-[#6B7280]/30' },
-};
+// ── Build consensus lookup by device_id ──
+const consensusById: Record<string, any> = {};
+if (consensusData) {
+  for (const c of consensusData) {
+    consensusById[c.device_id] = c;
+  }
+}
 
-const protonColors: Record<string, { label: string; class: string }> = {
-  platinum: { label: 'Platinum', class: 'bg-blue-500/20 text-blue-300' },
-  gold: { label: 'Gold', class: 'bg-yellow-500/20 text-yellow-400' },
-  silver: { label: 'Silver', class: 'bg-[#9CA3AF]/20 text-[#9CA3AF]' },
-  bronze: { label: 'Bronze', class: 'bg-orange-500/20 text-orange-400' },
-  borked: { label: 'Borked', class: 'bg-red-500/20 text-red-400' },
-  pending: { label: 'Pending', class: 'bg-[#6B7280]/20 text-[#9CA3AF]' },
-};
+// ── Determine default device ──
+const deckDevice = devicesData?.find(d => d.slug === 'steam-deck-oled') ?? devicesData?.find(d => d.slug === 'steam-deck');
+const deviceWithMostReports = devicesData
+  ?.filter(d => consensusById[d.id]?.report_count > 0)
+  ?.sort((a, b) => (consensusById[b.id]?.report_count ?? 0) - (consensusById[a.id]?.report_count ?? 0))[0];
+const defaultDevice = (deckDevice && consensusById[deckDevice.id]) ? deckDevice : deviceWithMostReports ?? devicesData?.[0];
 
+// ── Parallel batch 2: reports + similar games (need defaultDevice) ──
+const gameGenres = (game.genres as string[]) ?? [];
+
+const [reportsResult, similarRawResult] = await Promise.all([
+  defaultDevice
+    ? supabaseAdmin
+        .from('performance_reports')
+        .select('id, fps_avg, fps_low, preset, resolution, fsr_enabled, fsr_mode, tdp_limit_watts, battery_life_hours, overall_rating, notes, upvotes, downvotes, created_at, user:users(display_name, avatar_url, username)')
+        .eq('game_id', game.id)
+        .eq('device_id', defaultDevice.id)
+        .eq('moderation_status', 'approved')
+        .order('created_at', { ascending: false })
+        .limit(10)
+    : Promise.resolve({ data: [] }),
+  gameGenres.length > 0
+    ? supabaseAdmin
+        .from('games')
+        .select('id, name, slug, header_image')
+        .neq('id', game.id)
+        .contains('genres', [gameGenres[0]])
+        .limit(20)
+    : Promise.resolve({ data: [] }),
+]);
+
+const initialReports = reportsResult.data ?? [];
+
+// ── Parallel batch 3: user votes + similar games consensus ──
+const rawSimilar = similarRawResult.data ?? [];
+
+const [userVotesResult, simConsResult] = await Promise.all([
+  currentUser && initialReports.length > 0
+    ? supabaseAdmin
+        .from('report_votes')
+        .select('report_id, is_upvote')
+        .eq('user_id', currentUser.id)
+        .in('report_id', initialReports.map((r: any) => r.id))
+    : Promise.resolve({ data: [] }),
+  rawSimilar.length > 0 && defaultDevice
+    ? supabaseAdmin
+        .from('consensus_ratings')
+        .select('game_id, fps_avg')
+        .in('game_id', rawSimilar.map(g => g.id))
+        .eq('device_id', defaultDevice.id)
+    : Promise.resolve({ data: [] }),
+]);
+
+// ── Build user votes map ──
+let userVotesMap: Record<string, boolean> = {};
+for (const v of userVotesResult.data ?? []) {
+  userVotesMap[v.report_id] = v.is_upvote;
+}
+
+// ── Build similar games list ──
+let similarGames: { name: string; slug: string; header_image: string | null; fps: number }[] = [];
+if (rawSimilar.length > 0 && simConsResult.data?.length) {
+  const consMap = new Map(simConsResult.data.map(c => [c.game_id, c.fps_avg]));
+  similarGames = rawSimilar
+    .filter(g => consMap.has(g.id) && consMap.get(g.id)! > 0)
+    .slice(0, 4)
+    .map(g => ({
+      name: g.name,
+      slug: g.slug,
+      header_image: g.header_image,
+      fps: Math.round(consMap.get(g.id)!),
+    }));
+}
+
+// ── Derived data ──
 const genres = (game.genres as string[]) ?? [];
 const developers = (game.developers as string[]) ?? [];
-const publishers = (game.publishers as string[]) ?? [];
-const screenshots = (game.screenshots as string[]) ?? [];
 const tags = (game.tags as string[]) ?? [];
-
-const deckInfo = deckStatusColors[game.deck_compatibility ?? 'unknown'] ?? deckStatusColors.unknown;
-const protonInfo = protonColors[game.protondb_tier ?? 'pending'] ?? protonColors.pending;
-
-const releaseDate = game.release_date ? new Date(game.release_date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : null;
-
-// Strip HTML from description
 const cleanDescription = game.short_description || (game.description?.replace(/<[^>]*>/g, '').slice(0, 500) ?? '');
+const releaseYear = game.release_date ? new Date(game.release_date).getFullYear() : null;
+const rawPrice = game.price_usd != null ? (game.price_usd > 200 ? game.price_usd / 100 : game.price_usd) : null;
+const priceDisplay = rawPrice != null ? (game.is_free_to_play ? 'Free' : `$${rawPrice.toFixed(2)}`) : null;
 
-const currentUser = Astro.locals.user;
+const fpsColor = (f: number) => f >= 55 ? '#4ade80' : f >= 45 ? '#a3e635' : f >= 35 ? '#facc15' : f >= 25 ? '#fb923c' : '#f87171';
 
-// Fetch follow state for current user
-const { data: followData } = await supabaseAdmin
-  .from('game_follows')
-  .select('id')
-  .eq('game_id', game.id)
-  .eq('user_id', currentUser?.id ?? '')
-  .maybeSingle();
 
-// Fetch follower count
-const { count: followerCount } = await supabaseAdmin
-  .from('game_follows')
-  .select('id', { count: 'exact', head: true })
-  .eq('game_id', game.id);
+// ── Short names for device tabs ──
+function shortName(name: string): string {
+  if (name.includes('Steam Deck OLED')) return 'DECK OLED';
+  if (name.includes('Steam Deck')) return 'DECK';
+  if (name.includes('ROG Ally X')) return 'ALLY X';
+  if (name.includes('ROG Ally')) return 'ALLY';
+  if (name.includes('Legion Go')) return 'LEGION';
+  if (name.includes('GPD Win')) return 'GPD';
+  if (name.includes('MSI Claw')) return 'CLAW';
+  if (name.includes('AYANEO')) return 'AYANEO';
+  const words = name.split(/[\s-]+/);
+  return words.length > 1 ? words.slice(0, 2).join(' ').toUpperCase().slice(0, 10) : name.toUpperCase().slice(0, 8);
+}
 
-const hasScores = !!(game.metacritic_score || game.steam_review_score);
-const hasHltb = !!(game.hltb_main_hours || game.hltb_extra_hours || game.hltb_completionist_hours);
-const hasScreenshots = screenshots.length > 0;
-const priceDisplay = game.price_usd != null ? (game.is_free_to_play ? 'Free' : `$${game.price_usd.toFixed(2)}`) : null;
+// ── Serialize data for React island ──
+const panelData = {
+  gameId: game.id,
+  gameName: game.name,
+  gameSlug: game.slug,
+  devices: (devicesData ?? []).map(d => ({
+    id: d.id,
+    slug: d.slug,
+    name: d.name,
+    shortName: shortName(d.name),
+    manufacturer: d.manufacturer,
+    chip: d.chip,
+    screen_resolution: d.screen_resolution,
+    battery_wh: d.battery_wh,
+    tdp_min: d.tdp_min,
+    tdp_max: d.tdp_max,
+    image: d.image,
+  })),
+  consensus: consensusById,
+  defaultDeviceId: defaultDevice?.id ?? '',
+  initialReports,
+  gameInfo: {
+    name: game.name,
+    headerImage: game.header_image,
+    metacriticScore: game.metacritic_score,
+    steamReviewScore: game.steam_review_score,
+    deckCompatibility: game.deck_compatibility,
+    priceDisplay,
+    subtitle: `${developers[0] ?? ''}${genres[0] ? ` · ${genres[0]}` : ''}${releaseYear ? ` · ${releaseYear}` : ''}`,
+    description: cleanDescription,
+    tags: tags.slice(0, 6),
+    steamAppid: game.steam_appid,
+  },
+  isLoggedIn: !!currentUser,
+  userVotes: userVotesMap,
+};
 ---
 
 <BaseLayout
@@ -92,439 +211,72 @@ const priceDisplay = game.price_usd != null ? (game.is_free_to_play ? 'Free' : `
     { name: game.name, url: `${import.meta.env.PUBLIC_SITE_URL ?? ''}/games/${game.slug}` },
   ]} />
 
-  <!-- Breadcrumb -->
-  <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-6 pb-2">
-    <nav class="text-sm text-[#6B7280]">
-      <a href="/" class="hover:text-white transition-colors">Home</a>
-      <span class="mx-2">/</span>
-      <a href="/games" class="hover:text-white transition-colors">Games</a>
-      <span class="mx-2">/</span>
-      <span class="text-[#9CA3AF]">{game.name}</span>
-    </nav>
-  </div>
+  <!-- Embedded JSON data for React island -->
+  <script type="application/json" id="game-page-data" set:html={JSON.stringify(panelData)} />
 
-  <!-- ═══════════════════════════════════════════ -->
-  <!-- FULL-BLEED HERO                            -->
-  <!-- ═══════════════════════════════════════════ -->
-  <section class="relative w-full overflow-hidden">
-    {game.header_image ? (
-      <div class="aspect-[21/9] w-full">
-        <img
-          src={game.header_image}
-          alt={game.name}
-          class="w-full h-full object-cover"
-        />
-      </div>
-    ) : (
-      <div class="aspect-[21/9] w-full bg-gradient-to-br from-[#2A2D35] via-[#16181D] to-[#0F1115] flex items-center justify-center">
-        <span class="text-6xl font-bold text-gray-700/30">{game.name}</span>
-      </div>
-    )}
-    <!-- Gradient overlay: transparent at top, solid at bottom -->
-    <div class="absolute inset-0 bg-gradient-to-t from-[#0F1115] via-[#0F1115]/60 to-transparent"></div>
+<div style="background:#08070c;min-height:100vh;overflow-x:hidden;">
 
-    <!-- Overlaid content at bottom -->
-    <div class="absolute bottom-0 inset-x-0">
-      <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pb-8">
-        <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
-          <div class="min-w-0">
-            <h1 class="text-3xl sm:text-4xl lg:text-5xl font-bold text-white leading-tight truncate">
-              {game.name}
-            </h1>
-            <div class="mt-3 flex items-center gap-3 flex-wrap">
-              {developers[0] && (
-                <span class="text-sm text-[#9CA3AF]">{developers[0]}</span>
-              )}
-              {genres.length > 0 && (
-                <>
-                  <span class="text-[#3A3D45]">&middot;</span>
-                  {genres.map(genre => (
-                    <span class="rounded-full bg-white/10 backdrop-blur-sm px-3 py-0.5 text-xs font-medium text-[#E8EAED]">
-                      {genre}
-                    </span>
-                  ))}
-                </>
-              )}
-            </div>
-            <div class="mt-3 flex items-center gap-2 flex-wrap">
-              <span class={`rounded-lg border px-2.5 py-1 text-xs font-medium ${deckInfo.class}`}>
-                Deck {deckInfo.label}
-              </span>
-              {game.protondb_tier && game.protondb_tier !== 'pending' && (
-                <span class={`rounded-lg px-2.5 py-1 text-xs font-medium ${protonInfo.class}`}>
-                  ProtonDB {protonInfo.label}
-                </span>
-              )}
-            </div>
-          </div>
-          <div class="flex gap-2 flex-shrink-0">
-            <FollowButton
-              client:load
-              gameId={game.id}
-              initialFollowing={!!followData}
-              followerCount={followerCount ?? 0}
-            />
-            <a
-              href="/report/new"
-              class="inline-flex items-center gap-1.5 rounded-lg bg-[#60A5FA] px-4 py-2 text-sm font-medium text-white hover:bg-[#3B82F6] transition-colors"
-            >
-              <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" /></svg>
-              Report
-            </a>
-          </div>
+  <!-- Visible breadcrumbs -->
+  <nav aria-label="Breadcrumb" style="max-width:1060px;margin:0 auto;padding:12px 28px 0;">
+    <ol style="display:flex;align-items:center;gap:6px;font-family:var(--font-mono);font-size:10px;list-style:none;margin:0;padding:0;">
+      <li><a href="/" style="color:#4a4560;text-decoration:none;transition:color 0.15s;" onmouseover="this.style.color='#9890a8'" onmouseout="this.style.color='#4a4560'">Home</a></li>
+      <li style="color:#2a2838;" aria-hidden="true">›</li>
+      <li><a href="/games" style="color:#4a4560;text-decoration:none;transition:color 0.15s;" onmouseover="this.style.color='#9890a8'" onmouseout="this.style.color='#4a4560'">Games</a></li>
+      <li style="color:#2a2838;" aria-hidden="true">›</li>
+      <li style="color:#6d6882;" aria-current="page">{game.name}</li>
+    </ol>
+  </nav>
+
+  <!-- ████████ FULL-WIDTH REACT ISLAND (hero + content) ████████ -->
+  <GameDetailPanel client:load dataId="game-page-data" initialData={panelData} />
+
+  <!-- ████████ CTA ████████ -->
+  <div style="max-width:1060px;margin:0 auto;padding:0 28px;">
+    <section style="margin-bottom:44px;">
+      <div style="border-radius:20px;padding:48px 36px;background:#0a0910;border:1px solid rgba(167,139,250,0.05);display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:20px;position:relative;overflow:hidden;">
+        <div style="position:absolute;top:50%;right:20%;transform:translate(50%,-50%);width:200px;height:200px;background:radial-gradient(circle,rgba(167,139,250,0.04),transparent 55%);pointer-events:none;"></div>
+        <div>
+          <div style="font-family:var(--font-display);font-size:clamp(18px,3vw,28px);font-weight:900;color:#eae6f4;letter-spacing:-0.03em;margin-bottom:4px;">Tested {game.name}?</div>
+          <div style="font-family:var(--font-mono);font-size:11px;color:#3a3448;">5 minutes · real data · help thousands</div>
         </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ═══════════════════════════════════════════ -->
-  <!-- STICKY QUICK STATS BAR                     -->
-  <!-- ═══════════════════════════════════════════ -->
-  <div class="sticky top-16 z-30 bg-[#0F1115]/95 backdrop-blur-md border-y border-[#2A2D35]">
-    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-      <div class="flex items-center divide-x divide-[#2A2D35] overflow-x-auto scroll-strip">
-        {game.metacritic_score && (
-          <div class="flex items-center gap-2 px-5 py-3 flex-shrink-0">
-            <span class={`text-lg font-bold font-mono ${game.metacritic_score >= 75 ? 'text-green-400' : game.metacritic_score >= 50 ? 'text-yellow-400' : 'text-red-400'}`}>
-              {game.metacritic_score}
-            </span>
-            <span class="text-xs text-[#6B7280]">Metacritic</span>
-          </div>
-        )}
-        {game.steam_review_score && (
-          <div class="flex items-center gap-2 px-5 py-3 flex-shrink-0">
-            <span class="text-lg font-bold font-mono text-blue-400">{game.steam_review_score}%</span>
-            <span class="text-xs text-[#6B7280]">Steam</span>
-          </div>
-        )}
-        {game.hltb_main_hours && (
-          <div class="flex items-center gap-2 px-5 py-3 flex-shrink-0">
-            <span class="text-lg font-bold font-mono text-[#60A5FA]">{game.hltb_main_hours}h</span>
-            <span class="text-xs text-[#6B7280]">Main Story</span>
-          </div>
-        )}
-        {priceDisplay && (
-          <div class="flex items-center gap-2 px-5 py-3 flex-shrink-0">
-            <span class="text-lg font-bold font-mono text-white">{priceDisplay}</span>
-            <span class="text-xs text-[#6B7280]">Price</span>
-          </div>
-        )}
-        <div class="flex items-center gap-2 px-5 py-3 flex-shrink-0">
-          <span class={`rounded-md border px-2 py-0.5 text-xs font-medium ${deckInfo.class}`}>{deckInfo.label}</span>
-          <span class="text-xs text-[#6B7280]">Deck</span>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ═══════════════════════════════════════════ -->
-  <!-- DESCRIPTION (below stats bar)              -->
-  <!-- ═══════════════════════════════════════════ -->
-  {cleanDescription && (
-    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-6">
-      <p class="text-[#9CA3AF] leading-relaxed max-w-3xl">{cleanDescription}</p>
-    </div>
-  )}
-
-  <!-- ═══════════════════════════════════════════ -->
-  <!-- TABBED CONTENT                             -->
-  <!-- ═══════════════════════════════════════════ -->
-  <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-8 pb-16">
-    <!-- Tab Buttons -->
-    <div class="flex gap-1 border-b border-[#2A2D35] mb-8" role="tablist">
-      <button
-        data-tab-btn="performance"
-        role="tab"
-        aria-selected="true"
-        class="tab-btn relative px-5 py-3 text-sm font-medium text-white transition-colors"
-      >
-        Performance
-        <span class="tab-indicator absolute bottom-0 inset-x-0 h-0.5 bg-[#60A5FA] rounded-full"></span>
-      </button>
-      <button
-        data-tab-btn="details"
-        role="tab"
-        aria-selected="false"
-        class="tab-btn relative px-5 py-3 text-sm font-medium text-[#6B7280] hover:text-[#9CA3AF] transition-colors"
-      >
-        Details
-        <span class="tab-indicator absolute bottom-0 inset-x-0 h-0.5 bg-[#60A5FA] rounded-full hidden"></span>
-      </button>
-      {hasScreenshots && (
-        <button
-          data-tab-btn="screenshots"
-          role="tab"
-          aria-selected="false"
-          class="tab-btn relative px-5 py-3 text-sm font-medium text-[#6B7280] hover:text-[#9CA3AF] transition-colors"
-        >
-          Screenshots
-          <span class="tab-indicator absolute bottom-0 inset-x-0 h-0.5 bg-[#60A5FA] rounded-full hidden"></span>
-        </button>
-      )}
-      <button
-        data-tab-btn="discussion"
-        role="tab"
-        aria-selected="false"
-        class="tab-btn relative px-5 py-3 text-sm font-medium text-[#6B7280] hover:text-[#9CA3AF] transition-colors"
-      >
-        Discussion
-        <span class="tab-indicator absolute bottom-0 inset-x-0 h-0.5 bg-[#60A5FA] rounded-full hidden"></span>
-      </button>
-    </div>
-
-    <!-- ─── Performance Tab (default) ─── -->
-    <div data-tab-panel="performance">
-      <h2 class="text-xl font-bold text-white mb-6">Performance by Device</h2>
-
-      {devicesData && devicesData.length > 0 ? (
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {devicesData.map(d => (
-            <a
-              href={`/games/${slug}/${d.slug}`}
-              class="group rounded-xl border border-[#2A2D35] bg-[#16181D] p-5 hover:border-[#3A3D45] hover:bg-[#16181D]/80 transition-all"
-            >
-              <div class="flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                  <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-[#2A2D35] group-hover:bg-[#3A3D45] transition-colors">
-                    <svg class="h-5 w-5 text-[#9CA3AF]" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 1.5H8.25A2.25 2.25 0 006 3.75v16.5a2.25 2.25 0 002.25 2.25h7.5A2.25 2.25 0 0018 20.25V3.75a2.25 2.25 0 00-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 18.75h3" />
-                    </svg>
-                  </div>
-                  <div>
-                    <p class="font-semibold text-white group-hover:text-[#60A5FA] transition-colors">{d.name}</p>
-                    <p class="text-xs text-[#6B7280]">0 reports</p>
-                  </div>
-                </div>
-                <svg class="h-5 w-5 text-[#4B5563] group-hover:text-[#9CA3AF] transition-colors" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
-                </svg>
-              </div>
-            </a>
-          ))}
-        </div>
-      ) : (
-        <div class="rounded-xl border border-[#2A2D35] bg-[#16181D] p-12 text-center">
-          <div class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-[#2A2D35]">
-            <svg class="h-8 w-8 text-[#4B5563]" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3v11.25A2.25 2.25 0 006 16.5h2.25M3.75 3h-1.5m1.5 0h16.5m0 0h1.5m-1.5 0v11.25A2.25 2.25 0 0118 16.5h-2.25m-7.5 0h7.5m-7.5 0l-1 3m8.5-3l1 3m0 0l.5 1.5m-.5-1.5h-9.5m0 0l-.5 1.5" />
-            </svg>
-          </div>
-          <h3 class="text-lg font-semibold text-white">No performance data yet</h3>
-          <p class="mt-2 text-sm text-[#9CA3AF]">Be the first to report how {game.name} runs on your handheld!</p>
-          <a
-            href="/report/new"
-            class="mt-4 inline-flex items-center gap-2 rounded-lg bg-[#60A5FA] px-4 py-2 text-sm font-medium text-white hover:bg-[#3B82F6] transition-colors"
-          >
-            <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" /></svg>
-            Submit First Report
+        <div style="display:flex;align-items:center;gap:12px;flex-shrink:0;">
+          <FollowButton client:load gameId={game.id} initialFollowing={!!followData} followerCount={followerCount ?? 0} />
+          <a href="/report/new" style="font-family:var(--font-mono);font-size:11px;font-weight:700;letter-spacing:0.06em;color:#08070c;background:#a78bfa;border:none;padding:14px 32px;border-radius:12px;text-decoration:none;box-shadow:0 0 30px rgba(167,139,250,0.25);transition:all 0.2s;">
+            SUBMIT REPORT
           </a>
         </div>
-      )}
-    </div>
-
-    <!-- ─── Details Tab ─── -->
-    <div data-tab-panel="details" class="hidden">
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <!-- Game Info -->
-        <div class="rounded-xl border border-[#2A2D35] bg-[#16181D] p-6">
-          <h3 class="text-xs font-semibold mb-4 text-[#60A5FA]">Game Info</h3>
-          <dl class="space-y-3 text-sm">
-            {developers[0] && (
-              <div class="flex justify-between">
-                <dt class="text-[#6B7280]">Developer</dt>
-                <dd class="text-[#9CA3AF]">{developers[0]}</dd>
-              </div>
-            )}
-            {publishers[0] && (
-              <div class="flex justify-between">
-                <dt class="text-[#6B7280]">Publisher</dt>
-                <dd class="text-[#9CA3AF]">{publishers[0]}</dd>
-              </div>
-            )}
-            {releaseDate && (
-              <div class="flex justify-between">
-                <dt class="text-[#6B7280]">Released</dt>
-                <dd class="text-[#9CA3AF]">{releaseDate}</dd>
-              </div>
-            )}
-            {game.price_usd != null && (
-              <div class="flex justify-between">
-                <dt class="text-[#6B7280]">Price</dt>
-                <dd class="text-[#9CA3AF]">{game.is_free_to_play ? 'Free to Play' : `$${game.price_usd.toFixed(2)}`}</dd>
-              </div>
-            )}
-            {genres.length > 0 && (
-              <div class="flex justify-between">
-                <dt class="text-[#6B7280]">Genres</dt>
-                <dd class="text-[#9CA3AF] text-right">{genres.join(', ')}</dd>
-              </div>
-            )}
-          </dl>
-        </div>
-
-        <!-- Scores -->
-        {hasScores && (
-          <div class="rounded-xl border border-[#2A2D35] bg-[#16181D] p-6">
-            <h3 class="text-xs font-semibold mb-4 text-[#60A5FA]">Scores</h3>
-            <div class="grid grid-cols-2 gap-4">
-              {game.metacritic_score && (
-                <div class="rounded-lg bg-[#2A2D35] p-4 text-center">
-                  <p class={`text-2xl font-bold font-mono ${game.metacritic_score >= 75 ? 'text-green-400' : game.metacritic_score >= 50 ? 'text-yellow-400' : 'text-red-400'}`}>
-                    {game.metacritic_score}
-                  </p>
-                  <p class="text-xs text-[#6B7280] mt-1">Metacritic</p>
-                </div>
-              )}
-              {game.steam_review_score && (
-                <div class="rounded-lg bg-[#2A2D35] p-4 text-center">
-                  <p class="text-2xl font-bold font-mono text-blue-400">{game.steam_review_score}%</p>
-                  <p class="text-xs text-[#6B7280] mt-1">Steam Reviews</p>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
-        <!-- Compatibility -->
-        <div class="rounded-xl border border-[#2A2D35] bg-[#16181D] p-6">
-          <h3 class="text-xs font-semibold mb-4 text-[#60A5FA]">Compatibility</h3>
-          <dl class="space-y-3 text-sm">
-            <div class="flex justify-between items-center">
-              <dt class="text-[#6B7280]">Deck Status</dt>
-              <dd class={`rounded-md border px-2 py-0.5 text-xs font-medium ${deckInfo.class}`}>{deckInfo.label}</dd>
-            </div>
-            {game.protondb_tier && game.protondb_tier !== 'pending' && (
-              <div class="flex justify-between items-center">
-                <dt class="text-[#6B7280]">ProtonDB</dt>
-                <dd class={`rounded-md px-2 py-0.5 text-xs font-medium ${protonInfo.class}`}>{protonInfo.label}</dd>
-              </div>
-            )}
-            {game.anticheat_engine && (
-              <div class="flex justify-between items-center">
-                <dt class="text-[#6B7280]">Anti-Cheat</dt>
-                <dd class="text-[#9CA3AF] text-xs">{game.anticheat_engine}</dd>
-              </div>
-            )}
-          </dl>
-        </div>
-
-        <!-- HLTB -->
-        {hasHltb && (
-          <div class="rounded-xl border border-[#2A2D35] bg-[#16181D] p-6">
-            <h3 class="text-xs font-semibold mb-4 text-[#60A5FA]">Time to Beat</h3>
-            <div class="space-y-3">
-              {game.hltb_main_hours && (
-                <div>
-                  <div class="flex justify-between items-center mb-1">
-                    <span class="text-sm text-[#6B7280]">Main Story</span>
-                    <span class="text-sm font-medium text-[#9CA3AF]">{game.hltb_main_hours}h</span>
-                  </div>
-                  <div class="h-1.5 rounded-full bg-[#2A2D35] overflow-hidden">
-                    <div class="h-full rounded-full bg-[#60A5FA]/60" style={`width: ${Math.min((game.hltb_main_hours / (game.hltb_completionist_hours || game.hltb_main_hours)) * 100, 100)}%`}></div>
-                  </div>
-                </div>
-              )}
-              {game.hltb_extra_hours && (
-                <div>
-                  <div class="flex justify-between items-center mb-1">
-                    <span class="text-sm text-[#6B7280]">Main + Extra</span>
-                    <span class="text-sm font-medium text-[#9CA3AF]">{game.hltb_extra_hours}h</span>
-                  </div>
-                  <div class="h-1.5 rounded-full bg-[#2A2D35] overflow-hidden">
-                    <div class="h-full rounded-full bg-[#60A5FA]/60" style={`width: ${Math.min((game.hltb_extra_hours / (game.hltb_completionist_hours || game.hltb_extra_hours)) * 100, 100)}%`}></div>
-                  </div>
-                </div>
-              )}
-              {game.hltb_completionist_hours && (
-                <div>
-                  <div class="flex justify-between items-center mb-1">
-                    <span class="text-sm text-[#6B7280]">Completionist</span>
-                    <span class="text-sm font-medium text-[#9CA3AF]">{game.hltb_completionist_hours}h</span>
-                  </div>
-                  <div class="h-1.5 rounded-full bg-[#2A2D35] overflow-hidden">
-                    <div class="h-full rounded-full bg-[#60A5FA]/60" style="width: 100%"></div>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
-        <!-- Steam Link -->
-        {game.steam_appid && (
-          <div class="lg:col-span-2">
-            <a
-              href={`https://store.steampowered.com/app/${game.steam_appid}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              class="flex items-center justify-center gap-2 rounded-xl border border-[#3A3D45] bg-[#16181D] p-4 text-sm font-medium text-[#9CA3AF] hover:border-[#4B5563] hover:text-white transition-colors"
-            >
-              <svg class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15h-2v-2h2v2zm0-4h-2V7h2v6z" /></svg>
-              View on Steam
-            </a>
-          </div>
-        )}
       </div>
-    </div>
+    </section>
 
-    <!-- ─── Screenshots Tab ─── -->
-    {hasScreenshots && (
-      <div data-tab-panel="screenshots" class="hidden">
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {screenshots.map((url) => (
-            <div class="aspect-video rounded-xl overflow-hidden bg-[#2A2D35] border border-[#2A2D35]">
-              <img
-                src={url}
-                alt={`${game.name} screenshot`}
-                class="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-                loading="lazy"
-              />
-            </div>
-          ))}
+    <!-- ████████ SIMILAR ON DECK ████████ -->
+    {similarGames.length >= 2 && (
+      <section style="margin-bottom:44px;">
+        <h2 style="font-family:var(--font-display);font-size:clamp(18px,3vw,22px);font-weight:800;color:#eae6f4;letter-spacing:-0.02em;margin-bottom:14px;">Similar on Deck</h2>
+        <div style="display:flex;gap:1px;border-radius:14px;overflow:hidden;">
+          {similarGames.map((sg, i) => {
+            const sc = fpsColor(sg.fps);
+            return (
+              <a href={`/games/${sg.slug}`} style={`flex:1;padding:24px 14px;background:${i % 2 === 0 ? '#0a0910' : '#08070d'};text-align:center;text-decoration:none;transition:background 0.12s;`}>
+                <div style={`font-family:var(--font-mono);font-size:clamp(24px,4vw,34px);font-weight:800;color:${sc};letter-spacing:-0.04em;line-height:1;text-shadow:0 0 14px ${sc}15;margin-bottom:6px;`}>{sg.fps}</div>
+                <div style="font-family:var(--font-display);font-size:clamp(10px,1.5vw,12px);font-weight:700;color:#8880a0;line-height:1.2;">{sg.name}</div>
+              </a>
+            );
+          })}
         </div>
-      </div>
+      </section>
     )}
 
-    <!-- ─── Discussion Tab ─── -->
-    <div data-tab-panel="discussion" class="hidden">
+    <!-- ████████ DISCUSSION ████████ -->
+    <section style="margin-bottom:44px;">
+      <h2 style="font-family:var(--font-display);font-size:clamp(18px,3vw,22px);font-weight:800;color:#eae6f4;letter-spacing:-0.02em;margin-bottom:14px;">Discussion</h2>
       <CommentSection
         client:visible
         gameId={game.id}
         currentUserId={currentUser?.id ?? null}
       />
-    </div>
+    </section>
   </div>
 
-  <!-- Tab switching script -->
-  <script>
-    document.addEventListener('astro:page-load', () => {
-      const buttons = document.querySelectorAll<HTMLButtonElement>('[data-tab-btn]');
-      const panels = document.querySelectorAll<HTMLElement>('[data-tab-panel]');
+</div>
 
-      buttons.forEach(btn => {
-        btn.addEventListener('click', () => {
-          const target = btn.getAttribute('data-tab-btn');
-          if (!target) return;
-
-          // Update buttons
-          buttons.forEach(b => {
-            const isActive = b.getAttribute('data-tab-btn') === target;
-            b.setAttribute('aria-selected', String(isActive));
-            b.classList.toggle('text-white', isActive);
-            b.classList.toggle('text-[#6B7280]', !isActive);
-            const indicator = b.querySelector('.tab-indicator');
-            if (indicator) {
-              indicator.classList.toggle('hidden', !isActive);
-            }
-          });
-
-          // Update panels
-          panels.forEach(p => {
-            const isActive = p.getAttribute('data-tab-panel') === target;
-            p.classList.toggle('hidden', !isActive);
-          });
-        });
-      });
-    });
-  </script>
 </BaseLayout>
