@@ -55,7 +55,7 @@ const users = (topUsers ?? []).map((u, i) => {
     rankDisplay: isTop3 ? rankIcons[rank - 1] : `#${rank}`,
     rankColor: isTop3 ? rankColors[rank - 1] : '#4a4560',
     rankFontSize: isTop3 ? '18px' : '13px',
-    bgColor: i % 2 === 0 ? '#0a0914' : '#08070c',
+    bgColor: i % 2 === 0 ? '#0e0c16' : '#08070c',
     profileUrl: u.username ? `/profile/${u.username}` : '#',
   };
 });
@@ -122,7 +122,7 @@ const totalReports = users.reduce((s, u) => s + u.reports, 0);
 
             <div style="flex:1;min-width:0;">
               <div style="display:flex;align-items:center;gap:6px;">
-                <span style="font-family:var(--font-display);font-size:13px;font-weight:700;color:#e0dce8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                <span style="font-family:var(--font-display);font-size:13px;font-weight:700;color:#eae6f4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
                   {u.displayName}
                 </span>
                 {u.isVerified && (
