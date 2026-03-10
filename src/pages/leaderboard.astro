@@ -81,7 +81,7 @@ const totalReports = users.reduce((s, u) => s + u.reports, 0);
     </div>
 
     <!-- Stats bar -->
-    <div style="display:flex;gap:28px;margin-bottom:28px;flex-wrap:wrap;">
+    <div class="stagger" style="display:flex;gap:28px;margin-bottom:28px;flex-wrap:wrap;">
       <div>
         <div style="font-family:var(--font-mono);font-size:20px;font-weight:800;color:#a78bfa;">{totalUsers}</div>
         <div style="font-family:var(--font-mono);font-size:10px;color:#4a4560;letter-spacing:0.06em;">CONTRIBUTORS</div>
@@ -105,7 +105,7 @@ const totalReports = users.reduce((s, u) => s + u.reports, 0);
     ) : (
       <div style="border-radius:14px;overflow:hidden;border:1px solid rgba(255,255,255,0.06);">
         {users.map((u) => (
-          <a href={u.profileUrl} style={`display:flex;align-items:center;gap:12px;padding:12px 16px;background:${u.bgColor};text-decoration:none;transition:background 0.12s;border-bottom:1px solid rgba(255,255,255,0.03);`}>
+          <a href={u.profileUrl} style={`display:flex;align-items:center;gap:12px;padding:12px 16px;background:${u.bgColor};text-decoration:none;transition:all 0.15s;border-bottom:1px solid rgba(255,255,255,0.03);`} class="hdb-leaderboard-row">
             <div style={`font-family:var(--font-mono);font-size:${u.rankFontSize};font-weight:800;color:${u.rankColor};width:32px;text-align:center;flex-shrink:0;`}>
               {u.rankDisplay}
             </div>
@@ -156,5 +156,12 @@ const totalReports = users.reduce((s, u) => s + u.reports, 0);
 
   </div>
 </div>
+
+<style>
+  .hdb-leaderboard-row:hover {
+    background: #12101a !important;
+    transform: translateX(2px);
+  }
+</style>
 
 </BaseLayout>

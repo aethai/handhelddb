@@ -295,7 +295,7 @@ const schemaItemList = {
   <div class="hw">
 
     <!-- ══════ STATS ══════ -->
-    <section class="hp-stats" aria-label="Site statistics">
+    <section class="hp-stats stagger" aria-label="Site statistics">
       <div class="hp-stat">
         <div class="hp-stat-value" data-count={gameCount} aria-live="polite">{gameCount.toLocaleString()}</div>
         <div class="hp-stat-label">Games</div>
@@ -353,7 +353,7 @@ const schemaItemList = {
           <h2>Runs great on <span style="color:#4ade80;">Deck</span></h2>
           <a href="/games">View all →</a>
         </div>
-        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px;">
+        <div class="stagger" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px;">
           {bestOnDeck.map((g, i) => (
             <a href={`/games/${g.slug}`} class="hp-game-card" style={`animation:rise 0.3s ease ${i * 0.06}s both;`}>
               <div style="position:relative;height:100px;overflow:hidden;">
@@ -390,7 +390,7 @@ const schemaItemList = {
           <h2>Latest News</h2>
           <a href="/news">All articles →</a>
         </div>
-        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px;">
+        <div class="stagger" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px;">
           {articles.map((n, i) => {
             const tag = categoryTag[n.category] ?? { label: 'NEWS', color: '#60a5fa' };
             const gradients = [

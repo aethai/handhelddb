@@ -1199,6 +1199,187 @@ input:focus-visible, button:focus-visible, a:focus-visible {
 }
 
 /* ══════════════════════════════════════
+   READING PROGRESS BAR
+   ══════════════════════════════════════ */
+.hdb-reading-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 0%;
+  height: 2px;
+  background: linear-gradient(90deg, #a78bfa, #4ade80);
+  z-index: 60;
+  transition: width 0.1s linear;
+  pointer-events: none;
+  opacity: 0;
+}
+.hdb-reading-progress.active {
+  opacity: 1;
+}
+
+/* ══════════════════════════════════════
+   KEYBOARD HINT — subtle / hint in inputs
+   ══════════════════════════════════════ */
+.hdb-kbd {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 5px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  color: #4a4560;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 4px;
+  line-height: 1;
+}
+
+/* ══════════════════════════════════════
+   VIEW TRANSITIONS — smooth page navigation
+   ══════════════════════════════════════ */
+@view-transition {
+  navigation: auto;
+}
+
+::view-transition-old(root) {
+  animation: vt-fade-out 0.15s ease-in forwards;
+}
+::view-transition-new(root) {
+  animation: vt-fade-in 0.2s ease-out 0.05s both;
+}
+@keyframes vt-fade-out {
+  to { opacity: 0; filter: blur(2px); }
+}
+@keyframes vt-fade-in {
+  from { opacity: 0; filter: blur(2px); }
+  to { opacity: 1; filter: blur(0); }
+}
+
+/* ══════════════════════════════════════
+   IMAGE REVEAL — fade-in on load
+   ══════════════════════════════════════ */
+img[loading="lazy"] {
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+img[loading="lazy"].loaded,
+img[loading="lazy"][complete] {
+  opacity: 1;
+}
+
+/* ══════════════════════════════════════
+   SKELETON LOADING SHIMMER
+   ══════════════════════════════════════ */
+.hdb-skeleton {
+  background: linear-gradient(90deg, #12101a 25%, #1a1828 50%, #12101a 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+  border-radius: 8px;
+}
+.hdb-skeleton-text {
+  height: 14px;
+  width: 80%;
+  margin-bottom: 8px;
+}
+.hdb-skeleton-text.short { width: 40%; }
+.hdb-skeleton-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+}
+.hdb-skeleton-card {
+  height: 180px;
+  border-radius: 14px;
+}
+
+/* ══════════════════════════════════════
+   STAGGER ANIMATION UTILITY
+   ══════════════════════════════════════ */
+.stagger > * {
+  animation: rise 0.35s ease both;
+}
+.stagger > *:nth-child(1) { animation-delay: 0s; }
+.stagger > *:nth-child(2) { animation-delay: 0.04s; }
+.stagger > *:nth-child(3) { animation-delay: 0.08s; }
+.stagger > *:nth-child(4) { animation-delay: 0.12s; }
+.stagger > *:nth-child(5) { animation-delay: 0.16s; }
+.stagger > *:nth-child(6) { animation-delay: 0.20s; }
+.stagger > *:nth-child(7) { animation-delay: 0.24s; }
+.stagger > *:nth-child(8) { animation-delay: 0.28s; }
+
+/* ══════════════════════════════════════
+   INTERACTIVE GLOW — hover effect for links/cards
+   ══════════════════════════════════════ */
+.hdb-glow {
+  position: relative;
+}
+.hdb-glow::after {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  background: radial-gradient(600px circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(167,139,250,0.06), transparent 40%);
+  pointer-events: none;
+  z-index: 0;
+}
+.hdb-glow:hover::after { opacity: 1; }
+
+/* ══════════════════════════════════════
+   TOOLTIP — lightweight pure CSS
+   ══════════════════════════════════════ */
+[data-tooltip] {
+  position: relative;
+}
+[data-tooltip]::before {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%) translateY(4px);
+  padding: 5px 10px;
+  border-radius: 6px;
+  background: #1a1828;
+  border: 1px solid rgba(255,255,255,0.08);
+  color: #9890a8;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s, transform 0.15s;
+  z-index: 50;
+}
+[data-tooltip]:hover::before {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* ══════════════════════════════════════
+   BADGE — reusable status badge
+   ══════════════════════════════════════ */
+.hdb-badge {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  padding: 3px 8px;
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.hdb-badge-green { color: #4ade80; background: rgba(74,222,128,0.12); }
+.hdb-badge-yellow { color: #facc15; background: rgba(250,204,21,0.12); }
+.hdb-badge-red { color: #f87171; background: rgba(248,113,113,0.12); }
+.hdb-badge-purple { color: #a78bfa; background: rgba(167,139,250,0.12); }
+.hdb-badge-blue { color: #60a5fa; background: rgba(96,165,250,0.12); }
+
+/* ══════════════════════════════════════
    RESPONSIVE — SMALL PHONE (≤ 420px)
    ══════════════════════════════════════ */
 @media (max-width: 420px) {

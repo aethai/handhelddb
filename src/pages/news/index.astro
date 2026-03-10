@@ -39,14 +39,14 @@ const totalPages = Math.ceil(count / perPage);
 
 const categoryColors: Record<string, string> = {
   device_launch: 'bg-blue-500/20 text-blue-400',
-  device_update: 'bg-[#7c6cf0]/20 text-[#7c6cf0]',
+  device_update: 'bg-[#a78bfa]/20 text-[#a78bfa]',
   os_update: 'bg-purple-500/20 text-purple-400',
   driver_update: 'bg-indigo-500/20 text-indigo-400',
   game_patch: 'bg-orange-500/20 text-orange-400',
   game_launch: 'bg-green-500/20 text-green-400',
   sale_event: 'bg-yellow-500/20 text-yellow-400',
-  performance_analysis: 'bg-[#7c6cf0]/20 text-[#7c6cf0]',
-  industry: 'bg-[#55555e]/20 text-[#9890a8]',
+  performance_analysis: 'bg-[#a78bfa]/20 text-[#a78bfa]',
+  industry: 'bg-[#4a4560]/20 text-[#9890a8]',
   editorial: 'bg-pink-500/20 text-pink-400',
 };
 
@@ -106,7 +106,7 @@ const remaining = articles.slice(5);     // Articles 6+
             <!-- Overlaid Content -->
             <div class="absolute bottom-0 left-0 right-0 p-6 sm:p-10">
               <div class="flex items-center gap-3 mb-3">
-                <span class={`rounded-full px-2.5 py-0.5 text-xs font-medium ${categoryColors[featured.category] ?? 'bg-[#55555e]/20 text-[#9890a8]'}`}>
+                <span class={`rounded-full px-2.5 py-0.5 text-xs font-medium ${categoryColors[featured.category] ?? 'bg-[#4a4560]/20 text-[#9890a8]'}`}>
                   {categoryLabels[featured.category] ?? featured.category}
                 </span>
                 <span class="text-xs text-[#9890a8]">{formatDate(featured.published_at!)}</span>
@@ -146,7 +146,7 @@ const remaining = articles.slice(5);     // Articles 6+
                 )}
                 <div class="p-5 flex flex-col justify-center">
                   <div class="flex items-center gap-2 mb-2">
-                    <span class={`rounded-full px-2 py-0.5 text-[10px] font-medium ${categoryColors[secondary[0].category] ?? 'bg-[#55555e]/20 text-[#9890a8]'}`}>
+                    <span class={`rounded-full px-2 py-0.5 text-[10px] font-medium ${categoryColors[secondary[0].category] ?? 'bg-[#4a4560]/20 text-[#9890a8]'}`}>
                       {categoryLabels[secondary[0].category] ?? secondary[0].category}
                     </span>
                     <span class="text-xs text-[#4a4560]">{formatDate(secondary[0].published_at!)}</span>
@@ -183,7 +183,7 @@ const remaining = articles.slice(5);     // Articles 6+
                     )}
                     <div class="p-4">
                       <div class="flex items-center gap-2 mb-1.5">
-                        <span class={`rounded-full px-2 py-0.5 text-[10px] font-medium ${categoryColors[article.category] ?? 'bg-[#55555e]/20 text-[#9890a8]'}`}>
+                        <span class={`rounded-full px-2 py-0.5 text-[10px] font-medium ${categoryColors[article.category] ?? 'bg-[#4a4560]/20 text-[#9890a8]'}`}>
                           {categoryLabels[article.category] ?? article.category}
                         </span>
                         <span class="text-xs text-[#4a4560]">{formatDate(article.published_at!)}</span>
@@ -230,7 +230,7 @@ const remaining = articles.slice(5);     // Articles 6+
                   )}
                   <div class="p-4">
                     <div class="flex items-center gap-2 mb-1.5">
-                      <span class={`rounded-full px-2 py-0.5 text-[10px] font-medium ${categoryColors[article.category] ?? 'bg-[#55555e]/20 text-[#9890a8]'}`}>
+                      <span class={`rounded-full px-2 py-0.5 text-[10px] font-medium ${categoryColors[article.category] ?? 'bg-[#4a4560]/20 text-[#9890a8]'}`}>
                         {categoryLabels[article.category] ?? article.category}
                       </span>
                       <span class="text-xs text-[#4a4560]">{formatDate(article.published_at!)}</span>

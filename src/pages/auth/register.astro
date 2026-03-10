@@ -265,7 +265,7 @@ const errorParam = Astro.url.searchParams.get('error');
     if (/[^A-Za-z0-9]/.test(val)) score++;
 
     const labels = ['Very weak', 'Weak', 'Fair', 'Good', 'Strong'];
-    const colors = ['text-red-400', 'text-orange-400', 'text-yellow-400', 'text-[#a78bfa]', 'text-[#9b8fff]'];
+    const colors = ['text-red-400', 'text-orange-400', 'text-yellow-400', 'text-[#a78bfa]', 'text-[#c4b5fd]'];
     const idx = Math.min(score, labels.length) - 1;
     if (idx < 0) { strengthMsg.textContent = ''; return; }
     strengthMsg.textContent = labels[idx];

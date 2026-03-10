@@ -69,6 +69,9 @@ const resolvedCanonical = canonicalUrl ?? new URL(Astro.url.pathname, siteUrl).h
       rel="stylesheet"
     />
 
+    <!-- View Transitions -->
+    <meta name="view-transition" content="same-origin" />
+
     <!-- Analytics (Plausible) -->
     {import.meta.env.PUBLIC_PLAUSIBLE_DOMAIN && (
       <script
@@ -79,6 +82,7 @@ const resolvedCanonical = canonicalUrl ?? new URL(Astro.url.pathname, siteUrl).h
     )}
   </head>
   <body class="min-h-screen bg-[#08070c] text-[#d0cce0] flex flex-col font-[Outfit,system-ui,sans-serif]">
+    <div class="hdb-reading-progress" id="reading-progress"></div>
     <a href="#main-content" class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] focus:bg-[#a78bfa] focus:text-[#08070c] focus:px-4 focus:py-2 focus:rounded-lg focus:font-bold focus:text-sm">Skip to content</a>
     <Header user={Astro.locals.user} />
     <main id="main-content" class="flex-1">
@@ -91,6 +95,7 @@ const resolvedCanonical = canonicalUrl ?? new URL(Astro.url.pathname, siteUrl).h
       <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 15.75l7.5-7.5 7.5 7.5" /></svg>
     </button>
     <script>
+      // ── Scroll-to-top ──
       const btn = document.getElementById('scroll-top');
       if (btn) {
         let ticking = false;
@@ -107,6 +112,76 @@ const resolvedCanonical = canonicalUrl ?? new URL(Astro.url.pathname, siteUrl).h
           window.scrollTo({ top: 0, behavior: 'smooth' });
         });
       }
+
+      // ── Lazy image fade-in ──
+      document.addEventListener('DOMContentLoaded', () => {
+        document.querySelectorAll('img[loading="lazy"]').forEach(img => {
+          if ((img as HTMLImageElement).complete) {
+            img.classList.add('loaded');
+          } else {
+            img.addEventListener('load', () => img.classList.add('loaded'), { once: true });
+          }
+        });
+
+        // Observer for dynamically added images
+        const mo = new MutationObserver(muts => {
+          for (const m of muts) {
+            m.addedNodes.forEach(n => {
+              if (n instanceof HTMLImageElement && n.loading === 'lazy') {
+                if (n.complete) n.classList.add('loaded');
+                else n.addEventListener('load', () => n.classList.add('loaded'), { once: true });
+              }
+              if (n instanceof HTMLElement) {
+                n.querySelectorAll?.('img[loading="lazy"]').forEach(img => {
+                  if ((img as HTMLImageElement).complete) img.classList.add('loaded');
+                  else img.addEventListener('load', () => img.classList.add('loaded'), { once: true });
+                });
+              }
+            });
+          }
+        });
+        mo.observe(document.body, { childList: true, subtree: true });
+      });
+
+      // ── Mouse glow tracking ──
+      document.querySelectorAll('.hdb-glow').forEach(el => {
+        el.addEventListener('mousemove', (e: Event) => {
+          const me = e as MouseEvent;
+          const rect = (el as HTMLElement).getBoundingClientRect();
+          (el as HTMLElement).style.setProperty('--mouse-x', me.clientX - rect.left + 'px');
+          (el as HTMLElement).style.setProperty('--mouse-y', me.clientY - rect.top + 'px');
+        });
+      });
+
+      // ── Reading progress bar ──
+      const progressBar = document.getElementById('reading-progress');
+      if (progressBar) {
+        const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+        // Only show on pages taller than 2x viewport
+        if (docHeight > window.innerHeight * 1.5) {
+          progressBar.classList.add('active');
+          let rpTicking = false;
+          window.addEventListener('scroll', () => {
+            if (!rpTicking) {
+              requestAnimationFrame(() => {
+                const pct = Math.min((window.scrollY / docHeight) * 100, 100);
+                progressBar.style.width = pct + '%';
+                rpTicking = false;
+              });
+              rpTicking = true;
+            }
+          }, { passive: true });
+        }
+      }
+
+      // ── Keyboard shortcut: / to focus search ──
+      document.addEventListener('keydown', (e) => {
+        if (e.key === '/' && !['INPUT', 'TEXTAREA', 'SELECT'].includes((e.target as HTMLElement).tagName) && !(e.target as HTMLElement).isContentEditable) {
+          e.preventDefault();
+          const searchInput = document.querySelector('input[type="search"], input[placeholder*="Search"]') as HTMLInputElement | null;
+          searchInput?.focus();
+        }
+      });
     </script>
   </body>
 </html>

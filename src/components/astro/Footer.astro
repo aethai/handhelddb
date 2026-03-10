@@ -71,6 +71,16 @@ const aboutLinks = [
   .hdb-footer {
     border-top: 1px solid rgba(255,255,255,0.04);
     margin-top: 64px;
+    position: relative;
+  }
+  .hdb-footer::before {
+    content: '';
+    position: absolute;
+    top: -1px;
+    left: 20%;
+    right: 20%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(167,139,250,0.15), transparent);
   }
   .hdb-footer-inner {
     max-width: 1080px;

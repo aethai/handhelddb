@@ -42,7 +42,7 @@ const categoryColors: Record<string, string> = {
   game_launch: 'bg-green-500/20 text-green-400',
   sale_event: 'bg-yellow-500/20 text-yellow-400',
   performance_analysis: 'bg-[#a78bfa]/20 text-[#a78bfa]',
-  industry: 'bg-[#55555e]/20 text-[#9890a8]',
+  industry: 'bg-[#4a4560]/20 text-[#9890a8]',
   editorial: 'bg-pink-500/20 text-pink-400',
 };
 
@@ -123,7 +123,7 @@ function formatDateShort(d: string): string {
     <!-- Article Header (Centered) -->
     <header class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center mb-10">
       <div class="flex items-center justify-center gap-3 mb-5">
-        <span class={`rounded-full px-3 py-1 text-xs font-medium ${categoryColors[article.category] ?? 'bg-[#55555e]/20 text-[#9890a8]'}`}>
+        <span class={`rounded-full px-3 py-1 text-xs font-medium ${categoryColors[article.category] ?? 'bg-[#4a4560]/20 text-[#9890a8]'}`}>
           {categoryLabels[article.category] ?? article.category}
         </span>
         {publishedDate && <span class="text-sm text-[#4a4560]">{publishedDate}</span>}
@@ -184,7 +184,7 @@ function formatDateShort(d: string): string {
         <div class="mt-8 pt-6 border-t border-white/6 text-center">
           <div class="flex flex-wrap justify-center gap-2">
             {tags.map(tag => (
-              <span class="rounded-full border border-white/10 px-3 py-1 text-xs text-[#9890a8] hover:border-[#55555e] transition-colors">
+              <span class="rounded-full border border-white/10 px-3 py-1 text-xs text-[#9890a8] hover:border-[#4a4560] transition-colors">
                 {tag}
               </span>
             ))}
@@ -224,7 +224,7 @@ function formatDateShort(d: string): string {
               )}
               <div class="p-4">
                 <div class="flex items-center gap-2 mb-1.5">
-                  <span class={`rounded-full px-2 py-0.5 text-[10px] font-medium ${categoryColors[a.category] ?? 'bg-[#55555e]/20 text-[#9890a8]'}`}>
+                  <span class={`rounded-full px-2 py-0.5 text-[10px] font-medium ${categoryColors[a.category] ?? 'bg-[#4a4560]/20 text-[#9890a8]'}`}>
                     {categoryLabels[a.category] ?? a.category}
                   </span>
                   <span class="text-xs text-[#4a4560]">{formatDateShort(a.published_at!)}</span>
@@ -270,7 +270,7 @@ function formatDateShort(d: string): string {
               )}
               <div class="p-3">
                 <div class="flex items-center gap-2 mb-1">
-                  <span class={`rounded-full px-2 py-0.5 text-[10px] font-medium ${categoryColors[a.category] ?? 'bg-[#55555e]/20 text-[#9890a8]'}`}>
+                  <span class={`rounded-full px-2 py-0.5 text-[10px] font-medium ${categoryColors[a.category] ?? 'bg-[#4a4560]/20 text-[#9890a8]'}`}>
                     {categoryLabels[a.category] ?? a.category}
                   </span>
                   <span class="text-[10px] text-[#4a4560]">{formatDateShort(a.published_at!)}</span>

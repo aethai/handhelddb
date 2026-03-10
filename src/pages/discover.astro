@@ -297,7 +297,7 @@ const deckBadgeMap: Record<string, { label: string; class: string }> = {
           title="Find Games for Your Device"
           subtitle="Browse performance reports by handheld"
         />
-        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;">
+        <div class="stagger" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;">
           {devices.map((device) => (
             <a
               href={`/devices/${device.slug}`}

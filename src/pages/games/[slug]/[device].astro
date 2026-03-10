@@ -85,7 +85,7 @@ const deckStatusColors: Record<string, { label: string; class: string }> = {
   verified: { label: 'Verified', class: 'bg-green-500/20 text-green-400 border-green-500/30' },
   playable: { label: 'Playable', class: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30' },
   unsupported: { label: 'Unsupported', class: 'bg-red-500/20 text-red-400 border-red-500/30' },
-  unknown: { label: 'Unknown', class: 'bg-[#55555e]/20 text-[#9890a8] border-[#55555e]/30' },
+  unknown: { label: 'Unknown', class: 'bg-[#4a4560]/20 text-[#9890a8] border-[#4a4560]/30' },
 };
 
 const deckInfo = deckStatusColors[game.deck_compatibility ?? 'unknown'] ?? deckStatusColors.unknown;
@@ -197,7 +197,7 @@ function formatBattery(hours: number): string {
                 </div>
                 <div class="h-2 rounded-full bg-[#1a1a22] overflow-hidden">
                   <div
-                    class="h-full rounded-full bg-gradient-to-r from-[#7c6cf0] to-[#7c6cf0]"
+                    class="h-full rounded-full bg-gradient-to-r from-[#a78bfa] to-[#a78bfa]"
                     style={`width: ${Math.min(100, (device.battery_wh / avgTdp / 5) * 100)}%`}
                   ></div>
                 </div>

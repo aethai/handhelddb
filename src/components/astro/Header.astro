@@ -208,6 +208,11 @@ const navLinks = [
     background: rgba(8, 7, 12, 0.92);
     backdrop-filter: blur(24px);
     border-bottom: 1px solid rgba(255,255,255,0.06);
+    transition: background 0.3s, border-color 0.3s;
+  }
+  .hdb-header.scrolled {
+    background: rgba(8, 7, 12, 0.98);
+    border-bottom-color: rgba(255,255,255,0.08);
   }
   .hdb-header-inner {
     max-width: 1080px;
@@ -287,6 +292,20 @@ const navLinks = [
   .hdb-nav-link.is-active {
     color: #eae6f4;
     background: rgba(255,255,255,0.04);
+  }
+  .hdb-nav-link.is-active::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 16px;
+    height: 2px;
+    background: #a78bfa;
+    border-radius: 1px;
+  }
+  .hdb-nav-link {
+    position: relative;
   }
 
   /* Submit button */
@@ -468,4 +487,24 @@ const navLinks = [
 
   initMobileMenu();
   document.addEventListener('astro:after-swap', initMobileMenu);
+
+  // Header scroll state
+  function initHeaderScroll() {
+    const header = document.querySelector('.hdb-header');
+    if (!header) return;
+    let ticking = false;
+    window.addEventListener('scroll', () => {
+      if (!ticking) {
+        requestAnimationFrame(() => {
+          header.classList.toggle('scrolled', window.scrollY > 20);
+          ticking = false;
+        });
+        ticking = true;
+      }
+    }, { passive: true });
+    // Set initial state
+    header.classList.toggle('scrolled', window.scrollY > 20);
+  }
+  initHeaderScroll();
+  document.addEventListener('astro:after-swap', initHeaderScroll);
 </script>
