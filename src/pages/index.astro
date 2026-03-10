@@ -13,7 +13,7 @@ if (!_cached) {
 const [
   devicesRes, gameCountRes, deviceCountRes,
   reportCountRes, articlesRes, trendingRes, userCountRes,
-  spotlightRes, battleTestedRes,
+  perfReportsRes,
 ] = await Promise.all([
   supabaseAdmin
     .from('devices')
@@ -37,20 +37,13 @@ const [
     .order('created_at', { ascending: false })
     .limit(12),
   supabaseAdmin.from('users').select('*', { count: 'exact', head: true }),
-  // Spotlight: get the most-reported game with its cross-device performance
+  // Combined query for Spotlight + Battle Tested (was 2 separate queries)
   supabaseAdmin
     .from('performance_reports')
-    .select('fps_avg, graphics_preset, estimated_battery, games(name, slug, header_image, genres, metacritic_score), devices(name)')
-    .eq('moderation_status', 'approved')
-    .order('created_at', { ascending: false })
-    .limit(50),
-  // Battle Tested: highest FPS reports across all combos
-  supabaseAdmin
-    .from('performance_reports')
-    .select('fps_avg, graphics_preset, estimated_battery, overall_rating, games(name, slug, header_image), devices(name)')
+    .select('fps_avg, graphics_preset, estimated_battery, overall_rating, games(name, slug, header_image, genres, metacritic_score), devices(name)')
     .eq('moderation_status', 'approved')
     .order('fps_avg', { ascending: false })
-    .limit(30),
+    .limit(60),
 ]);
 
 const gameCount = gameCountRes.count ?? 0;
@@ -99,9 +92,12 @@ const liveFeed = (trendingRes.data ?? [])
     };
   });
 
-// Performance Spotlight — find the most-reported game and aggregate its cross-device data
+// Performance data — single query powers both Spotlight and Battle Tested
+const perfData = perfReportsRes.data ?? [];
+
+// Spotlight: aggregate cross-device data for the most-tested game
 const spotlightMap = new Map<string, { name: string; slug: string; image: string; genres: string[]; metacritic: number | null; devices: { name: string; fps: number; preset: string; battery: number | null }[] }>();
-for (const r of (spotlightRes.data ?? [])) {
+for (const r of perfData) {
   const g = r.games as any;
   const d = r.devices as any;
   if (!g?.name || !d?.name) continue;
@@ -124,14 +120,13 @@ for (const r of (spotlightRes.data ?? [])) {
     });
   }
 }
-// Pick the game with most device entries
 const spotlight = [...spotlightMap.values()]
   .filter(s => s.devices.length >= 2 && s.image)
   .sort((a, b) => b.devices.length - a.devices.length)[0] ?? null;
 
-// Battle Tested — top game+device combos by FPS
+// Battle Tested: top game+device combos (data already sorted by fps desc)
 const seenBattle = new Set<string>();
-const battleTested = (battleTestedRes.data ?? [])
+const battleTested = perfData
   .filter(r => {
     const g = r.games as any;
     const d = r.devices as any;
@@ -1025,7 +1020,7 @@ const schemaWebSite = {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 16px;
-    align-items: start;
+    align-items: stretch;
   }
   .hp-perfhub-spotlight {
     border: 1px solid var(--color-border);
@@ -1033,7 +1028,8 @@ const schemaWebSite = {
     overflow: hidden;
     background: var(--color-raised);
     text-decoration: none;
-    display: block;
+    display: flex;
+    flex-direction: column;
     transition: border-color 0.15s, box-shadow 0.2s;
   }
   .hp-perfhub-spotlight:hover {
@@ -1046,6 +1042,8 @@ const schemaWebSite = {
     border-radius: 12px;
     overflow: hidden;
     background: var(--color-raised);
+    display: flex;
+    flex-direction: column;
   }
   .hp-perfhub-board-header {
     display: flex;
@@ -1130,6 +1128,10 @@ const schemaWebSite = {
   }
   .hp-spotlight-bars {
     padding: 20px 28px 24px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
   }
   .hp-spotlight-bars-header {
     display: flex;
@@ -1199,6 +1201,7 @@ const schemaWebSite = {
     border-bottom: 1px solid var(--color-border-subtle);
     text-decoration: none;
     transition: background 0.15s;
+    flex: 1;
   }
   .hp-battle-row:last-child { border-bottom: none; }
   .hp-battle-row:hover {
@@ -1293,7 +1296,7 @@ const schemaWebSite = {
     flex-direction: column;
     border: 1px solid var(--color-border);
     border-radius: 10px;
-    padding: 20px 18px;
+    padding: 0;
     text-decoration: none;
     transition: border-color 0.15s, background 0.15s, transform 0.2s;
     position: relative;
@@ -1309,30 +1312,46 @@ const schemaWebSite = {
     background: linear-gradient(90deg, var(--color-accent), transparent);
     opacity: 0;
     transition: opacity 0.2s;
+    z-index: 2;
+  }
+  .hp-device2-card::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 80px;
+    background:
+      radial-gradient(circle at 80% 30%, rgba(212,255,0,0.04) 0%, transparent 60%),
+      linear-gradient(180deg, var(--color-elevated) 0%, transparent 100%);
+    pointer-events: none;
+    z-index: 0;
   }
   .hp-device2-card:hover::before { opacity: 1; }
   .hp-device2-card:hover {
     border-color: rgba(212,255,0,0.25);
-    background: var(--color-elevated);
     transform: translateY(-2px);
     box-shadow: 0 4px 20px rgba(212,255,0,0.05);
   }
   .hp-device2-top {
+    position: relative;
+    z-index: 1;
     display: flex;
     align-items: center;
-    gap: 8px;
-    margin-bottom: 10px;
+    gap: 10px;
+    padding: 18px 18px 0;
+    margin-bottom: 8px;
   }
   .hp-device2-logo {
-    width: 24px;
-    height: 24px;
+    width: 32px;
+    height: 32px;
     flex-shrink: 0;
-    opacity: 0.35;
+    opacity: 0.4;
     filter: grayscale(100%);
     transition: opacity 0.2s, filter 0.2s;
   }
   .hp-device2-card:hover .hp-device2-logo {
-    opacity: 0.7;
+    opacity: 0.8;
     filter: grayscale(0%);
   }
   .hp-device2-mfr {
@@ -1345,6 +1364,8 @@ const schemaWebSite = {
     opacity: 0.8;
   }
   .hp-device2-name {
+    position: relative;
+    z-index: 1;
     display: block;
     font-family: var(--font-heading);
     font-size: 18px;
@@ -1353,15 +1374,18 @@ const schemaWebSite = {
     transition: color 0.12s;
     margin-bottom: 14px;
     letter-spacing: -0.01em;
+    padding: 0 18px;
   }
   .hp-device2-card:hover .hp-device2-name {
     color: var(--color-accent);
   }
   .hp-device2-specs {
+    position: relative;
+    z-index: 1;
     display: flex;
     flex-direction: column;
     gap: 6px;
-    margin-bottom: 14px;
+    margin: 0 18px 14px;
     padding-bottom: 14px;
     border-bottom: 1px solid var(--color-border-subtle);
   }
@@ -1384,6 +1408,9 @@ const schemaWebSite = {
     align-items: baseline;
     gap: 6px;
     margin-bottom: 12px;
+    padding: 0 18px;
+    position: relative;
+    z-index: 1;
   }
   .hp-device2-price-from {
     font-family: var(--font-mono);
@@ -1402,11 +1429,16 @@ const schemaWebSite = {
     font-size: 11px;
     font-weight: 600;
     color: var(--color-text-dim);
-    transition: color 0.12s;
+    transition: color 0.12s, background 0.12s;
     margin-top: auto;
+    padding: 12px 18px;
+    border-top: 1px solid var(--color-border-subtle);
+    position: relative;
+    z-index: 1;
   }
   .hp-device2-card:hover .hp-device2-cta {
     color: var(--color-accent);
+    background: rgba(212,255,0,0.03);
   }
 
   /* ─── 5. EDITORIAL (News redesign) ─── */
@@ -1931,6 +1963,8 @@ const schemaWebSite = {
     .hp-hero-title { font-size: 34px; }
     .hp-hero-stats { gap: 10px; }
     .hp-hero-subtitle { font-size: 14px; }
+
+    .hp-ticker { display: none; }
 
     .hp-devices2-grid {
       grid-template-columns: 1fr;
