@@ -104,8 +104,6 @@ const { gameCount, deviceCount, reportCount, userCount, devices, topGames, artic
 
 // Helpers
 const fmtDate = (d: Date | null) => d ? d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '';
-const fpsColor = (fps: number) => fps >= 55 ? '#22c55e' : fps >= 40 ? '#eab308' : fps >= 30 ? '#f97316' : '#ef4444';
-
 const categoryTag: Record<string, string> = {
   game_launch: 'EDITORIAL', game_patch: 'UPDATE', os_update: 'UPDATE',
   performance_analysis: 'EDITORIAL', device_launch: 'UPDATE',
@@ -147,50 +145,75 @@ const schemaWebSite = {
   <section class="hp-hero">
     <div class="hp-hero-glow"></div>
     <div class="hp-hero-inner">
-      <p class="hp-hero-eyebrow">COMMUNITY-POWERED PERFORMANCE DATABASE</p>
-      <h1 class="hp-hero-title">
-        DOES IT RUN<br/>ON YOUR<br/><span class="hp-hero-accent">HANDHELD?</span>
-      </h1>
-      <p class="hp-hero-subtitle">Real FPS data from real devices. Find out before you buy.</p>
+      <div class="hp-hero-content">
+        <p class="hp-hero-eyebrow">COMMUNITY-POWERED PERFORMANCE DATABASE</p>
+        <h1 class="hp-hero-title">
+          DOES IT RUN<br/>ON YOUR<br/><span class="hp-hero-accent">HANDHELD?</span>
+        </h1>
+        <p class="hp-hero-subtitle">Real FPS data from real devices. Find out before you buy.</p>
 
-      <div class="hp-hero-search">
-        <SearchBar client:load variant="hero" placeholder={`Search ${gameCount.toLocaleString()} games...`} />
+        <div class="hp-hero-search">
+          <SearchBar client:load variant="hero" placeholder={`Search ${gameCount.toLocaleString()} games...`} />
+        </div>
+
+        <div class="hp-hero-stats">
+          <div class="hp-hero-stat">
+            <span class="hp-hero-stat-val">{gameCount.toLocaleString()}</span>
+            <span class="hp-hero-stat-lbl">GAMES</span>
+          </div>
+          <div class="hp-hero-stat-sep"></div>
+          <div class="hp-hero-stat">
+            <span class="hp-hero-stat-val">{reportCount.toLocaleString()}</span>
+            <span class="hp-hero-stat-lbl">REPORTS</span>
+          </div>
+          <div class="hp-hero-stat-sep"></div>
+          <div class="hp-hero-stat">
+            <span class="hp-hero-stat-val">{deviceCount}</span>
+            <span class="hp-hero-stat-lbl">DEVICES</span>
+          </div>
+          {userCount > 0 && (
+            <>
+              <div class="hp-hero-stat-sep"></div>
+              <div class="hp-hero-stat">
+                <span class="hp-hero-stat-val">{userCount.toLocaleString()}</span>
+                <span class="hp-hero-stat-lbl">USERS</span>
+              </div>
+            </>
+          )}
+        </div>
+
+        <div class="hp-hero-devices">
+          {featuredDevices.map(d => (
+            <a href={`/devices/${d.slug}`} class="hp-hero-device">{d.name}</a>
+          ))}
+          {extraDeviceCount > 0 && (
+            <a href="/devices" class="hp-hero-device hp-hero-device-more">+{extraDeviceCount} more</a>
+          )}
+        </div>
       </div>
 
-      <div class="hp-hero-stats">
-        <div class="hp-hero-stat">
-          <span class="hp-hero-stat-val">{gameCount.toLocaleString()}</span>
-          <span class="hp-hero-stat-lbl">GAMES</span>
-        </div>
-        <div class="hp-hero-stat-sep"></div>
-        <div class="hp-hero-stat">
-          <span class="hp-hero-stat-val">{reportCount.toLocaleString()}</span>
-          <span class="hp-hero-stat-lbl">REPORTS</span>
-        </div>
-        <div class="hp-hero-stat-sep"></div>
-        <div class="hp-hero-stat">
-          <span class="hp-hero-stat-val">{deviceCount}</span>
-          <span class="hp-hero-stat-lbl">DEVICES</span>
-        </div>
-        {userCount > 0 && (
-          <>
-            <div class="hp-hero-stat-sep"></div>
-            <div class="hp-hero-stat">
-              <span class="hp-hero-stat-val">{userCount.toLocaleString()}</span>
-              <span class="hp-hero-stat-lbl">USERS</span>
+      {liveFeed.length > 0 && (
+        <div class="hp-hero-visual">
+          <div class="hp-widget">
+            <div class="hp-widget-head">
+              <span class="hp-widget-label">LATEST BENCHMARKS</span>
+              <span class="hp-widget-live"><span class="hp-widget-dot"></span> LIVE</span>
             </div>
-          </>
-        )}
-      </div>
-
-      <div class="hp-hero-devices">
-        {featuredDevices.map(d => (
-          <a href={`/devices/${d.slug}`} class="hp-hero-device">{d.name}</a>
-        ))}
-        {extraDeviceCount > 0 && (
-          <a href="/devices" class="hp-hero-device hp-hero-device-more">+{extraDeviceCount} more</a>
-        )}
-      </div>
+            {liveFeed.slice(0, 4).map(r => {
+              const cls = r.fps >= 55 ? 'fps-green' : r.fps >= 40 ? 'fps-yellow' : r.fps >= 30 ? 'fps-orange' : 'fps-red';
+              return (
+                <div class="hp-widget-row">
+                  <div class="hp-widget-info">
+                    <span class="hp-widget-game">{r.name}</span>
+                    <span class="hp-widget-device">{r.device}</span>
+                  </div>
+                  <span class={`hp-widget-fps ${cls}`}>{r.fps}<span class="hp-fps-unit">fps</span></span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
     </div>
   </section>
 
@@ -226,48 +249,48 @@ const schemaWebSite = {
       </section>
     )}
 
-    <!-- ══════ 3. TOP GAMES + DEVICES ══════ -->
-    <section class="hp-section hp-split hp-section-animate">
-      <div class="hp-split-left">
-        <SectionHeader title="Top Rated" href="/games" linkText="All games" editorial="METACRITIC" />
-        <div class="hp-top-games">
-          {topGames.map((g, i) => (
-            <a href={`/games/${g.slug}`} class="hp-top-game-row">
-              <span class="hp-top-game-rank">#{i + 1}</span>
-              <div class="hp-top-game-thumb">
-                {g.headerImage && <img src={g.headerImage} alt="" loading="lazy" />}
-              </div>
-              <div class="hp-top-game-info">
-                <span class="hp-top-game-name">{g.name}</span>
-                {g.genres.length > 0 && <span class="hp-top-game-genre">{g.genres.join(', ')}</span>}
-              </div>
-              {g.metacritic && <span class={`hp-top-game-score ${g.metacritic >= 80 ? 'score-high' : g.metacritic >= 60 ? 'score-mid' : 'score-low'}`}>{g.metacritic}</span>}
-            </a>
-          ))}
-        </div>
-      </div>
-      <div class="hp-split-right">
-        <SectionHeader title="Devices" href="/devices" linkText="All devices" />
-        <div class="hp-device-list">
-          {devices.slice(0, 6).map(d => (
-            <a href={`/devices/${d.slug}`} class="hp-device-row">
-              <div class="hp-device-row-info">
-                <span class="hp-device-row-mfr">{d.manufacturer}</span>
-                <span class="hp-device-row-name">{d.name}</span>
-                <span class="hp-device-row-specs">
-                  {[d.chip, d.batteryWh ? `${d.batteryWh}Wh` : null].filter(Boolean).join(' · ')}
-                </span>
-              </div>
-              {d.msrpUsd && <span class="hp-device-row-price">${d.msrpUsd}</span>}
-            </a>
-          ))}
-        </div>
+    <!-- ══════ 3. TOP GAMES ══════ -->
+    <section class="hp-section hp-section-alt hp-section-animate">
+      <SectionHeader title="Top Rated" href="/games" linkText="All games" editorial="METACRITIC" />
+      <div class="hp-games-grid">
+        {topGames.map(g => (
+          <a href={`/games/${g.slug}`} class="hp-game-card">
+            <div class="hp-game-card-img">
+              {g.headerImage && <img src={g.headerImage} alt="" loading="lazy" />}
+              {g.metacritic && (
+                <span class={`hp-game-card-score ${g.metacritic >= 80 ? 'score-high' : g.metacritic >= 60 ? 'score-mid' : 'score-low'}`}>{g.metacritic}</span>
+              )}
+            </div>
+            <div class="hp-game-card-body">
+              <span class="hp-game-card-name">{g.name}</span>
+              {g.genres.length > 0 && <span class="hp-game-card-genre">{g.genres.join(' · ')}</span>}
+            </div>
+          </a>
+        ))}
       </div>
     </section>
 
-    <!-- ══════ 4. NEWS ══════ -->
+    <!-- ══════ 4. DEVICES ══════ -->
+    <section class="hp-section hp-section-animate">
+      <SectionHeader title="Devices" href="/devices" linkText="All devices" />
+      <div class="hp-devices-grid">
+        {devices.slice(0, 6).map(d => (
+          <a href={`/devices/${d.slug}`} class="hp-device-card">
+            <span class="hp-device-card-mfr">{d.manufacturer}</span>
+            <span class="hp-device-card-name">{d.name}</span>
+            <span class="hp-device-card-chip">{d.chip}</span>
+            <div class="hp-device-card-footer">
+              {d.batteryWh && <span class="hp-device-card-spec">{d.batteryWh} Wh</span>}
+              {d.msrpUsd && <span class="hp-device-card-price">${d.msrpUsd}</span>}
+            </div>
+          </a>
+        ))}
+      </div>
+    </section>
+
+    <!-- ══════ 5. NEWS ══════ -->
     {articles.length > 0 && (
-      <section class="hp-section hp-section-animate">
+      <section class="hp-section hp-section-alt hp-section-animate">
         <SectionHeader title="Latest News" href="/news" linkText="All news" />
         <div class="hp-news">
           {articles.map((a, i) => {
@@ -305,7 +328,7 @@ const schemaWebSite = {
       </section>
     )}
 
-    <!-- ══════ 5. CTA ══════ -->
+    <!-- ══════ 6. CTA ══════ -->
     <section class="hp-section hp-section-animate">
       <div class="hp-cta">
         <div class="hp-cta-text">
@@ -344,14 +367,35 @@ const schemaWebSite = {
     margin-bottom: 56px;
   }
 
+  /* ─── Alternating section backgrounds ─── */
+  .hp-section-alt {
+    position: relative;
+    padding-top: 8px;
+  }
+  .hp-section-alt::before {
+    content: '';
+    position: absolute;
+    top: -28px;
+    bottom: -28px;
+    left: 50%;
+    width: 100vw;
+    transform: translateX(-50%);
+    background: var(--color-raised);
+    border-top: 1px solid var(--color-border-subtle);
+    border-bottom: 1px solid var(--color-border-subtle);
+    z-index: -1;
+    pointer-events: none;
+  }
+
   /* ─── Entrance animations ─── */
   .hp-section-animate {
     animation: hp-rise 0.5s ease-out both;
   }
   .hp-section-animate:nth-child(1) { animation-delay: 0s; }
-  .hp-section-animate:nth-child(2) { animation-delay: 0.08s; }
-  .hp-section-animate:nth-child(3) { animation-delay: 0.16s; }
-  .hp-section-animate:nth-child(4) { animation-delay: 0.24s; }
+  .hp-section-animate:nth-child(2) { animation-delay: 0.06s; }
+  .hp-section-animate:nth-child(3) { animation-delay: 0.12s; }
+  .hp-section-animate:nth-child(4) { animation-delay: 0.18s; }
+  .hp-section-animate:nth-child(5) { animation-delay: 0.24s; }
 
   @keyframes hp-rise {
     from { opacity: 0; transform: translateY(16px); }
@@ -378,13 +422,19 @@ const schemaWebSite = {
   }
   .hp-hero-inner {
     position: relative;
-    max-width: 720px;
+    display: grid;
+    grid-template-columns: 1fr 320px;
+    gap: 48px;
+    align-items: start;
     z-index: 1;
     animation: hp-hero-enter 0.6s ease-out both;
   }
   @keyframes hp-hero-enter {
     from { opacity: 0; transform: translateY(20px); }
     to   { opacity: 1; transform: translateY(0); }
+  }
+  .hp-hero-content {
+    max-width: 640px;
   }
   .hp-hero-eyebrow {
     font-family: var(--font-mono);
@@ -428,6 +478,7 @@ const schemaWebSite = {
     margin-bottom: 20px;
     padding: 14px 0;
     border-top: 1px solid var(--color-border-subtle);
+    border-bottom: 1px solid var(--color-border-subtle);
   }
   .hp-hero-stat {
     display: flex;
@@ -456,6 +507,7 @@ const schemaWebSite = {
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
+    margin-top: 20px;
   }
   .hp-hero-device {
     font-family: var(--font-mono);
@@ -474,6 +526,93 @@ const schemaWebSite = {
   }
   .hp-hero-device-more {
     color: var(--color-text-3);
+  }
+
+  /* ─── Hero performance widget ─── */
+  .hp-hero-visual {
+    padding-top: 48px;
+  }
+  .hp-widget {
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    overflow: hidden;
+    background: var(--color-raised);
+    width: 320px;
+  }
+  .hp-widget-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 14px;
+    background: var(--color-elevated);
+    border-bottom: 1px solid var(--color-border);
+  }
+  .hp-widget-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--color-text-2);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .hp-widget-live {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--color-fps-green);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .hp-widget-dot {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    background: var(--color-fps-green);
+    border-radius: 50%;
+    animation: hp-pulse 2s ease-in-out infinite;
+  }
+  @keyframes hp-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+  .hp-widget-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--color-border-subtle);
+    gap: 12px;
+  }
+  .hp-widget-row:last-child { border-bottom: none; }
+  .hp-widget-info {
+    min-width: 0;
+    flex: 1;
+  }
+  .hp-widget-game {
+    display: block;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--color-text);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .hp-widget-device {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--color-text-dim);
+    margin-top: 1px;
+  }
+  .hp-widget-fps {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: 13px;
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: baseline;
+    gap: 2px;
   }
 
   /* ─── 2. LIVE FEED ─── */
@@ -507,15 +646,9 @@ const schemaWebSite = {
     border-bottom: 1px solid var(--color-border-subtle);
     transition: background 0.12s;
   }
-  .hp-feed-row:last-child {
-    border-bottom: none;
-  }
-  .hp-feed-row:hover {
-    background: var(--color-elevated);
-  }
-  .hp-feed-row:hover .hp-feed-name {
-    color: var(--color-accent);
-  }
+  .hp-feed-row:last-child { border-bottom: none; }
+  .hp-feed-row:hover { background: var(--color-elevated); }
+  .hp-feed-row:hover .hp-feed-name { color: var(--color-accent); }
   .hp-feed-name {
     color: var(--color-text);
     font-weight: 500;
@@ -551,57 +684,67 @@ const schemaWebSite = {
     color: var(--color-text-3);
   }
 
-  /* ─── 3. TOP GAMES + DEVICES ─── */
-  .hp-split {
+  /* ─── 3. TOP GAMES (card grid) ─── */
+  .hp-games-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 32px;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
   }
-  .hp-top-games {
+  .hp-game-card {
     border: 1px solid var(--color-border);
     border-radius: 8px;
     overflow: hidden;
-  }
-  .hp-top-game-row {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 8px 14px;
     text-decoration: none;
-    border-bottom: 1px solid var(--color-border-subtle);
-    transition: background 0.12s;
+    background: var(--color-base);
+    transition: border-color 0.15s, transform 0.2s, box-shadow 0.2s;
   }
-  .hp-top-game-row:last-child { border-bottom: none; }
-  .hp-top-game-row:hover { background: var(--color-elevated); }
-  .hp-top-game-row:hover .hp-top-game-name {
-    color: var(--color-accent);
+  .hp-game-card:hover {
+    border-color: var(--color-border-strong);
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-card-hover);
   }
-  .hp-top-game-rank {
-    font-family: var(--font-mono);
-    font-size: 10px;
-    font-weight: 500;
-    color: var(--color-text-dim);
-    width: 22px;
-    flex-shrink: 0;
-  }
-  .hp-top-game-thumb {
-    width: 56px;
-    height: 26px;
-    border-radius: 3px;
+  .hp-game-card-img {
+    aspect-ratio: 460/215;
+    position: relative;
     overflow: hidden;
-    flex-shrink: 0;
     background: var(--color-elevated);
   }
-  .hp-top-game-thumb img {
+  .hp-game-card-img img {
     width: 100%;
     height: 100%;
     object-fit: cover;
+    transition: transform 0.3s ease;
   }
-  .hp-top-game-info {
-    flex: 1;
-    min-width: 0;
+  .hp-game-card:hover .hp-game-card-img img {
+    transform: scale(1.05);
   }
-  .hp-top-game-name {
+  .hp-game-card-score {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 3px;
+    line-height: 1.3;
+  }
+  .hp-game-card-score.score-high {
+    background: rgba(34,197,94,0.9);
+    color: #fff;
+  }
+  .hp-game-card-score.score-mid {
+    background: rgba(234,179,8,0.9);
+    color: #fff;
+  }
+  .hp-game-card-score.score-low {
+    background: rgba(249,115,22,0.9);
+    color: #fff;
+  }
+  .hp-game-card-body {
+    padding: 10px 12px;
+  }
+  .hp-game-card-name {
     display: block;
     font-size: 13px;
     font-weight: 500;
@@ -609,51 +752,40 @@ const schemaWebSite = {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    transition: color 0.12s;
   }
-  .hp-top-game-genre {
+  .hp-game-card:hover .hp-game-card-name {
+    color: var(--color-accent);
+  }
+  .hp-game-card-genre {
     display: block;
     font-family: var(--font-mono);
     font-size: 10px;
     color: var(--color-text-dim);
-    margin-top: 1px;
+    margin-top: 3px;
   }
-  .hp-top-game-score {
-    font-family: var(--font-mono);
-    font-weight: 700;
-    font-size: 13px;
-    flex-shrink: 0;
-    min-width: 28px;
-    text-align: right;
-  }
-  .hp-top-game-score.score-high { color: #22c55e; }
-  .hp-top-game-score.score-mid  { color: #eab308; }
-  .hp-top-game-score.score-low  { color: #f97316; }
 
-  .hp-device-list {
+  /* ─── 4. DEVICES (card grid) ─── */
+  .hp-devices-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+  }
+  .hp-device-card {
+    display: block;
     border: 1px solid var(--color-border);
     border-radius: 8px;
-    overflow: hidden;
-  }
-  .hp-device-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 12px 14px;
+    padding: 18px 16px;
     text-decoration: none;
-    border-bottom: 1px solid var(--color-border-subtle);
-    transition: background 0.12s;
+    transition: border-color 0.15s, background 0.15s;
   }
-  .hp-device-row:last-child { border-bottom: none; }
-  .hp-device-row:hover { background: var(--color-elevated); }
-  .hp-device-row:hover .hp-device-row-name {
+  .hp-device-card:hover {
+    border-color: var(--color-border-strong);
+    background: var(--color-elevated);
+  }
+  .hp-device-card:hover .hp-device-card-name {
     color: var(--color-accent);
   }
-  .hp-device-row-info {
-    min-width: 0;
-    flex: 1;
-  }
-  .hp-device-row-mfr {
+  .hp-device-card-mfr {
     display: block;
     font-family: var(--font-mono);
     font-size: 9px;
@@ -661,32 +793,43 @@ const schemaWebSite = {
     color: var(--color-accent);
     letter-spacing: 0.1em;
     text-transform: uppercase;
-    margin-bottom: 1px;
+    margin-bottom: 4px;
   }
-  .hp-device-row-name {
+  .hp-device-card-name {
     display: block;
-    font-size: 14px;
+    font-size: 15px;
     font-weight: 600;
     color: var(--color-text);
     transition: color 0.12s;
+    margin-bottom: 4px;
   }
-  .hp-device-row-specs {
+  .hp-device-card-chip {
     display: block;
     font-family: var(--font-mono);
     font-size: 11px;
     color: var(--color-text-3);
-    margin-top: 2px;
   }
-  .hp-device-row-price {
+  .hp-device-card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 10px;
+    padding-top: 8px;
+    border-top: 1px solid var(--color-border-subtle);
+  }
+  .hp-device-card-spec {
     font-family: var(--font-mono);
-    font-size: 13px;
+    font-size: 11px;
+    color: var(--color-text-3);
+  }
+  .hp-device-card-price {
+    font-family: var(--font-mono);
+    font-size: 12px;
     font-weight: 600;
     color: var(--color-text-2);
-    flex-shrink: 0;
-    margin-left: 12px;
   }
 
-  /* ─── 4. NEWS ─── */
+  /* ─── 5. NEWS ─── */
   .hp-news {
     border: 1px solid var(--color-border);
     border-radius: 8px;
@@ -701,9 +844,7 @@ const schemaWebSite = {
     min-height: 200px;
   }
   .hp-news-featured:hover { background: var(--color-elevated); }
-  .hp-news-featured:hover .hp-news-featured-title {
-    color: var(--color-accent);
-  }
+  .hp-news-featured:hover .hp-news-featured-title { color: var(--color-accent); }
   .hp-news-featured-img {
     aspect-ratio: 16/10;
     overflow: hidden;
@@ -716,9 +857,7 @@ const schemaWebSite = {
     object-fit: cover;
     transition: transform 0.3s ease;
   }
-  .hp-news-featured:hover .hp-news-featured-img img {
-    transform: scale(1.03);
-  }
+  .hp-news-featured:hover .hp-news-featured-img img { transform: scale(1.03); }
   .hp-news-featured-placeholder {
     width: 100%;
     height: 100%;
@@ -776,9 +915,7 @@ const schemaWebSite = {
   }
   .hp-news-row:last-child { border-bottom: none; }
   .hp-news-row:hover { background: var(--color-elevated); }
-  .hp-news-row:hover .hp-news-row-title {
-    color: var(--color-accent);
-  }
+  .hp-news-row:hover .hp-news-row-title { color: var(--color-accent); }
   .hp-news-row-title {
     font-size: 13px;
     font-weight: 500;
@@ -795,14 +932,7 @@ const schemaWebSite = {
     flex-shrink: 0;
   }
 
-  .hp-empty {
-    font-family: var(--font-mono);
-    font-size: 13px;
-    color: var(--color-text-dim);
-    padding: 24px 0;
-  }
-
-  /* ─── 5. CTA ─── */
+  /* ─── 6. CTA ─── */
   .hp-cta {
     display: flex;
     align-items: center;
@@ -844,9 +974,7 @@ const schemaWebSite = {
     line-height: 1.2;
     margin-bottom: 16px;
   }
-  .hp-cta-progress-wrap {
-    max-width: 400px;
-  }
+  .hp-cta-progress-wrap { max-width: 400px; }
   .hp-cta-progress {
     height: 6px;
     background: var(--color-border);
@@ -889,11 +1017,24 @@ const schemaWebSite = {
     letter-spacing: 0.04em;
   }
 
-  /* ─── Responsive ─── */
+  /* ─── Responsive: tablet ─── */
+  @media (max-width: 1024px) {
+    .hp-games-grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+
+  /* ─── Responsive: mobile ─── */
   @media (max-width: 768px) {
     .hp-hero { padding: 48px 20px 36px; }
     .hp-main { padding: 0 20px; }
     .hp-section { margin-bottom: 40px; }
+
+    .hp-hero-inner {
+      grid-template-columns: 1fr;
+      gap: 24px;
+    }
+    .hp-hero-visual { display: none; }
 
     .hp-feed-header,
     .hp-feed-row {
@@ -905,16 +1046,26 @@ const schemaWebSite = {
       display: none;
     }
 
-    .hp-split {
-      grid-template-columns: 1fr;
-      gap: 24px;
+    .hp-games-grid {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+
+    .hp-devices-grid {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
     }
 
     .hp-news-featured {
       grid-template-columns: 1fr;
     }
     .hp-news-featured-img {
-      aspect-ratio: 16/9;
+      aspect-ratio: 2/1;
+    }
+
+    .hp-section-alt::before {
+      top: -20px;
+      bottom: -20px;
     }
 
     .hp-cta {
@@ -922,27 +1073,37 @@ const schemaWebSite = {
       text-align: center;
       padding: 28px 24px;
     }
-    .hp-cta::before {
-      height: 2px;
-    }
-    .hp-cta-progress-wrap {
-      max-width: 100%;
-    }
-
-    .hp-top-game-rank { display: none; }
+    .hp-cta-progress-wrap { max-width: 100%; }
   }
 
+  /* ─── Responsive: small phone ─── */
   @media (max-width: 480px) {
     .hp-hero { padding: 36px 16px 28px; }
     .hp-main { padding: 0 16px; }
-    .hp-hero-title {
-      font-size: 34px;
+    .hp-hero-title { font-size: 34px; }
+    .hp-hero-stats { gap: 10px; }
+    .hp-hero-subtitle { font-size: 14px; }
+
+    .hp-devices-grid {
+      grid-template-columns: 1fr;
     }
-    .hp-hero-stats {
-      gap: 10px;
+  }
+
+  /* ─── Accessibility: reduced motion ─── */
+  @media (prefers-reduced-motion: reduce) {
+    .hp-section-animate,
+    .hp-hero-inner {
+      animation: none !important;
     }
-    .hp-hero-subtitle {
-      font-size: 14px;
+    .hp-game-card,
+    .hp-game-card-img img,
+    .hp-news-featured-img img,
+    .hp-feed-row,
+    .hp-feed-name,
+    .hp-device-card,
+    .hp-widget-dot {
+      transition: none !important;
+      animation: none !important;
     }
   }
 </style>
