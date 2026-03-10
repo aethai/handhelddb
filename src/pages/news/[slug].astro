@@ -101,6 +101,10 @@ if (relatedArticles.length < 3 && tags.length > 0) {
 function formatDateShort(d: string): string {
   return new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
+
+// Reading time estimate
+const wordCount = (article.body_html ?? '').replace(/<[^>]*>/g, '').split(/\s+/).length;
+const readingTime = Math.max(1, Math.ceil(wordCount / 200));
 ---
 
 <BaseLayout
@@ -127,6 +131,8 @@ function formatDateShort(d: string): string {
           {categoryLabels[article.category] ?? article.category}
         </span>
         {publishedDate && <span class="text-sm text-[#4a4560]">{publishedDate}</span>}
+        <span class="text-sm text-[#4a4560]">&middot;</span>
+        <span class="text-sm text-[#4a4560]">{readingTime} min read</span>
         {article.ai_generated && (
           <span class="rounded-full bg-purple-500/20 text-purple-400 px-2.5 py-0.5 text-[10px] font-medium">AI Assisted</span>
         )}
@@ -158,7 +164,7 @@ function formatDateShort(d: string): string {
     <!-- Article Body (Centered, narrower) -->
     <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
       <div
-        class="prose prose-invert prose-luxury max-w-none prose-headings:text-white prose-p:text-[#9890a8] prose-p:leading-relaxed prose-a:text-[#a78bfa] prose-a:no-underline hover:prose-a:underline prose-strong:text-white prose-code:text-[#9b8fff] prose-code:bg-[#1a1a22] prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-pre:bg-[#0e0c16] prose-pre:border prose-pre:border-white/6 prose-img:rounded-xl prose-blockquote:border-l-[#7c6cf0] prose-blockquote:text-[#9890a8] prose-li:text-[#9890a8]"
+        class="prose prose-invert prose-luxury max-w-none prose-headings:text-white prose-p:text-[#9890a8] prose-p:leading-relaxed prose-a:text-[#a78bfa] prose-a:no-underline hover:prose-a:underline prose-strong:text-white prose-code:text-[#c4b5fd] prose-code:bg-[#12101a] prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-pre:bg-[#0e0c16] prose-pre:border prose-pre:border-white/6 prose-img:rounded-xl prose-blockquote:border-l-[#a78bfa] prose-blockquote:text-[#9890a8] prose-li:text-[#9890a8]"
         set:html={article.body_html}
       />
 
