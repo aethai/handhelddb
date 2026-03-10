@@ -331,32 +331,36 @@ const schemaWebSite = {
 
   <div class="hp-main">
 
-    <!-- ══════ 2. LIVE FEED ══════ -->
+    <!-- ══════ 2. COMMUNITY PULSE — Visual Cards ══════ -->
     {liveFeed.length > 0 && (
       <section class="hp-section hp-section-animate hp-section-divider">
-        <SectionHeader title="Latest Reports" href="/games" linkText="View all" editorial="LIVE" />
-        <div class="hp-feed">
-          <div class="hp-feed-header">
-            <span class="hp-feed-col-game">Game</span>
-            <span class="hp-feed-col-device">Device</span>
-            <span class="hp-feed-col-fps">FPS</span>
-            <span class="hp-feed-col-preset">Preset</span>
-            <span class="hp-feed-col-battery">Battery</span>
-            <span class="hp-feed-col-time">When</span>
-          </div>
-          {liveFeed.map(r => {
+        <SectionHeader title="Community Pulse" href="/games" linkText="View all" editorial="JUST TESTED" />
+        <div class="hp-pulse-grid">
+          {liveFeed.slice(0, 6).map((r, i) => {
             const fpsClass = r.fps >= 55 ? 'fps-green' : r.fps >= 40 ? 'fps-yellow' : r.fps >= 30 ? 'fps-orange' : 'fps-red';
+            const isLarge = i < 2;
             return (
-              <a href={`/games/${r.slug}`} class="hp-feed-row">
-                <span class="hp-feed-col-game hp-feed-name">
-                  {r.thumb && <img src={r.thumb} alt="" class="hp-feed-thumb" loading="lazy" />}
-                  <span class="hp-feed-name-text">{r.name}</span>
-                </span>
-                <span class="hp-feed-col-device">{r.device}</span>
-                <span class={`hp-feed-col-fps hp-fps-badge ${fpsClass}`}>{r.fps}<span class="hp-fps-unit">fps</span></span>
-                <span class="hp-feed-col-preset">{r.preset}</span>
-                <span class="hp-feed-col-battery">{r.battery}</span>
-                <span class="hp-feed-col-time">{r.timeAgo}</span>
+              <a href={`/games/${r.slug}`} class={`hp-pulse-card ${isLarge ? 'hp-pulse-card-lg' : ''}`}>
+                <div class="hp-pulse-card-img">
+                  {r.thumb ? (
+                    <img src={r.thumb} alt="" loading="lazy" />
+                  ) : (
+                    <div class="hp-pulse-card-placeholder"></div>
+                  )}
+                  <div class="hp-pulse-card-gradient"></div>
+                  <span class={`hp-pulse-card-fps ${fpsClass}`}>{r.fps}<span class="hp-fps-unit">fps</span></span>
+                  <span class="hp-pulse-card-time">{r.timeAgo}</span>
+                </div>
+                <div class="hp-pulse-card-body">
+                  <span class="hp-pulse-card-name">{r.name}</span>
+                  <div class="hp-pulse-card-meta">
+                    <span class="hp-pulse-card-device">
+                      <svg class="hp-pulse-device-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12" y2="18.01"/></svg>
+                      {r.device}
+                    </span>
+                    <span class="hp-pulse-card-preset">{r.preset}</span>
+                  </div>
+                </div>
               </a>
             );
           })}
@@ -407,27 +411,6 @@ const schemaWebSite = {
       </section>
     )}
 
-    <!-- ══════ 3b. TOP GAMES (compact) ══════ -->
-    <section class="hp-section hp-section-animate hp-section-divider">
-      <SectionHeader title="Top Rated" href="/games" linkText="All games" editorial="METACRITIC" />
-      <div class="hp-games-grid">
-        {topGames.map(g => (
-          <a href={`/games/${g.slug}`} class="hp-game-card">
-            <div class="hp-game-card-img">
-              {g.headerImage && <img src={g.headerImage} alt="" loading="lazy" />}
-              {g.metacritic && (
-                <span class={`hp-game-card-score ${g.metacritic >= 80 ? 'score-high' : g.metacritic >= 60 ? 'score-mid' : 'score-low'}`}>{g.metacritic}</span>
-              )}
-            </div>
-            <div class="hp-game-card-body">
-              <span class="hp-game-card-name">{g.name}</span>
-              {g.genres.length > 0 && <span class="hp-game-card-genre">{g.genres.join(' · ')}</span>}
-            </div>
-          </a>
-        ))}
-      </div>
-    </section>
-
     <!-- ══════ 4a. BATTLE TESTED — Leaderboard ══════ -->
     {battleTested.length > 0 && (
       <section class="hp-section hp-section-alt hp-section-animate hp-section-divider">
@@ -461,29 +444,38 @@ const schemaWebSite = {
       </section>
     )}
 
-    <!-- ══════ 4b. DEVICES ══════ -->
+    <!-- ══════ 4b. PICK YOUR DEVICE ══════ -->
     <section class="hp-section hp-section-animate hp-section-divider">
-      <SectionHeader title="Devices" href="/devices" linkText="All devices" />
-      <div class="hp-devices-grid">
+      <SectionHeader title="Pick Your Device" href="/devices" linkText="All devices" editorial="COMPARE" />
+      <div class="hp-devices2-grid">
         {devices.slice(0, 6).map(d => (
-          <a href={`/devices/${d.slug}`} class="hp-device-card">
-            <div class="hp-device-card-header">
-              <div class="hp-device-card-info">
-                <span class="hp-device-card-mfr">{d.manufacturer}</span>
-                <span class="hp-device-card-name">{d.name}</span>
-                <span class="hp-device-card-chip">{d.chip}</span>
-              </div>
+          <a href={`/devices/${d.slug}`} class="hp-device2-card">
+            <div class="hp-device2-top">
               {mfrLogo[d.manufacturer] && (
-                <img src={mfrLogo[d.manufacturer]} alt="" class="hp-device-card-logo" loading="lazy" />
+                <img src={mfrLogo[d.manufacturer]} alt="" class="hp-device2-logo" loading="lazy" />
+              )}
+              <span class="hp-device2-mfr">{d.manufacturer}</span>
+            </div>
+            <span class="hp-device2-name">{d.name}</span>
+            <div class="hp-device2-specs">
+              <div class="hp-device2-spec">
+                <svg class="hp-device2-spec-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="1" x2="9" y2="4"/><line x1="15" y1="1" x2="15" y2="4"/><line x1="9" y1="20" x2="9" y2="23"/><line x1="15" y1="20" x2="15" y2="23"/><line x1="20" y1="9" x2="23" y2="9"/><line x1="20" y1="14" x2="23" y2="14"/><line x1="1" y1="9" x2="4" y2="9"/><line x1="1" y1="14" x2="4" y2="14"/></svg>
+                <span>{d.chip}</span>
+              </div>
+              {d.batteryWh && (
+                <div class="hp-device2-spec">
+                  <svg class="hp-device2-spec-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="6" width="18" height="12" rx="2"/><line x1="23" y1="10" x2="23" y2="14"/></svg>
+                  <span>{d.batteryWh} Wh</span>
+                </div>
               )}
             </div>
-            <div class="hp-device-card-footer">
-              {d.batteryWh && <span class="hp-device-card-spec">
-                <svg class="hp-device-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="6" width="18" height="12" rx="2"/><line x1="23" y1="10" x2="23" y2="14"/></svg>
-                {d.batteryWh} Wh
-              </span>}
-              {d.msrpUsd && <span class="hp-device-card-price">${d.msrpUsd}</span>}
-            </div>
+            {d.msrpUsd && (
+              <div class="hp-device2-price">
+                <span class="hp-device2-price-from">from</span>
+                <span class="hp-device2-price-val">${d.msrpUsd}</span>
+              </div>
+            )}
+            <span class="hp-device2-cta">View benchmarks →</span>
           </a>
         ))}
       </div>
@@ -899,70 +891,131 @@ const schemaWebSite = {
     gap: 2px;
   }
 
-  /* ─── 2. LIVE FEED ─── */
-  .hp-feed {
-    border: 1px solid var(--color-border);
-    border-radius: 8px;
-    overflow: hidden;
-  }
-  .hp-feed-header,
-  .hp-feed-row {
+  /* ─── 2. COMMUNITY PULSE — Visual Cards ─── */
+  .hp-pulse-grid {
     display: grid;
-    grid-template-columns: 2fr 1.2fr 0.7fr 0.8fr 0.7fr 0.5fr;
-    gap: 8px;
-    padding: 10px 16px;
-    align-items: center;
-    font-size: 13px;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
   }
-  .hp-feed-header {
+  .hp-pulse-card {
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+    overflow: hidden;
+    text-decoration: none;
+    background: var(--color-base);
+    transition: border-color 0.15s, transform 0.2s, box-shadow 0.2s;
+  }
+  .hp-pulse-card:hover {
+    border-color: rgba(212,255,0,0.3);
+    transform: translateY(-3px);
+    box-shadow: 0 6px 24px rgba(212,255,0,0.06);
+  }
+  .hp-pulse-card-lg {
+    grid-column: span 1;
+  }
+  .hp-pulse-card-img {
+    position: relative;
+    aspect-ratio: 16/9;
+    overflow: hidden;
+    background: var(--color-elevated);
+  }
+  .hp-pulse-card-lg .hp-pulse-card-img {
+    aspect-ratio: 16/8;
+  }
+  .hp-pulse-card-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+  }
+  .hp-pulse-card:hover .hp-pulse-card-img img {
+    transform: scale(1.05);
+  }
+  .hp-pulse-card-placeholder {
+    width: 100%;
+    height: 100%;
+    background: var(--color-elevated);
+  }
+  .hp-pulse-card-gradient {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      to top,
+      rgba(10,10,10,0.8) 0%,
+      transparent 50%
+    );
+    pointer-events: none;
+  }
+  .hp-pulse-card-fps {
+    position: absolute;
+    bottom: 10px;
+    left: 12px;
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: 18px;
+    display: inline-flex;
+    align-items: baseline;
+    gap: 2px;
+    text-shadow: 0 1px 4px rgba(0,0,0,0.5);
+  }
+  .hp-pulse-card-lg .hp-pulse-card-fps {
+    font-size: 22px;
+  }
+  .hp-pulse-card-time {
+    position: absolute;
+    top: 8px;
+    right: 10px;
     font-family: var(--font-mono);
     font-size: 10px;
     font-weight: 500;
-    color: var(--color-text-dim);
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    background: var(--color-elevated);
-    border-bottom: 1px solid var(--color-border);
+    color: rgba(255,255,255,0.7);
+    background: rgba(0,0,0,0.5);
+    padding: 3px 7px;
+    border-radius: 3px;
+    backdrop-filter: blur(4px);
   }
-  .hp-feed-row {
-    text-decoration: none;
-    color: var(--color-text-2);
-    border-bottom: 1px solid var(--color-border-subtle);
-    transition: background 0.12s;
+  .hp-pulse-card-body {
+    padding: 12px 14px;
   }
-  .hp-feed-row:last-child { border-bottom: none; }
-  .hp-feed-row:hover .hp-feed-name { color: var(--color-accent); }
-  .hp-feed-name {
+  .hp-pulse-card-name {
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
     color: var(--color-text);
-    font-weight: 500;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
     transition: color 0.12s;
+    margin-bottom: 6px;
+  }
+  .hp-pulse-card:hover .hp-pulse-card-name {
+    color: var(--color-accent);
+  }
+  .hp-pulse-card-meta {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
   }
-  .hp-feed-thumb {
-    width: 40px;
-    height: 19px;
-    object-fit: cover;
-    border-radius: 2px;
-    flex-shrink: 0;
-    border: 1px solid var(--color-border-subtle);
-  }
-  .hp-feed-name-text {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-  .hp-fps-badge {
+  .hp-pulse-card-device {
+    display: flex;
+    align-items: center;
+    gap: 4px;
     font-family: var(--font-mono);
-    font-weight: 700;
-    font-size: 12px;
-    display: inline-flex;
-    align-items: baseline;
-    gap: 2px;
+    font-size: 11px;
+    color: var(--color-text-3);
+  }
+  .hp-pulse-device-icon {
+    width: 12px;
+    height: 12px;
+    flex-shrink: 0;
+    color: var(--color-text-dim);
+  }
+  .hp-pulse-card-preset {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--color-text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
   }
   .hp-fps-unit {
     font-size: 9px;
@@ -974,89 +1027,6 @@ const schemaWebSite = {
   .fps-yellow { color: var(--color-fps-yellow); }
   .fps-orange { color: var(--color-fps-orange); }
   .fps-red    { color: var(--color-fps-red); }
-  .hp-feed-col-device,
-  .hp-feed-col-preset,
-  .hp-feed-col-battery,
-  .hp-feed-col-time {
-    font-family: var(--font-mono);
-    font-size: 12px;
-    color: var(--color-text-3);
-  }
-
-  /* ─── 3. TOP GAMES (card grid) ─── */
-  .hp-games-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 14px;
-  }
-  .hp-game-card {
-    border: 1px solid var(--color-border);
-    border-radius: 8px;
-    overflow: hidden;
-    text-decoration: none;
-    background: var(--color-base);
-    transition: border-color 0.15s, transform 0.2s, box-shadow 0.2s;
-  }
-  .hp-game-card-img {
-    aspect-ratio: 460/215;
-    position: relative;
-    overflow: hidden;
-    background: var(--color-elevated);
-  }
-  .hp-game-card-img img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    transition: transform 0.3s ease;
-  }
-  .hp-game-card:hover .hp-game-card-img img {
-    transform: scale(1.05);
-  }
-  .hp-game-card-score {
-    position: absolute;
-    top: 6px;
-    right: 6px;
-    font-family: var(--font-mono);
-    font-size: 11px;
-    font-weight: 700;
-    padding: 2px 6px;
-    border-radius: 3px;
-    line-height: 1.3;
-  }
-  .hp-game-card-score.score-high {
-    background: rgba(34,197,94,0.9);
-    color: #fff;
-  }
-  .hp-game-card-score.score-mid {
-    background: rgba(234,179,8,0.9);
-    color: #fff;
-  }
-  .hp-game-card-score.score-low {
-    background: rgba(249,115,22,0.9);
-    color: #fff;
-  }
-  .hp-game-card-body {
-    padding: 10px 12px;
-  }
-  .hp-game-card-name {
-    display: block;
-    font-size: 13px;
-    font-weight: 500;
-    color: var(--color-text);
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-  .hp-game-card:hover .hp-game-card-name {
-    color: var(--color-accent);
-  }
-  .hp-game-card-genre {
-    display: block;
-    font-family: var(--font-mono);
-    font-size: 10px;
-    color: var(--color-text-dim);
-    margin-top: 3px;
-  }
 
   /* ─── 3. PERFORMANCE SPOTLIGHT ─── */
   .hp-spotlight {
@@ -1306,96 +1276,131 @@ const schemaWebSite = {
     display: none;
   }
 
-  /* ─── 4b. DEVICES (card grid) ─── */
-  .hp-devices-grid {
+  /* ─── 4b. PICK YOUR DEVICE (redesigned) ─── */
+  .hp-devices2-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 14px;
   }
-  .hp-device-card {
-    display: block;
-    border: 1px solid var(--color-border);
-    border-radius: 8px;
-    padding: 18px 16px;
-    text-decoration: none;
-    transition: border-color 0.15s, background 0.15s;
-  }
-  .hp-device-card:hover .hp-device-card-name {
-    color: var(--color-accent);
-  }
-  .hp-device-card-header {
+  .hp-device2-card {
     display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    gap: 12px;
+    flex-direction: column;
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+    padding: 20px 18px;
+    text-decoration: none;
+    transition: border-color 0.15s, background 0.15s, transform 0.2s;
+    position: relative;
+    overflow: hidden;
   }
-  .hp-device-card-info {
-    min-width: 0;
-    flex: 1;
-  }
-  .hp-device-card-logo {
-    width: 36px;
-    height: 36px;
-    flex-shrink: 0;
-    opacity: 0.25;
+  .hp-device2-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--color-accent), transparent);
+    opacity: 0;
     transition: opacity 0.2s;
-    filter: grayscale(100%);
   }
-  .hp-device-card:hover .hp-device-card-logo {
-    opacity: 0.6;
+  .hp-device2-card:hover::before { opacity: 1; }
+  .hp-device2-card:hover {
+    border-color: rgba(212,255,0,0.25);
+    background: var(--color-elevated);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 20px rgba(212,255,0,0.05);
+  }
+  .hp-device2-top {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+  .hp-device2-logo {
+    width: 24px;
+    height: 24px;
+    flex-shrink: 0;
+    opacity: 0.35;
+    filter: grayscale(100%);
+    transition: opacity 0.2s, filter 0.2s;
+  }
+  .hp-device2-card:hover .hp-device2-logo {
+    opacity: 0.7;
     filter: grayscale(0%);
   }
-  .hp-device-card-mfr {
-    display: block;
+  .hp-device2-mfr {
     font-family: var(--font-mono);
-    font-size: 9px;
+    font-size: 10px;
     font-weight: 600;
     color: var(--color-accent);
     letter-spacing: 0.1em;
     text-transform: uppercase;
-    margin-bottom: 4px;
+    opacity: 0.8;
   }
-  .hp-device-card-name {
+  .hp-device2-name {
     display: block;
-    font-size: 15px;
-    font-weight: 600;
+    font-family: var(--font-heading);
+    font-size: 18px;
+    font-weight: 700;
     color: var(--color-text);
     transition: color 0.12s;
-    margin-bottom: 4px;
+    margin-bottom: 14px;
+    letter-spacing: -0.01em;
   }
-  .hp-device-card-chip {
-    display: block;
-    font-family: var(--font-mono);
-    font-size: 11px;
-    color: var(--color-text-3);
+  .hp-device2-card:hover .hp-device2-name {
+    color: var(--color-accent);
   }
-  .hp-device-card-footer {
+  .hp-device2-specs {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 14px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--color-border-subtle);
+  }
+  .hp-device2-spec {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    margin-top: 10px;
-    padding-top: 8px;
-    border-top: 1px solid var(--color-border-subtle);
-  }
-  .hp-device-card-spec {
+    gap: 8px;
     font-family: var(--font-mono);
     font-size: 11px;
     color: var(--color-text-3);
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
   }
-  .hp-device-icon {
+  .hp-device2-spec-icon {
     width: 14px;
     height: 14px;
     flex-shrink: 0;
     color: var(--color-text-dim);
   }
-  .hp-device-card-price {
+  .hp-device2-price {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    margin-bottom: 12px;
+  }
+  .hp-device2-price-from {
     font-family: var(--font-mono);
-    font-size: 12px;
+    font-size: 10px;
+    color: var(--color-text-dim);
+    text-transform: uppercase;
+  }
+  .hp-device2-price-val {
+    font-family: var(--font-mono);
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--color-text);
+  }
+  .hp-device2-cta {
+    font-family: var(--font-mono);
+    font-size: 11px;
     font-weight: 600;
-    color: var(--color-text-2);
+    color: var(--color-text-dim);
+    transition: color 0.12s;
+    margin-top: auto;
+  }
+  .hp-device2-card:hover .hp-device2-cta {
+    color: var(--color-accent);
   }
 
   /* ─── 5. EDITORIAL (News redesign) ─── */
@@ -1819,23 +1824,7 @@ const schemaWebSite = {
     opacity: 0.15;
   }
 
-  /* ─── Neon glow hovers ─── */
-  .hp-game-card:hover {
-    border-color: rgba(212,255,0,0.3);
-    transform: translateY(-3px);
-    box-shadow: 0 4px 20px rgba(212,255,0,0.08), 0 0 40px rgba(212,255,0,0.04);
-  }
-  .hp-device-card:hover {
-    border-color: rgba(212,255,0,0.25);
-    background: var(--color-elevated);
-    box-shadow: 0 2px 16px rgba(212,255,0,0.06);
-    border-left: 3px solid var(--color-accent);
-    padding-left: 13px;
-  }
-  .hp-feed-row:hover {
-    background: var(--color-elevated);
-    box-shadow: inset 3px 0 0 var(--color-accent);
-  }
+  /* ─── Widget ─── */
   .hp-widget {
     border: 1px solid var(--color-border);
     border-radius: 8px;
@@ -1881,27 +1870,22 @@ const schemaWebSite = {
     }
     .hp-hero-visual { display: none; }
 
-    .hp-feed-header,
-    .hp-feed-row {
-      grid-template-columns: 1.5fr 1fr 0.6fr;
-    }
-    .hp-feed-col-preset,
-    .hp-feed-col-battery,
-    .hp-feed-col-time {
-      display: none;
-    }
-
-    .hp-games-grid {
+    /* Pulse cards mobile */
+    .hp-pulse-grid {
       grid-template-columns: repeat(2, 1fr);
       gap: 10px;
     }
+    .hp-pulse-card-lg { grid-column: span 1; }
+    .hp-pulse-card-fps { font-size: 15px; }
+    .hp-pulse-card-lg .hp-pulse-card-fps { font-size: 17px; }
+    .hp-pulse-card-img { aspect-ratio: 16/10; }
+    .hp-pulse-card-lg .hp-pulse-card-img { aspect-ratio: 16/10; }
 
-    .hp-devices-grid {
+    /* Devices mobile */
+    .hp-devices2-grid {
       grid-template-columns: repeat(2, 1fr);
       gap: 10px;
     }
-
-    .hp-feed-thumb { display: none; }
 
     .hp-section-alt::before {
       top: -20px;
@@ -1944,7 +1928,10 @@ const schemaWebSite = {
     .hp-hero-stats { gap: 10px; }
     .hp-hero-subtitle { font-size: 14px; }
 
-    .hp-devices-grid {
+    .hp-devices2-grid {
+      grid-template-columns: 1fr;
+    }
+    .hp-pulse-grid {
       grid-template-columns: 1fr;
     }
 
@@ -1969,15 +1956,13 @@ const schemaWebSite = {
     .hp-cta2-orb {
       animation: none !important;
     }
-    .hp-game-card,
-    .hp-game-card-img img,
+    .hp-pulse-card,
+    .hp-pulse-card-img img,
     .hp-editorial-hero-img img,
     .hp-editorial-card-img img,
     .hp-spotlight-bar-fill,
-    .hp-feed-row,
-    .hp-feed-name,
-    .hp-device-card,
-    .hp-device-card-logo,
+    .hp-device2-card,
+    .hp-device2-logo,
     .hp-battle-row,
     .hp-editorial-card,
     .hp-widget-dot {
