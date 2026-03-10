@@ -296,24 +296,24 @@ const schemaItemList = {
 
     <!-- ══════ STATS ══════ -->
     <section class="hp-stats stagger" aria-label="Site statistics">
-      <div class="hp-stat">
+      <div class="hp-stat" data-tooltip="Games in our database">
         <div class="hp-stat-value" data-count={gameCount} aria-live="polite">{gameCount.toLocaleString()}</div>
         <div class="hp-stat-label">Games</div>
       </div>
       <div class="hp-stat-divider" aria-hidden="true"></div>
-      <div class="hp-stat">
+      <div class="hp-stat" data-tooltip="Community performance reports">
         <div class="hp-stat-value" data-count={reportCount} aria-live="polite">{reportCount.toLocaleString()}</div>
         <div class="hp-stat-label">Reports</div>
       </div>
       <div class="hp-stat-divider" aria-hidden="true"></div>
-      <div class="hp-stat">
+      <div class="hp-stat" data-tooltip="Supported handheld devices">
         <div class="hp-stat-value" data-count={deviceCount} aria-live="polite">{deviceCount}</div>
         <div class="hp-stat-label">Devices</div>
       </div>
       {showContributors && (
         <>
           <div class="hp-stat-divider"></div>
-          <div class="hp-stat">
+          <div class="hp-stat" data-tooltip="Community members">
             <div class="hp-stat-value" data-count={userCount}>{userCount.toLocaleString()}</div>
             <div class="hp-stat-label">Contributors</div>
           </div>
