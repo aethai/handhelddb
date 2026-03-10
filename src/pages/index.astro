@@ -152,6 +152,7 @@ const schemaWebSite = {
 <script type="application/ld+json" set:html={JSON.stringify(schemaWebSite)} />
 
 <div class="hp-wrap">
+  <div class="hp-scanlines" aria-hidden="true"></div>
 
   <!-- ══════ 1. COMMAND CENTER (Hero) ══════ -->
   <section class="hp-hero">
@@ -234,11 +235,31 @@ const schemaWebSite = {
     </div>
   </section>
 
+  <!-- ══════ LIVE TICKER ══════ -->
+  {liveFeed.length > 0 && (
+    <div class="hp-ticker" aria-hidden="true">
+      <div class="hp-ticker-track">
+        {[...liveFeed, ...liveFeed, ...liveFeed].map(r => {
+          const cls = r.fps >= 55 ? 'fps-green' : r.fps >= 40 ? 'fps-yellow' : r.fps >= 30 ? 'fps-orange' : 'fps-red';
+          return (
+            <span class="hp-ticker-item">
+              <span class="hp-ticker-game">{r.name}</span>
+              <span class="hp-ticker-sep">—</span>
+              <span class="hp-ticker-device">{r.device}</span>
+              <span class={`hp-ticker-fps ${cls}`}>{r.fps} FPS</span>
+              <span class="hp-ticker-dot"></span>
+            </span>
+          );
+        })}
+      </div>
+    </div>
+  )}
+
   <div class="hp-main">
 
     <!-- ══════ 2. LIVE FEED ══════ -->
     {liveFeed.length > 0 && (
-      <section class="hp-section hp-section-animate">
+      <section class="hp-section hp-section-animate hp-section-divider">
         <SectionHeader title="Latest Reports" href="/games" linkText="View all" editorial="LIVE" />
         <div class="hp-feed">
           <div class="hp-feed-header">
@@ -270,7 +291,7 @@ const schemaWebSite = {
     )}
 
     <!-- ══════ 3. TOP GAMES ══════ -->
-    <section class="hp-section hp-section-alt hp-section-animate">
+    <section class="hp-section hp-section-alt hp-section-animate hp-section-divider">
       <SectionHeader title="Top Rated" href="/games" linkText="All games" editorial="METACRITIC" />
       <div class="hp-games-grid">
         {topGames.map(g => (
@@ -291,7 +312,7 @@ const schemaWebSite = {
     </section>
 
     <!-- ══════ 4. DEVICES ══════ -->
-    <section class="hp-section hp-section-animate">
+    <section class="hp-section hp-section-animate hp-section-divider">
       <SectionHeader title="Devices" href="/devices" linkText="All devices" />
       <div class="hp-devices-grid">
         {devices.slice(0, 6).map(d => (
@@ -320,7 +341,7 @@ const schemaWebSite = {
 
     <!-- ══════ 5. NEWS ══════ -->
     {articles.length > 0 && (
-      <section class="hp-section hp-section-alt hp-section-animate">
+      <section class="hp-section hp-section-alt hp-section-animate hp-section-divider">
         <SectionHeader title="Latest News" href="/news" linkText="All news" />
         <div class="hp-news">
           {articles.map((a, i) => {
@@ -393,9 +414,50 @@ const schemaWebSite = {
 
 </BaseLayout>
 
+<script>
+  // Animated stat counters
+  function animateCounters() {
+    const vals = document.querySelectorAll('.hp-hero-stat-val');
+    vals.forEach(el => {
+      const raw = (el as HTMLElement).textContent ?? '0';
+      const target = parseInt(raw.replace(/,/g, ''), 10);
+      if (isNaN(target) || target === 0) return;
+      const duration = 1200;
+      const start = performance.now();
+      const fmt = (n: number) => n.toLocaleString();
+      (el as HTMLElement).textContent = '0';
+      function tick(now: number) {
+        const t = Math.min((now - start) / duration, 1);
+        const ease = 1 - Math.pow(1 - t, 3); // ease-out cubic
+        (el as HTMLElement).textContent = fmt(Math.round(target * ease));
+        if (t < 1) requestAnimationFrame(tick);
+      }
+      requestAnimationFrame(tick);
+    });
+  }
+  if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    animateCounters();
+  }
+</script>
+
 <style>
+  /* ─── CRT Scanlines ─── */
+  .hp-scanlines {
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,0,0,0.03) 2px,
+      rgba(0,0,0,0.03) 4px
+    );
+    pointer-events: none;
+    z-index: 9999;
+  }
+
   /* ─── Page wrap ─── */
-  .hp-wrap { }
+  .hp-wrap { position: relative; }
   .hp-main {
     max-width: 1120px;
     margin: 0 auto;
@@ -504,10 +566,6 @@ const schemaWebSite = {
     color: var(--color-text);
     margin-bottom: 16px;
   }
-  .hp-hero-accent {
-    color: var(--color-accent);
-    text-shadow: 0 0 60px rgba(212,255,0,0.25);
-  }
   .hp-hero-subtitle {
     font-size: 15px;
     color: var(--color-text-2);
@@ -588,13 +646,6 @@ const schemaWebSite = {
   /* ─── Hero performance widget ─── */
   .hp-hero-visual {
     padding-top: 48px;
-  }
-  .hp-widget {
-    border: 1px solid var(--color-border);
-    border-radius: 8px;
-    overflow: hidden;
-    background: var(--color-raised);
-    width: 320px;
   }
   .hp-widget-head {
     display: flex;
@@ -704,7 +755,6 @@ const schemaWebSite = {
     transition: background 0.12s;
   }
   .hp-feed-row:last-child { border-bottom: none; }
-  .hp-feed-row:hover { background: var(--color-elevated); }
   .hp-feed-row:hover .hp-feed-name { color: var(--color-accent); }
   .hp-feed-name {
     color: var(--color-text);
@@ -770,11 +820,6 @@ const schemaWebSite = {
     text-decoration: none;
     background: var(--color-base);
     transition: border-color 0.15s, transform 0.2s, box-shadow 0.2s;
-  }
-  .hp-game-card:hover {
-    border-color: var(--color-border-strong);
-    transform: translateY(-3px);
-    box-shadow: var(--shadow-card-hover);
   }
   .hp-game-card-img {
     aspect-ratio: 460/215;
@@ -850,10 +895,6 @@ const schemaWebSite = {
     padding: 18px 16px;
     text-decoration: none;
     transition: border-color 0.15s, background 0.15s;
-  }
-  .hp-device-card:hover {
-    border-color: var(--color-border-strong);
-    background: var(--color-elevated);
   }
   .hp-device-card:hover .hp-device-card-name {
     color: var(--color-accent);
@@ -1037,27 +1078,6 @@ const schemaWebSite = {
   }
 
   /* ─── 6. CTA ─── */
-  .hp-cta {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 32px;
-    padding: 36px 40px;
-    border: 1px solid var(--color-border);
-    border-radius: 8px;
-    background: var(--color-raised);
-    position: relative;
-    overflow: hidden;
-  }
-  .hp-cta::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 2px;
-    background: linear-gradient(90deg, var(--color-accent), transparent);
-  }
   .hp-cta-icon {
     width: 56px;
     height: 56px;
@@ -1132,6 +1152,202 @@ const schemaWebSite = {
     letter-spacing: 0.04em;
   }
 
+  /* ─── LIVE TICKER ─── */
+  .hp-ticker {
+    border-top: 1px solid var(--color-border);
+    border-bottom: 1px solid var(--color-border);
+    background: var(--color-raised);
+    overflow: hidden;
+    position: relative;
+    padding: 10px 0;
+  }
+  .hp-ticker::before,
+  .hp-ticker::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 80px;
+    z-index: 2;
+    pointer-events: none;
+  }
+  .hp-ticker::before {
+    left: 0;
+    background: linear-gradient(90deg, var(--color-raised), transparent);
+  }
+  .hp-ticker::after {
+    right: 0;
+    background: linear-gradient(270deg, var(--color-raised), transparent);
+  }
+  .hp-ticker-track {
+    display: flex;
+    gap: 0;
+    white-space: nowrap;
+    animation: hp-scroll 40s linear infinite;
+    width: max-content;
+  }
+  @keyframes hp-scroll {
+    from { transform: translateX(0); }
+    to { transform: translateX(-33.333%); }
+  }
+  .hp-ticker-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 24px;
+    font-size: 12px;
+  }
+  .hp-ticker-game {
+    font-weight: 600;
+    color: var(--color-text);
+  }
+  .hp-ticker-sep {
+    color: var(--color-text-dim);
+  }
+  .hp-ticker-device {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--color-text-3);
+  }
+  .hp-ticker-fps {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: 11px;
+  }
+  .hp-ticker-dot {
+    width: 3px;
+    height: 3px;
+    background: var(--color-accent);
+    border-radius: 50%;
+    opacity: 0.5;
+  }
+
+  /* ─── Hero title shimmer ─── */
+  .hp-hero-accent {
+    color: var(--color-accent);
+    text-shadow: 0 0 60px rgba(212,255,0,0.25);
+    position: relative;
+    background: linear-gradient(
+      90deg,
+      var(--color-accent) 0%,
+      var(--color-accent) 40%,
+      #fff 50%,
+      var(--color-accent) 60%,
+      var(--color-accent) 100%
+    );
+    background-size: 200% 100%;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: hp-shimmer 3s ease-in-out infinite;
+  }
+  @keyframes hp-shimmer {
+    0%, 100% { background-position: 100% 0; }
+    50% { background-position: -100% 0; }
+  }
+
+  /* ─── Section dividers ─── */
+  .hp-section-divider {
+    position: relative;
+  }
+  .hp-section-divider::after {
+    content: '';
+    position: absolute;
+    bottom: -28px;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      var(--color-accent) 20%,
+      var(--color-accent) 80%,
+      transparent 100%
+    );
+    opacity: 0.15;
+  }
+
+  /* ─── Neon glow hovers ─── */
+  .hp-game-card:hover {
+    border-color: rgba(212,255,0,0.3);
+    transform: translateY(-3px);
+    box-shadow: 0 4px 20px rgba(212,255,0,0.08), 0 0 40px rgba(212,255,0,0.04);
+  }
+  .hp-device-card:hover {
+    border-color: rgba(212,255,0,0.25);
+    background: var(--color-elevated);
+    box-shadow: 0 2px 16px rgba(212,255,0,0.06);
+    border-left: 3px solid var(--color-accent);
+    padding-left: 13px;
+  }
+  .hp-feed-row:hover {
+    background: var(--color-elevated);
+    box-shadow: inset 3px 0 0 var(--color-accent);
+  }
+  .hp-widget {
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    overflow: hidden;
+    background: var(--color-raised);
+    width: 320px;
+    box-shadow: 0 0 30px rgba(212,255,0,0.04);
+  }
+
+  /* ─── News gradient overlay ─── */
+  .hp-news-featured-img::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      135deg,
+      rgba(212,255,0,0.08) 0%,
+      transparent 40%,
+      transparent 60%,
+      rgba(0,0,0,0.4) 100%
+    );
+    pointer-events: none;
+  }
+
+  /* ─── CTA animated gradient ─── */
+  .hp-cta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 32px;
+    padding: 36px 40px;
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    background:
+      linear-gradient(135deg, rgba(212,255,0,0.03) 0%, transparent 50%, rgba(212,255,0,0.02) 100%),
+      var(--color-raised);
+    position: relative;
+    overflow: hidden;
+  }
+  .hp-cta::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--color-accent), transparent);
+    animation: hp-cta-glow 4s ease-in-out infinite;
+  }
+  @keyframes hp-cta-glow {
+    0%, 100% { opacity: 0.5; }
+    50% { opacity: 1; }
+  }
+  .hp-cta::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--color-accent), transparent);
+    opacity: 0.3;
+  }
+
   /* ─── Responsive: tablet ─── */
   @media (max-width: 1024px) {
     .hp-games-grid {
@@ -1192,6 +1408,10 @@ const schemaWebSite = {
     }
     .hp-cta-icon { display: none; }
     .hp-cta-progress-wrap { max-width: 100%; }
+
+    .hp-ticker-item { padding: 0 16px; font-size: 11px; }
+
+    .hp-section-divider::after { display: none; }
   }
 
   /* ─── Responsive: small phone ─── */
@@ -1210,7 +1430,10 @@ const schemaWebSite = {
   /* ─── Accessibility: reduced motion ─── */
   @media (prefers-reduced-motion: reduce) {
     .hp-section-animate,
-    .hp-hero-inner {
+    .hp-hero-inner,
+    .hp-hero-accent,
+    .hp-ticker-track,
+    .hp-cta::before {
       animation: none !important;
     }
     .hp-game-card,
@@ -1223,6 +1446,11 @@ const schemaWebSite = {
     .hp-widget-dot {
       transition: none !important;
       animation: none !important;
+    }
+    .hp-scanlines { display: none; }
+    .hp-hero-accent {
+      -webkit-text-fill-color: var(--color-accent);
+      background: none;
     }
   }
 </style>
