@@ -44,7 +44,7 @@ export default class ErrorBoundary extends Component<Props, State> {
           <div style={{
             fontFamily: "'SF Mono', monospace",
             fontSize: 11,
-            color: '#5a5468',
+            color: '#6d6882',
             marginBottom: 12,
           }}>
             {this.state.error?.message ?? 'An unexpected error occurred'}

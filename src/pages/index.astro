@@ -367,7 +367,7 @@ const schemaItemList = {
                 <div style="position:absolute;inset:0;background:linear-gradient(transparent 20%,#0e0c16);"></div>
                 <div style="position:absolute;top:6px;right:6px;background:rgba(0,0,0,0.75);backdrop-filter:blur(8px);padding:2px 6px;border-radius:5px;display:flex;align-items:baseline;gap:2px;">
                   <span style={`font-family:var(--font-mono);font-size:16px;font-weight:800;color:${fpsColor(g.fps)};text-shadow:0 0 10px ${fpsColor(g.fps)}40;`}>{g.fps}<span style="font-size:8px;margin-left:1px;opacity:0.6;">{fpsTierIcon(g.fps)}</span></span>
-                  <span style="font-family:var(--font-mono);font-size:7px;color:#8880a0;">fps</span>
+                  <span style="font-family:var(--font-mono);font-size:7px;color:#9890a8;">fps</span>
                 </div>
               </div>
               <div style="padding:6px 12px 10px;">
@@ -524,7 +524,7 @@ const schemaItemList = {
 
     <!-- ══════ DEVICE STRIP ══════ -->
     <div class="hp-devices-strip">
-      <span style="font-family:var(--font-mono);font-size:11px;color:#5a5468;flex-shrink:0;">Browse by device</span>
+      <span style="font-family:var(--font-mono);font-size:11px;color:#6d6882;flex-shrink:0;">Browse by device</span>
       <div class="hp-devices-scroll">
         {devices.slice(0, 8).map(d => (
           <a href={`/devices/${d.slug}`} class="hp-device-chip">{d.name.replace('ASUS ', '').replace('Lenovo ', '')}</a>
@@ -545,15 +545,15 @@ const schemaItemList = {
           <div style="display:flex;gap:24px;flex-wrap:wrap;">
             <div>
               <div style="font-family:var(--font-mono);font-size:14px;font-weight:700;color:#c8c4d4;">{reportCount.toLocaleString()}</div>
-              <div style="font-family:var(--font-mono);font-size:10px;color:#5a5468;letter-spacing:0.04em;">REPORTS</div>
+              <div style="font-family:var(--font-mono);font-size:10px;color:#6d6882;letter-spacing:0.04em;">REPORTS</div>
             </div>
             <div>
               <div style="font-family:var(--font-mono);font-size:14px;font-weight:700;color:#c8c4d4;">{gameCount.toLocaleString()}</div>
-              <div style="font-family:var(--font-mono);font-size:10px;color:#5a5468;letter-spacing:0.04em;">GAMES</div>
+              <div style="font-family:var(--font-mono);font-size:10px;color:#6d6882;letter-spacing:0.04em;">GAMES</div>
             </div>
             <div>
               <div style="font-family:var(--font-mono);font-size:14px;font-weight:700;color:#c8c4d4;">{deviceCount}</div>
-              <div style="font-family:var(--font-mono);font-size:10px;color:#5a5468;letter-spacing:0.04em;">DEVICES</div>
+              <div style="font-family:var(--font-mono);font-size:10px;color:#6d6882;letter-spacing:0.04em;">DEVICES</div>
             </div>
           </div>
         </div>

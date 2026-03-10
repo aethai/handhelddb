@@ -153,7 +153,7 @@ export default function GameGrid({ games }: { games: Game[] }) {
                         color: fc(g.metacritic), textShadow: `0 0 12px ${fc(g.metacritic)}40`,
                         letterSpacing: '-0.03em',
                       }}>{g.metacritic}</span>
-                      <span style={{ fontFamily: 'var(--font-mono)', fontSize: 8, color: '#8880a0' }}>mc</span>
+                      <span style={{ fontFamily: 'var(--font-mono)', fontSize: 8, color: '#9890a8' }}>mc</span>
                     </div>
                   )}
                   <div style={{

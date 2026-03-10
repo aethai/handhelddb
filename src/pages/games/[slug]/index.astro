@@ -237,7 +237,7 @@ const panelData = {
         <div style="position:absolute;top:50%;right:20%;transform:translate(50%,-50%);width:200px;height:200px;background:radial-gradient(circle,rgba(167,139,250,0.04),transparent 55%);pointer-events:none;"></div>
         <div>
           <div style="font-family:var(--font-display);font-size:clamp(18px,3vw,28px);font-weight:900;color:#eae6f4;letter-spacing:-0.03em;margin-bottom:6px;">Played {game.name} on a handheld?</div>
-          <div style="font-family:var(--font-sans);font-size:13px;color:#5a5468;">Share your FPS and settings. Takes about 5 minutes.</div>
+          <div style="font-family:var(--font-sans);font-size:13px;color:#6d6882;">Share your FPS and settings. Takes about 5 minutes.</div>
         </div>
         <div style="display:flex;align-items:center;gap:12px;flex-shrink:0;">
           <FollowButton client:load gameId={game.id} initialFollowing={!!followData} followerCount={followerCount ?? 0} />
@@ -258,7 +258,7 @@ const panelData = {
             return (
               <a href={`/games/${sg.slug}`} style={`flex:1;padding:24px 14px;background:${i % 2 === 0 ? '#0a0910' : '#08070d'};text-align:center;text-decoration:none;transition:background 0.12s;`}>
                 <div style={`font-family:var(--font-mono);font-size:clamp(24px,4vw,34px);font-weight:800;color:${sc};letter-spacing:-0.04em;line-height:1;text-shadow:0 0 14px ${sc}15;margin-bottom:6px;`}>{sg.fps}</div>
-                <div style="font-family:var(--font-display);font-size:clamp(10px,1.5vw,12px);font-weight:700;color:#8880a0;line-height:1.2;">{sg.name}</div>
+                <div style="font-family:var(--font-display);font-size:clamp(10px,1.5vw,12px);font-weight:700;color:#9890a8;line-height:1.2;">{sg.name}</div>
               </a>
             );
           })}

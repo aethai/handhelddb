@@ -328,7 +328,7 @@ input:focus-visible, button:focus-visible, a:focus-visible {
 
 /* ── Tabs ── */
 .tab-active { border-bottom: 2px solid #a78bfa; color: #eae6f4; padding-bottom: 0.75rem; }
-.tab-inactive { border-bottom: 2px solid transparent; color: #5a5468; padding-bottom: 0.75rem; transition: color 0.15s ease; }
+.tab-inactive { border-bottom: 2px solid transparent; color: #6d6882; padding-bottom: 0.75rem; transition: color 0.15s ease; }
 .tab-inactive:hover { color: #9890a8; }
 
 /* ── Horizontal Scroll Strip ── */
@@ -483,7 +483,7 @@ input:focus-visible, button:focus-visible, a:focus-visible {
 .hp-hero-sub {
   font-family: var(--font-display);
   font-size: 15px;
-  color: #5a5468;
+  color: #6d6882;
   margin-bottom: 24px;
 }
 .hp-hero-search {
@@ -516,7 +516,7 @@ input:focus-visible, button:focus-visible, a:focus-visible {
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.03em;
-  color: var(--pill-color, #5a5468);
+  color: var(--pill-color, #6d6882);
   background: rgba(255,255,255,0.03);
   border: 1px solid rgba(255,255,255,0.06);
   padding: 6px 14px;
@@ -642,7 +642,7 @@ input:focus-visible, button:focus-visible, a:focus-visible {
   transition: color 0.15s;
 }
 .hp-ticker-item:hover {
-  color: #8880a0;
+  color: #9890a8;
 }
 
 /* ── Section Heading ── */
@@ -665,12 +665,12 @@ input:focus-visible, button:focus-visible, a:focus-visible {
 .hp-section-head .link {
   font-family: var(--font-mono);
   font-size: 11px;
-  color: #5a5468;
+  color: #6d6882;
   cursor: pointer;
   transition: color 0.15s;
 }
 .hp-section-head a:hover,
-.hp-section-head .link:hover { color: #8880a0; }
+.hp-section-head .link:hover { color: #9890a8; }
 
 /* ── Game Card (shared hover glow + staggered rise) ── */
 .hp-game-card {
@@ -713,7 +713,7 @@ input:focus-visible, button:focus-visible, a:focus-visible {
   font-size: 10px;
   font-weight: 600;
   letter-spacing: 0.04em;
-  color: #5a5468;
+  color: #6d6882;
   background: none;
   border: 1px solid transparent;
   padding: 6px 14px;
@@ -758,7 +758,7 @@ input:focus-visible, button:focus-visible, a:focus-visible {
   font-family: var(--font-mono);
   font-size: 10px;
   font-weight: 500;
-  color: #5a5468;
+  color: #6d6882;
   background: rgba(255,255,255,0.02);
   border: 1px solid rgba(255,255,255,0.06);
   padding: 5px 12px;
@@ -1165,7 +1165,7 @@ input:focus-visible, button:focus-visible, a:focus-visible {
   padding: 0;
 }
 .hdb-breadcrumb a {
-  color: #5a5468;
+  color: #6d6882;
   text-decoration: none;
   transition: color 0.15s;
 }
