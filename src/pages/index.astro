@@ -38,7 +38,7 @@ const [
     .limit(4),
   supabaseAdmin
     .from('performance_reports')
-    .select('fps_avg, graphics_preset, resolution, overall_rating, created_at, estimated_battery, games(name, slug), devices(name)')
+    .select('fps_avg, graphics_preset, resolution, overall_rating, created_at, estimated_battery, games(name, slug, header_image), devices(name)')
     .eq('moderation_status', 'approved')
     .order('created_at', { ascending: false })
     .limit(12),
@@ -88,6 +88,7 @@ const liveFeed = (trendingRes.data ?? [])
     return {
       name: (r.games as any).name,
       slug: (r.games as any).slug,
+      thumb: (r.games as any)?.header_image ?? null,
       device: (r.devices as any)?.name?.replace('ASUS ', '').replace('Lenovo ', '') ?? '',
       fps,
       preset: r.graphics_preset ?? '—',
@@ -125,6 +126,17 @@ const nextMilestone = milestones.find(m => m > reportCount) ?? milestones[milest
 const prevMilestone = milestones[milestones.indexOf(nextMilestone) - 1] ?? 0;
 const ctaPct = Math.min(((reportCount - prevMilestone) / (nextMilestone - prevMilestone)) * 100, 100);
 
+// Manufacturer logo mapping
+const mfrLogo: Record<string, string> = {
+  'Valve': '/img/devices/steam.svg',
+  'ASUS': '/img/devices/rog.svg',
+  'Lenovo': '/img/devices/lenovo.svg',
+  'MSI': '/img/devices/msi.svg',
+  'Ayaneo': '/img/devices/ayaneo.svg',
+  'GPD': '/img/devices/gpd.svg',
+  'Nintendo': '/img/devices/nintendo.svg',
+};
+
 // Schema.org
 const siteUrl = import.meta.env.PUBLIC_SITE_URL ?? 'https://handheldgamedb.com';
 const schemaWebSite = {
@@ -144,6 +156,7 @@ const schemaWebSite = {
   <!-- ══════ 1. COMMAND CENTER (Hero) ══════ -->
   <section class="hp-hero">
     <div class="hp-hero-glow"></div>
+    <div class="hp-hero-grid-bg"></div>
     <div class="hp-hero-inner">
       <div class="hp-hero-content">
         <p class="hp-hero-eyebrow">COMMUNITY-POWERED PERFORMANCE DATABASE</p>
@@ -158,16 +171,19 @@ const schemaWebSite = {
 
         <div class="hp-hero-stats">
           <div class="hp-hero-stat">
+            <svg class="hp-stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 12h4m-2-2v4m8-1h.01M18 11h.01"/></svg>
             <span class="hp-hero-stat-val">{gameCount.toLocaleString()}</span>
             <span class="hp-hero-stat-lbl">GAMES</span>
           </div>
           <div class="hp-hero-stat-sep"></div>
           <div class="hp-hero-stat">
+            <svg class="hp-stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
             <span class="hp-hero-stat-val">{reportCount.toLocaleString()}</span>
             <span class="hp-hero-stat-lbl">REPORTS</span>
           </div>
           <div class="hp-hero-stat-sep"></div>
           <div class="hp-hero-stat">
+            <svg class="hp-stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12" y2="18.01"/></svg>
             <span class="hp-hero-stat-val">{deviceCount}</span>
             <span class="hp-hero-stat-lbl">DEVICES</span>
           </div>
@@ -175,6 +191,7 @@ const schemaWebSite = {
             <>
               <div class="hp-hero-stat-sep"></div>
               <div class="hp-hero-stat">
+                <svg class="hp-stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
                 <span class="hp-hero-stat-val">{userCount.toLocaleString()}</span>
                 <span class="hp-hero-stat-lbl">USERS</span>
               </div>
@@ -236,7 +253,10 @@ const schemaWebSite = {
             const fpsClass = r.fps >= 55 ? 'fps-green' : r.fps >= 40 ? 'fps-yellow' : r.fps >= 30 ? 'fps-orange' : 'fps-red';
             return (
               <a href={`/games/${r.slug}`} class="hp-feed-row">
-                <span class="hp-feed-col-game hp-feed-name">{r.name}</span>
+                <span class="hp-feed-col-game hp-feed-name">
+                  {r.thumb && <img src={r.thumb} alt="" class="hp-feed-thumb" loading="lazy" />}
+                  <span class="hp-feed-name-text">{r.name}</span>
+                </span>
                 <span class="hp-feed-col-device">{r.device}</span>
                 <span class={`hp-feed-col-fps hp-fps-badge ${fpsClass}`}>{r.fps}<span class="hp-fps-unit">fps</span></span>
                 <span class="hp-feed-col-preset">{r.preset}</span>
@@ -276,11 +296,21 @@ const schemaWebSite = {
       <div class="hp-devices-grid">
         {devices.slice(0, 6).map(d => (
           <a href={`/devices/${d.slug}`} class="hp-device-card">
-            <span class="hp-device-card-mfr">{d.manufacturer}</span>
-            <span class="hp-device-card-name">{d.name}</span>
-            <span class="hp-device-card-chip">{d.chip}</span>
+            <div class="hp-device-card-header">
+              <div class="hp-device-card-info">
+                <span class="hp-device-card-mfr">{d.manufacturer}</span>
+                <span class="hp-device-card-name">{d.name}</span>
+                <span class="hp-device-card-chip">{d.chip}</span>
+              </div>
+              {mfrLogo[d.manufacturer] && (
+                <img src={mfrLogo[d.manufacturer]} alt="" class="hp-device-card-logo" loading="lazy" />
+              )}
+            </div>
             <div class="hp-device-card-footer">
-              {d.batteryWh && <span class="hp-device-card-spec">{d.batteryWh} Wh</span>}
+              {d.batteryWh && <span class="hp-device-card-spec">
+                <svg class="hp-device-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="6" width="18" height="12" rx="2"/><line x1="23" y1="10" x2="23" y2="14"/></svg>
+                {d.batteryWh} Wh
+              </span>}
               {d.msrpUsd && <span class="hp-device-card-price">${d.msrpUsd}</span>}
             </div>
           </a>
@@ -331,6 +361,14 @@ const schemaWebSite = {
     <!-- ══════ 6. CTA ══════ -->
     <section class="hp-section hp-section-animate">
       <div class="hp-cta">
+        <div class="hp-cta-icon" aria-hidden="true">
+          <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="24" cy="24" r="20"/>
+            <path d="M24 8v16l11 6.5"/>
+            <path d="M16 38l3-6m13 6l-3-6" opacity="0.4"/>
+            <circle cx="24" cy="24" r="3" fill="currentColor" stroke="none"/>
+          </svg>
+        </div>
         <div class="hp-cta-text">
           <p class="hp-cta-eyebrow">COMMUNITY MILESTONE</p>
           <h2 class="hp-cta-title">HELP US BENCHMARK<br/>HANDHELD GAMING.</h2>
@@ -410,6 +448,17 @@ const schemaWebSite = {
     margin: 0 auto;
     overflow: hidden;
   }
+  .hp-hero-grid-bg {
+    position: absolute;
+    inset: 0;
+    background-image:
+      radial-gradient(circle, rgba(212,255,0,0.08) 1px, transparent 1px);
+    background-size: 32px 32px;
+    mask-image: radial-gradient(ellipse 70% 60% at 80% 40%, black 20%, transparent 70%);
+    -webkit-mask-image: radial-gradient(ellipse 70% 60% at 80% 40%, black 20%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
   .hp-hero-glow {
     position: absolute;
     top: -120px;
@@ -479,6 +528,14 @@ const schemaWebSite = {
     padding: 14px 0;
     border-top: 1px solid var(--color-border-subtle);
     border-bottom: 1px solid var(--color-border-subtle);
+  }
+  .hp-stat-icon {
+    width: 16px;
+    height: 16px;
+    color: var(--color-accent);
+    flex-shrink: 0;
+    position: relative;
+    top: 2px;
   }
   .hp-hero-stat {
     display: flex;
@@ -656,6 +713,22 @@ const schemaWebSite = {
     text-overflow: ellipsis;
     white-space: nowrap;
     transition: color 0.12s;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .hp-feed-thumb {
+    width: 40px;
+    height: 19px;
+    object-fit: cover;
+    border-radius: 2px;
+    flex-shrink: 0;
+    border: 1px solid var(--color-border-subtle);
+  }
+  .hp-feed-name-text {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
   .hp-fps-badge {
     font-family: var(--font-mono);
@@ -785,6 +858,28 @@ const schemaWebSite = {
   .hp-device-card:hover .hp-device-card-name {
     color: var(--color-accent);
   }
+  .hp-device-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  .hp-device-card-info {
+    min-width: 0;
+    flex: 1;
+  }
+  .hp-device-card-logo {
+    width: 36px;
+    height: 36px;
+    flex-shrink: 0;
+    opacity: 0.25;
+    transition: opacity 0.2s;
+    filter: grayscale(100%);
+  }
+  .hp-device-card:hover .hp-device-card-logo {
+    opacity: 0.6;
+    filter: grayscale(0%);
+  }
   .hp-device-card-mfr {
     display: block;
     font-family: var(--font-mono);
@@ -821,6 +916,15 @@ const schemaWebSite = {
     font-family: var(--font-mono);
     font-size: 11px;
     color: var(--color-text-3);
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .hp-device-icon {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+    color: var(--color-text-dim);
   }
   .hp-device-card-price {
     font-family: var(--font-mono);
@@ -954,6 +1058,17 @@ const schemaWebSite = {
     height: 2px;
     background: linear-gradient(90deg, var(--color-accent), transparent);
   }
+  .hp-cta-icon {
+    width: 56px;
+    height: 56px;
+    flex-shrink: 0;
+    color: var(--color-accent);
+    opacity: 0.7;
+  }
+  .hp-cta-icon svg {
+    width: 100%;
+    height: 100%;
+  }
   .hp-cta-text { flex: 1; }
   .hp-cta-eyebrow {
     font-family: var(--font-mono);
@@ -1063,6 +1178,8 @@ const schemaWebSite = {
       aspect-ratio: 2/1;
     }
 
+    .hp-feed-thumb { display: none; }
+
     .hp-section-alt::before {
       top: -20px;
       bottom: -20px;
@@ -1073,6 +1190,7 @@ const schemaWebSite = {
       text-align: center;
       padding: 28px 24px;
     }
+    .hp-cta-icon { display: none; }
     .hp-cta-progress-wrap { max-width: 100%; }
   }
 
@@ -1101,6 +1219,7 @@ const schemaWebSite = {
     .hp-feed-row,
     .hp-feed-name,
     .hp-device-card,
+    .hp-device-card-logo,
     .hp-widget-dot {
       transition: none !important;
       animation: none !important;
