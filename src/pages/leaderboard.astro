@@ -81,18 +81,18 @@ const totalReports = users.reduce((s, u) => s + u.reports, 0);
     </div>
 
     <!-- Stats bar -->
-    <div style="display:flex;gap:24px;margin-bottom:28px;flex-wrap:wrap;">
+    <div style="display:flex;gap:28px;margin-bottom:28px;flex-wrap:wrap;">
       <div>
-        <div style="font-family:var(--font-mono);font-size:18px;font-weight:800;color:#a78bfa;">{totalUsers}</div>
-        <div style="font-family:var(--font-mono);font-size:9px;color:#4a4560;letter-spacing:0.06em;">CONTRIBUTORS</div>
+        <div style="font-family:var(--font-mono);font-size:20px;font-weight:800;color:#a78bfa;">{totalUsers}</div>
+        <div style="font-family:var(--font-mono);font-size:10px;color:#4a4560;letter-spacing:0.06em;">CONTRIBUTORS</div>
       </div>
       <div>
-        <div style="font-family:var(--font-mono);font-size:18px;font-weight:800;color:#4ade80;">{totalReports.toLocaleString()}</div>
-        <div style="font-family:var(--font-mono);font-size:9px;color:#4a4560;letter-spacing:0.06em;">REPORTS</div>
+        <div style="font-family:var(--font-mono);font-size:20px;font-weight:800;color:#4ade80;">{totalReports.toLocaleString()}</div>
+        <div style="font-family:var(--font-mono);font-size:10px;color:#4a4560;letter-spacing:0.06em;">REPORTS</div>
       </div>
       <div>
-        <div style="font-family:var(--font-mono);font-size:18px;font-weight:800;color:#facc15;">{totalPoints.toLocaleString()}</div>
-        <div style="font-family:var(--font-mono);font-size:9px;color:#4a4560;letter-spacing:0.06em;">TOTAL POINTS</div>
+        <div style="font-family:var(--font-mono);font-size:20px;font-weight:800;color:#facc15;">{totalPoints.toLocaleString()}</div>
+        <div style="font-family:var(--font-mono);font-size:10px;color:#4a4560;letter-spacing:0.06em;">TOTAL POINTS</div>
       </div>
     </div>
 
@@ -130,14 +130,14 @@ const totalReports = users.reduce((s, u) => s + u.reports, 0);
                 )}
               </div>
               <div style="display:flex;align-items:center;gap:8px;">
-                <span style={`font-family:var(--font-mono);font-size:9px;font-weight:600;color:${u.levelColor};`}>{u.levelLabel}</span>
-                <span style="font-family:var(--font-mono);font-size:9px;color:#4a4560;">{u.reports} reports</span>
+                <span style={`font-family:var(--font-mono);font-size:10px;font-weight:600;color:${u.levelColor};`}>{u.levelLabel}</span>
+                <span style="font-family:var(--font-mono);font-size:10px;color:#4a4560;">{u.reports} reports</span>
               </div>
             </div>
 
             <div style="text-align:right;flex-shrink:0;">
               <div style="font-family:var(--font-mono);font-size:16px;font-weight:800;color:#a78bfa;">{u.points.toLocaleString()}</div>
-              <div style="font-family:var(--font-mono);font-size:8px;color:#4a4560;letter-spacing:0.06em;">PTS</div>
+              <div style="font-family:var(--font-mono);font-size:10px;color:#4a4560;letter-spacing:0.06em;">PTS</div>
             </div>
           </a>
         ))}

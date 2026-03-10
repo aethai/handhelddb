@@ -152,14 +152,14 @@ export default function ReportForm({ devices, isLoggedIn, preselectedGameId, pre
   if (!isLoggedIn) {
     return (
       <div className="text-center py-12">
-        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-[#1a1a22]">
-          <svg className="h-8 w-8 text-[#55555e]" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-[#12101a]">
+          <svg className="h-8 w-8 text-[#4a4560]" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
           </svg>
         </div>
         <h3 className="text-lg font-semibold text-white">Sign in to submit a report</h3>
-        <p className="mt-2 text-sm text-[#8a8a94]">You need to be signed in to submit performance reports.</p>
-        <a href="/auth/login?redirect=/report/new" className="mt-4 inline-flex items-center gap-2 rounded-lg bg-[#7c6cf0] px-4 py-2 text-sm font-medium text-white hover:bg-[#7c6cf0] transition-colors">
+        <p className="mt-2 text-sm text-[#9890a8]">You need to be signed in to submit performance reports.</p>
+        <a href="/auth/login?redirect=/report/new" className="mt-4 inline-flex items-center gap-2 rounded-lg bg-[#a78bfa] px-4 py-2 text-sm font-medium text-white hover:bg-[#a78bfa] transition-colors">
           Sign in
         </a>
       </div>
@@ -169,18 +169,18 @@ export default function ReportForm({ devices, isLoggedIn, preselectedGameId, pre
   if (submitted) {
     return (
       <div className="text-center py-12">
-        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-[#7c6cf0]/20">
-          <svg className="h-8 w-8 text-[#7c6cf0]" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-[#a78bfa]/20">
+          <svg className="h-8 w-8 text-[#a78bfa]" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
           </svg>
         </div>
         <h3 className="text-lg font-semibold text-white">Report submitted!</h3>
-        <p className="mt-2 text-sm text-[#8a8a94]">Thank you for contributing to the community.</p>
+        <p className="mt-2 text-sm text-[#9890a8]">Thank you for contributing to the community.</p>
         <div className="mt-6 flex justify-center gap-3">
-          <a href={`/games/${data.gameSlug}`} className="rounded-lg bg-[#1a1a22] px-4 py-2 text-sm text-gray-300 hover:bg-[#25252e] transition-colors">
+          <a href={`/games/${data.gameSlug}`} className="rounded-lg bg-[#12101a] px-4 py-2 text-sm text-gray-300 hover:bg-[#1a1828] transition-colors">
             View game
           </a>
-          <button onClick={() => { setSubmitted(null); setStep(1); setData(INITIAL); }} className="rounded-lg bg-[#7c6cf0] px-4 py-2 text-sm font-medium text-white hover:bg-[#7c6cf0] transition-colors">
+          <button onClick={() => { setSubmitted(null); setStep(1); setData(INITIAL); }} className="rounded-lg bg-[#a78bfa] px-4 py-2 text-sm font-medium text-white hover:bg-[#a78bfa] transition-colors">
             Submit another
           </button>
         </div>
@@ -198,15 +198,15 @@ export default function ReportForm({ devices, isLoggedIn, preselectedGameId, pre
               key={label}
               onClick={() => i + 1 < step && setStep(i + 1)}
               className={`text-xs font-medium transition-colors ${
-                i + 1 === step ? 'text-[#7c6cf0]' : i + 1 < step ? 'text-[#8a8a94] cursor-pointer hover:text-white' : 'text-gray-600'
+                i + 1 === step ? 'text-[#a78bfa]' : i + 1 < step ? 'text-[#9890a8] cursor-pointer hover:text-white' : 'text-gray-600'
               }`}
             >
               {label}
             </button>
           ))}
         </div>
-        <div className="h-1 rounded-full bg-[#1a1a22]">
-          <div className="h-full rounded-full bg-[#7c6cf0] transition-all duration-300" style={{ width: `${(step / 4) * 100}%` }} />
+        <div className="h-1 rounded-full bg-[#12101a]">
+          <div className="h-full rounded-full bg-[#a78bfa] transition-all duration-300" style={{ width: `${(step / 4) * 100}%` }} />
         </div>
       </div>
 
@@ -227,7 +227,7 @@ export default function ReportForm({ devices, isLoggedIn, preselectedGameId, pre
         <button
           onClick={() => setStep(s => s - 1)}
           disabled={step === 1}
-          className="rounded-lg border border-[#25252e] px-4 py-2 text-sm text-gray-300 hover:border-[#35353e] hover:text-white transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+          className="rounded-lg border border-[#1a1828] px-4 py-2 text-sm text-gray-300 hover:border-[#2a2838] hover:text-white transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
         >
           Back
         </button>
@@ -235,7 +235,7 @@ export default function ReportForm({ devices, isLoggedIn, preselectedGameId, pre
           <button
             onClick={() => setStep(s => s + 1)}
             disabled={!canAdvance()}
-            className="rounded-lg bg-[#7c6cf0] px-6 py-2 text-sm font-medium text-white hover:bg-[#7c6cf0] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="rounded-lg bg-[#a78bfa] px-6 py-2 text-sm font-medium text-white hover:bg-[#a78bfa] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Continue
           </button>
@@ -243,7 +243,7 @@ export default function ReportForm({ devices, isLoggedIn, preselectedGameId, pre
           <button
             onClick={handleSubmit}
             disabled={submitting || !canAdvance()}
-            className="rounded-lg bg-[#7c6cf0] px-6 py-2 text-sm font-medium text-white hover:bg-[#7c6cf0] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            className="rounded-lg bg-[#a78bfa] px-6 py-2 text-sm font-medium text-white hover:bg-[#a78bfa] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
           >
             {submitting && (
               <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
@@ -286,9 +286,9 @@ function Step1({ data, update, devices }: { data: ReportData; update: (p: Partia
       <div>
         <label className="block text-sm font-medium text-gray-300 mb-2">Game *</label>
         {data.gameId ? (
-          <div className="flex items-center gap-3 rounded-lg border border-[#7c6cf0]/30 bg-[#7c6cf0]/5 p-3">
+          <div className="flex items-center gap-3 rounded-lg border border-[#a78bfa]/30 bg-[#a78bfa]/5 p-3">
             <span className="text-sm text-white font-medium flex-1">{data.gameName}</span>
-            <button onClick={() => update({ gameId: '', gameName: '', gameSlug: '' })} className="text-xs text-[#8a8a94] hover:text-white">
+            <button onClick={() => update({ gameId: '', gameName: '', gameSlug: '' })} className="text-xs text-[#9890a8] hover:text-white">
               Change
             </button>
           </div>
@@ -299,11 +299,11 @@ function Step1({ data, update, devices }: { data: ReportData; update: (p: Partia
               value={query}
               onChange={e => setQuery(e.target.value)}
               placeholder="Search for a game..."
-              className="w-full rounded-lg border border-[#25252e] bg-[#1a1a22] py-2.5 px-4 text-sm text-white placeholder-[#55555e] focus:border-[#7c6cf0] focus:outline-none focus:ring-1 focus:ring-[#7c6cf0]"
+              className="w-full rounded-lg border border-[#1a1828] bg-[#12101a] py-2.5 px-4 text-sm text-white placeholder-[#4a4560] focus:border-[#a78bfa] focus:outline-none focus:ring-1 focus:ring-[#a78bfa]"
               autoFocus
             />
             {results.length > 0 && (
-              <div className="absolute z-10 mt-1 w-full rounded-lg border border-[#25252e] bg-[#0f0f12] shadow-xl overflow-hidden">
+              <div className="absolute z-10 mt-1 w-full rounded-lg border border-[#1a1828] bg-[#0e0c16] shadow-xl overflow-hidden">
                 {results.map(hit => (
                   <button
                     key={hit.id}
@@ -312,14 +312,14 @@ function Step1({ data, update, devices }: { data: ReportData; update: (p: Partia
                       setQuery('');
                       setResults([]);
                     }}
-                    className="flex items-center gap-3 w-full px-3 py-2.5 text-left hover:bg-[#1a1a22] transition-colors"
+                    className="flex items-center gap-3 w-full px-3 py-2.5 text-left hover:bg-[#12101a] transition-colors"
                   >
                     {(hit.capsule_image || hit.header_image) && (
                       <img src={hit.capsule_image || hit.header_image} alt="" className="h-8 w-14 rounded object-cover flex-shrink-0" />
                     )}
                     <div className="min-w-0">
                       <p className="text-sm text-white truncate">{hit.name}</p>
-                      {hit.genres && <p className="text-xs text-[#55555e]">{hit.genres.slice(0, 2).join(', ')}</p>}
+                      {hit.genres && <p className="text-xs text-[#4a4560]">{hit.genres.slice(0, 2).join(', ')}</p>}
                     </div>
                   </button>
                 ))}
@@ -339,12 +339,12 @@ function Step1({ data, update, devices }: { data: ReportData; update: (p: Partia
               onClick={() => update({ deviceId: d.id, deviceName: d.name })}
               className={`rounded-lg border px-3 py-2.5 text-sm text-left transition-colors ${
                 data.deviceId === d.id
-                  ? 'border-[#7c6cf0] bg-[#7c6cf0]/10 text-[#7c6cf0]'
-                  : 'border-[#25252e] bg-[#1a1a22] text-gray-300 hover:border-[#35353e]'
+                  ? 'border-[#a78bfa] bg-[#a78bfa]/10 text-[#a78bfa]'
+                  : 'border-[#1a1828] bg-[#12101a] text-gray-300 hover:border-[#2a2838]'
               }`}
             >
               <span className="font-medium">{d.name}</span>
-              <span className="block text-xs text-[#55555e] mt-0.5">{d.manufacturer}</span>
+              <span className="block text-xs text-[#4a4560] mt-0.5">{d.manufacturer}</span>
             </button>
           ))}
         </div>
@@ -358,7 +358,7 @@ function Step1({ data, update, devices }: { data: ReportData; update: (p: Partia
 function Step2({ data, update }: { data: ReportData; update: (p: Partial<ReportData>) => void }) {
   return (
     <div className="space-y-6">
-      <h3 className="text-sm font-semibold text-[#8a8a94]">Performance</h3>
+      <h3 className="text-sm font-semibold text-[#9890a8]">Performance</h3>
 
       <div className="grid grid-cols-2 gap-4">
         <Field label="Average FPS *" value={data.fpsAvg} onChange={v => update({ fpsAvg: v })} type="number" placeholder="60" />
@@ -372,8 +372,8 @@ function Step2({ data, update }: { data: ReportData; update: (p: Partial<ReportD
           options={[['', 'Select...'], ['stable', 'Stable'], ['mostly_stable', 'Mostly Stable'], ['unstable', 'Unstable']]} />
       </div>
 
-      <hr className="border-[#1a1a22]" />
-      <h3 className="text-sm font-semibold text-[#8a8a94]">Graphics Settings</h3>
+      <hr className="border-[#12101a]" />
+      <h3 className="text-sm font-semibold text-[#9890a8]">Graphics Settings</h3>
 
       <div className="grid grid-cols-2 gap-4">
         <Field label="Resolution" value={data.resolution} onChange={v => update({ resolution: v })} placeholder="1280x800" />
@@ -384,12 +384,12 @@ function Step2({ data, update }: { data: ReportData; update: (p: Partial<ReportD
       <div className="flex items-center gap-3">
         <label className="flex items-center gap-2 cursor-pointer">
           <input type="checkbox" checked={data.fsrEnabled} onChange={e => update({ fsrEnabled: e.target.checked })}
-            className="rounded border-gray-600 bg-[#1a1a22] text-[#7c6cf0] focus:ring-[#7c6cf0] focus:ring-offset-0" />
+            className="rounded border-gray-600 bg-[#12101a] text-[#a78bfa] focus:ring-[#a78bfa] focus:ring-offset-0" />
           <span className="text-sm text-gray-300">FSR/DLSS/XeSS enabled</span>
         </label>
         {data.fsrEnabled && (
           <select value={data.fsrMode} onChange={e => update({ fsrMode: e.target.value })}
-            className="rounded-lg border border-[#25252e] bg-[#1a1a22] px-3 py-1.5 text-sm text-gray-300 focus:border-[#7c6cf0] focus:outline-none">
+            className="rounded-lg border border-[#1a1828] bg-[#12101a] px-3 py-1.5 text-sm text-gray-300 focus:border-[#a78bfa] focus:outline-none">
             <option value="">Mode...</option>
             <option value="quality">Quality</option>
             <option value="balanced">Balanced</option>
@@ -399,8 +399,8 @@ function Step2({ data, update }: { data: ReportData; update: (p: Partial<ReportD
         )}
       </div>
 
-      <hr className="border-[#1a1a22]" />
-      <h3 className="text-sm font-semibold text-[#8a8a94]">Power</h3>
+      <hr className="border-[#12101a]" />
+      <h3 className="text-sm font-semibold text-[#9890a8]">Power</h3>
 
       <div className="grid grid-cols-2 gap-4">
         <Field label="TDP Limit (W)" value={data.tdpLimitWatts} onChange={v => update({ tdpLimitWatts: v })} type="number" placeholder="15" />
@@ -424,7 +424,7 @@ function Step3({ data, update }: { data: ReportData; update: (p: Partial<ReportD
   ];
 
   const ratingColors: Record<string, string> = {
-    copper: 'border-[#7c6cf0] bg-[#7c6cf0]/10 text-[#7c6cf0]',
+    copper: 'border-[#a78bfa] bg-[#a78bfa]/10 text-[#a78bfa]',
     green: 'border-green-500 bg-green-500/10 text-green-400',
     yellow: 'border-yellow-500 bg-yellow-500/10 text-yellow-400',
     orange: 'border-orange-500 bg-orange-500/10 text-orange-400',
@@ -443,11 +443,11 @@ function Step3({ data, update }: { data: ReportData; update: (p: Partial<ReportD
               className={`w-full rounded-lg border px-4 py-3 text-left transition-colors ${
                 data.overallRating === r.value
                   ? ratingColors[r.color]
-                  : 'border-[#25252e] bg-[#1a1a22] hover:border-[#35353e]'
+                  : 'border-[#1a1828] bg-[#12101a] hover:border-[#2a2838]'
               }`}
             >
               <span className={`font-medium ${data.overallRating === r.value ? '' : 'text-gray-300'}`}>{r.label}</span>
-              <span className={`block text-xs mt-0.5 ${data.overallRating === r.value ? 'opacity-80' : 'text-[#55555e]'}`}>{r.desc}</span>
+              <span className={`block text-xs mt-0.5 ${data.overallRating === r.value ? 'opacity-80' : 'text-[#4a4560]'}`}>{r.desc}</span>
             </button>
           ))}
         </div>
@@ -476,63 +476,63 @@ function Step3({ data, update }: { data: ReportData; update: (p: Partial<ReportD
 
 function Step4({ data, update }: { data: ReportData; update: (p: Partial<ReportData>) => void }) {
   const ratingEmoji: Record<string, string> = {
-    excellent: 'text-[#7c6cf0]', good: 'text-green-400', fair: 'text-yellow-400',
+    excellent: 'text-[#a78bfa]', good: 'text-green-400', fair: 'text-yellow-400',
     poor: 'text-orange-400', unplayable: 'text-red-400',
   };
 
   return (
     <div className="space-y-6">
       {/* Summary */}
-      <div className="rounded-lg border border-[#1a1a22] bg-[#1a1a22]/50 p-4 space-y-2">
+      <div className="rounded-lg border border-[#12101a] bg-[#12101a]/50 p-4 space-y-2">
         <div className="flex justify-between text-sm">
-          <span className="text-[#55555e]">Game</span>
+          <span className="text-[#4a4560]">Game</span>
           <span className="text-white font-medium">{data.gameName}</span>
         </div>
         <div className="flex justify-between text-sm">
-          <span className="text-[#55555e]">Device</span>
+          <span className="text-[#4a4560]">Device</span>
           <span className="text-white">{data.deviceName}</span>
         </div>
         <div className="flex justify-between text-sm">
-          <span className="text-[#55555e]">Average FPS</span>
+          <span className="text-[#4a4560]">Average FPS</span>
           <span className="text-white font-medium">{data.fpsAvg}</span>
         </div>
         {data.fpsLow && (
           <div className="flex justify-between text-sm">
-            <span className="text-[#55555e]">1% Low</span>
+            <span className="text-[#4a4560]">1% Low</span>
             <span className="text-gray-300">{data.fpsLow}</span>
           </div>
         )}
         {data.resolution && (
           <div className="flex justify-between text-sm">
-            <span className="text-[#55555e]">Resolution</span>
+            <span className="text-[#4a4560]">Resolution</span>
             <span className="text-gray-300">{data.resolution}</span>
           </div>
         )}
         {data.preset && (
           <div className="flex justify-between text-sm">
-            <span className="text-[#55555e]">Preset</span>
+            <span className="text-[#4a4560]">Preset</span>
             <span className="text-gray-300">{data.preset}</span>
           </div>
         )}
         {data.tdpLimitWatts && (
           <div className="flex justify-between text-sm">
-            <span className="text-[#55555e]">TDP</span>
+            <span className="text-[#4a4560]">TDP</span>
             <span className="text-gray-300">{data.tdpLimitWatts}W</span>
           </div>
         )}
         <div className="flex justify-between text-sm">
-          <span className="text-[#55555e]">Rating</span>
+          <span className="text-[#4a4560]">Rating</span>
           <span className={`font-medium capitalize ${ratingEmoji[data.overallRating] ?? 'text-gray-300'}`}>{data.overallRating}</span>
         </div>
         {data.protonVersion && (
           <div className="flex justify-between text-sm">
-            <span className="text-[#55555e]">Proton</span>
+            <span className="text-[#4a4560]">Proton</span>
             <span className="text-gray-300">{data.protonVersion}</span>
           </div>
         )}
         {data.customSettings.filter(s => s.key.trim() && s.value.trim()).length > 0 && (
           <div className="flex justify-between text-sm">
-            <span className="text-[#55555e]">Custom Settings</span>
+            <span className="text-[#4a4560]">Custom Settings</span>
             <span className="text-gray-300">{data.customSettings.filter(s => s.key.trim() && s.value.trim()).length} settings</span>
           </div>
         )}
@@ -547,7 +547,7 @@ function Step4({ data, update }: { data: ReportData; update: (p: Partial<ReportD
           maxLength={2000}
           rows={4}
           placeholder="Any tips, issues, or observations about playing this game on this device..."
-          className="w-full rounded-lg border border-[#25252e] bg-[#1a1a22] py-2.5 px-4 text-sm text-white placeholder-[#55555e] focus:border-[#7c6cf0] focus:outline-none focus:ring-1 focus:ring-[#7c6cf0] resize-none"
+          className="w-full rounded-lg border border-[#1a1828] bg-[#12101a] py-2.5 px-4 text-sm text-white placeholder-[#4a4560] focus:border-[#a78bfa] focus:outline-none focus:ring-1 focus:ring-[#a78bfa] resize-none"
         />
         <p className="mt-1 text-xs text-gray-600">{data.notes.length}/2000</p>
       </div>
@@ -591,14 +591,14 @@ function CustomSettingsEditor({ settings, onChange }: {
       <button
         type="button"
         onClick={() => setOpen(!open)}
-        className="flex items-center gap-2 text-sm text-[#8a8a94] hover:text-white transition-colors"
+        className="flex items-center gap-2 text-sm text-[#9890a8] hover:text-white transition-colors"
       >
         <svg className={`h-4 w-4 transition-transform ${open ? 'rotate-90' : ''}`} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
         </svg>
         Advanced: Custom Game Settings
         {count > 0 && (
-          <span className="rounded-full bg-[#7c6cf0]/20 px-2 py-0.5 text-xs text-[#7c6cf0]">{count}</span>
+          <span className="rounded-full bg-[#a78bfa]/20 px-2 py-0.5 text-xs text-[#a78bfa]">{count}</span>
         )}
       </button>
 
@@ -612,7 +612,7 @@ function CustomSettingsEditor({ settings, onChange }: {
                 onChange={e => updateRow(i, 'key', e.target.value)}
                 placeholder="Setting name"
                 maxLength={50}
-                className="flex-1 rounded-lg border border-[#25252e] bg-[#1a1a22] py-2 px-3 text-sm text-white placeholder-[#55555e] focus:border-[#7c6cf0] focus:outline-none"
+                className="flex-1 rounded-lg border border-[#1a1828] bg-[#12101a] py-2 px-3 text-sm text-white placeholder-[#4a4560] focus:border-[#a78bfa] focus:outline-none"
               />
               <input
                 type="text"
@@ -620,9 +620,9 @@ function CustomSettingsEditor({ settings, onChange }: {
                 onChange={e => updateRow(i, 'value', e.target.value)}
                 placeholder="Value"
                 maxLength={50}
-                className="flex-1 rounded-lg border border-[#25252e] bg-[#1a1a22] py-2 px-3 text-sm text-white placeholder-[#55555e] focus:border-[#7c6cf0] focus:outline-none"
+                className="flex-1 rounded-lg border border-[#1a1828] bg-[#12101a] py-2 px-3 text-sm text-white placeholder-[#4a4560] focus:border-[#a78bfa] focus:outline-none"
               />
-              <button type="button" onClick={() => removeRow(i)} className="text-[#55555e] hover:text-red-400 transition-colors p-1">
+              <button type="button" onClick={() => removeRow(i)} className="text-[#4a4560] hover:text-red-400 transition-colors p-1">
                 <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                 </svg>
@@ -633,7 +633,7 @@ function CustomSettingsEditor({ settings, onChange }: {
             <button
               type="button"
               onClick={addRow}
-              className="flex items-center gap-1 rounded-lg border border-dashed border-[#25252e] px-3 py-2 text-xs text-[#55555e] hover:border-[#7c6cf0] hover:text-[#7c6cf0] transition-colors w-full justify-center"
+              className="flex items-center gap-1 rounded-lg border border-dashed border-[#1a1828] px-3 py-2 text-xs text-[#4a4560] hover:border-[#a78bfa] hover:text-[#a78bfa] transition-colors w-full justify-center"
             >
               <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
@@ -654,14 +654,14 @@ function Field({ label, value, onChange, type = 'text', placeholder }: {
 }) {
   return (
     <div>
-      <label className="block text-xs font-medium text-[#8a8a94] mb-1.5">{label}</label>
+      <label className="block text-xs font-medium text-[#9890a8] mb-1.5">{label}</label>
       <input
         type={type}
         value={value}
         onChange={e => onChange(e.target.value)}
         placeholder={placeholder}
         step={type === 'number' ? 'any' : undefined}
-        className="w-full rounded-lg border border-[#25252e] bg-[#1a1a22] py-2 px-3 text-sm text-white placeholder-[#55555e] focus:border-[#7c6cf0] focus:outline-none focus:ring-1 focus:ring-[#7c6cf0]"
+        className="w-full rounded-lg border border-[#1a1828] bg-[#12101a] py-2 px-3 text-sm text-white placeholder-[#4a4560] focus:border-[#a78bfa] focus:outline-none focus:ring-1 focus:ring-[#a78bfa]"
       />
     </div>
   );
@@ -672,11 +672,11 @@ function Select({ label, value, onChange, options }: {
 }) {
   return (
     <div>
-      <label className="block text-xs font-medium text-[#8a8a94] mb-1.5">{label}</label>
+      <label className="block text-xs font-medium text-[#9890a8] mb-1.5">{label}</label>
       <select
         value={value}
         onChange={e => onChange(e.target.value)}
-        className="w-full rounded-lg border border-[#25252e] bg-[#1a1a22] py-2 px-3 text-sm text-gray-300 focus:border-[#7c6cf0] focus:outline-none"
+        className="w-full rounded-lg border border-[#1a1828] bg-[#12101a] py-2 px-3 text-sm text-gray-300 focus:border-[#a78bfa] focus:outline-none"
       >
         {options.map(([val, lbl]) => (
           <option key={val} value={val}>{lbl}</option>

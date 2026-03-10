@@ -46,7 +46,7 @@ const categoryColors: Record<string, string> = {
   game_launch: 'bg-green-500/20 text-green-400',
   sale_event: 'bg-yellow-500/20 text-yellow-400',
   performance_analysis: 'bg-[#7c6cf0]/20 text-[#7c6cf0]',
-  industry: 'bg-[#55555e]/20 text-[#8a8a94]',
+  industry: 'bg-[#55555e]/20 text-[#9890a8]',
   editorial: 'bg-pink-500/20 text-pink-400',
 };
 
@@ -74,13 +74,12 @@ const remaining = articles.slice(5);     // Articles 6+
 ---
 
 <BaseLayout title="News" description="Handheld gaming news, device launches, firmware updates, and performance analyses.">
-  <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
+  <div style="max-width:1080px;margin:0 auto;padding:40px 24px;">
 
     <!-- Page Heading -->
-    <div class="mb-10">
-      <h1 class="text-4xl font-bold text-white">News</h1>
-      <div class="mt-3 h-0.5 w-24 bg-gradient-to-r from-[#7c6cf0] to-[#7c6cf0]"></div>
-      <p class="mt-3 text-[#8a8a94] text-lg">Handheld gaming news, firmware updates, and performance analyses</p>
+    <div style="margin-bottom:32px;">
+      <h1 style="font-family:var(--font-display);font-size:clamp(28px,5vw,40px);font-weight:900;color:#eae6f4;letter-spacing:-0.03em;">News</h1>
+      <p style="margin-top:8px;font-size:15px;color:#6d6882;">Handheld gaming news, firmware updates, and performance analyses</p>
     </div>
 
     {(articles && articles.length > 0) ? (
@@ -98,8 +97,8 @@ const remaining = articles.slice(5);     // Articles 6+
                 />
               </div>
             ) : (
-              <div class="aspect-[2.5/1] bg-gradient-to-br from-[#1a1a22] to-[#0f0f12] flex items-center justify-center">
-                <span class="text-3xl font-bold text-[#25252e]/30 text-center px-12">{featured.title}</span>
+              <div class="aspect-[2.5/1] bg-gradient-to-br from-[#12101a] to-[#0e0c16] flex items-center justify-center">
+                <span class="text-3xl font-bold text-[#2a2838]/30 text-center px-12">{featured.title}</span>
               </div>
             )}
             <!-- Gradient Overlay -->
@@ -107,16 +106,16 @@ const remaining = articles.slice(5);     // Articles 6+
             <!-- Overlaid Content -->
             <div class="absolute bottom-0 left-0 right-0 p-6 sm:p-10">
               <div class="flex items-center gap-3 mb-3">
-                <span class={`rounded-full px-2.5 py-0.5 text-xs font-medium ${categoryColors[featured.category] ?? 'bg-[#55555e]/20 text-[#8a8a94]'}`}>
+                <span class={`rounded-full px-2.5 py-0.5 text-xs font-medium ${categoryColors[featured.category] ?? 'bg-[#55555e]/20 text-[#9890a8]'}`}>
                   {categoryLabels[featured.category] ?? featured.category}
                 </span>
-                <span class="text-xs text-[#8a8a94]">{formatDate(featured.published_at!)}</span>
+                <span class="text-xs text-[#9890a8]">{formatDate(featured.published_at!)}</span>
               </div>
-              <h2 class="text-2xl sm:text-3xl lg:text-4xl font-bold text-white group-hover:text-[#7c6cf0] transition-colors leading-tight max-w-3xl">
+              <h2 class="text-2xl sm:text-3xl lg:text-4xl font-bold text-white group-hover:text-[#a78bfa] transition-colors leading-tight max-w-3xl">
                 {featured.title}
               </h2>
               {featured.lead && (
-                <p class="mt-3 text-[#8a8a94] text-sm sm:text-base max-w-2xl line-clamp-2">{featured.lead}</p>
+                <p class="mt-3 text-[#9890a8] text-sm sm:text-base max-w-2xl line-clamp-2">{featured.lead}</p>
               )}
             </div>
           </a>
@@ -129,7 +128,7 @@ const remaining = articles.slice(5);     // Articles 6+
             {secondary[0] && (
               <a
                 href={`/news/${secondary[0].slug}`}
-                class="group md:col-span-3 rounded-xl border border-[#1a1a22] bg-[#0f0f12] overflow-hidden hover:border-[#25252e] transition-colors flex flex-col sm:flex-row"
+                class="group md:col-span-3 rounded-xl border border-white/6 bg-[#0e0c16] overflow-hidden hover:border-white/10 transition-colors flex flex-col sm:flex-row"
               >
                 {secondary[0].cover_image ? (
                   <div class="sm:w-2/5 flex-shrink-0 overflow-hidden">
@@ -141,21 +140,21 @@ const remaining = articles.slice(5);     // Articles 6+
                     />
                   </div>
                 ) : (
-                  <div class="sm:w-2/5 flex-shrink-0 bg-gradient-to-br from-[#1a1a22] to-[#0f0f12] flex items-center justify-center aspect-[16/9] sm:aspect-auto">
-                    <span class="text-lg font-bold text-[#25252e]/30 text-center px-4">{secondary[0].title}</span>
+                  <div class="sm:w-2/5 flex-shrink-0 bg-gradient-to-br from-[#12101a] to-[#0e0c16] flex items-center justify-center aspect-[16/9] sm:aspect-auto">
+                    <span class="text-lg font-bold text-[#2a2838]/30 text-center px-4">{secondary[0].title}</span>
                   </div>
                 )}
                 <div class="p-5 flex flex-col justify-center">
                   <div class="flex items-center gap-2 mb-2">
-                    <span class={`rounded-full px-2 py-0.5 text-[10px] font-medium ${categoryColors[secondary[0].category] ?? 'bg-[#55555e]/20 text-[#8a8a94]'}`}>
+                    <span class={`rounded-full px-2 py-0.5 text-[10px] font-medium ${categoryColors[secondary[0].category] ?? 'bg-[#55555e]/20 text-[#9890a8]'}`}>
                       {categoryLabels[secondary[0].category] ?? secondary[0].category}
                     </span>
-                    <span class="text-xs text-[#55555e]">{formatDate(secondary[0].published_at!)}</span>
+                    <span class="text-xs text-[#4a4560]">{formatDate(secondary[0].published_at!)}</span>
                   </div>
-                  <h2 class="text-lg font-bold text-white group-hover:text-[#7c6cf0] transition-colors line-clamp-2">
+                  <h2 class="text-lg font-bold text-white group-hover:text-[#a78bfa] transition-colors line-clamp-2">
                     {secondary[0].title}
                   </h2>
-                  <p class="mt-2 text-sm text-[#8a8a94] line-clamp-2">{secondary[0].lead}</p>
+                  <p class="mt-2 text-sm text-[#9890a8] line-clamp-2">{secondary[0].lead}</p>
                 </div>
               </a>
             )}
@@ -166,7 +165,7 @@ const remaining = articles.slice(5);     // Articles 6+
                 {secondary.slice(1).map((article, i) => (
                   <a
                     href={`/news/${article.slug}`}
-                    class="group flex-1 rounded-xl border border-[#1a1a22] bg-[#0f0f12] overflow-hidden hover:border-[#25252e] transition-colors"
+                    class="group flex-1 rounded-xl border border-white/6 bg-[#0e0c16] overflow-hidden hover:border-white/10 transition-colors"
                   >
                     {article.cover_image ? (
                       <div class="aspect-[16/9] overflow-hidden">
@@ -178,18 +177,18 @@ const remaining = articles.slice(5);     // Articles 6+
                         />
                       </div>
                     ) : (
-                      <div class="aspect-[16/9] bg-gradient-to-br from-[#1a1a22] to-[#0f0f12] flex items-center justify-center">
-                        <span class="text-sm font-bold text-[#25252e]/30 text-center px-4">{article.title}</span>
+                      <div class="aspect-[16/9] bg-gradient-to-br from-[#12101a] to-[#0e0c16] flex items-center justify-center">
+                        <span class="text-sm font-bold text-[#2a2838]/30 text-center px-4">{article.title}</span>
                       </div>
                     )}
                     <div class="p-4">
                       <div class="flex items-center gap-2 mb-1.5">
-                        <span class={`rounded-full px-2 py-0.5 text-[10px] font-medium ${categoryColors[article.category] ?? 'bg-[#55555e]/20 text-[#8a8a94]'}`}>
+                        <span class={`rounded-full px-2 py-0.5 text-[10px] font-medium ${categoryColors[article.category] ?? 'bg-[#55555e]/20 text-[#9890a8]'}`}>
                           {categoryLabels[article.category] ?? article.category}
                         </span>
-                        <span class="text-xs text-[#55555e]">{formatDate(article.published_at!)}</span>
+                        <span class="text-xs text-[#4a4560]">{formatDate(article.published_at!)}</span>
                       </div>
-                      <h2 class="text-sm font-bold text-white group-hover:text-[#7c6cf0] transition-colors line-clamp-2">
+                      <h2 class="text-sm font-bold text-white group-hover:text-[#a78bfa] transition-colors line-clamp-2">
                         {article.title}
                       </h2>
                     </div>
@@ -213,7 +212,7 @@ const remaining = articles.slice(5);     // Articles 6+
               {remaining.map((article) => (
                 <a
                   href={`/news/${article.slug}`}
-                  class="group rounded-xl border border-[#1a1a22] bg-[#0f0f12] overflow-hidden hover:border-[#25252e] transition-colors"
+                  class="group rounded-xl border border-white/6 bg-[#0e0c16] overflow-hidden hover:border-white/10 transition-colors"
                 >
                   {article.cover_image ? (
                     <div class="aspect-[16/9] overflow-hidden">
@@ -225,22 +224,22 @@ const remaining = articles.slice(5);     // Articles 6+
                       />
                     </div>
                   ) : (
-                    <div class="aspect-[16/9] bg-gradient-to-br from-[#1a1a22] to-[#0f0f12] flex items-center justify-center">
-                      <span class="text-sm font-bold text-[#25252e]/30 text-center px-4">{article.title}</span>
+                    <div class="aspect-[16/9] bg-gradient-to-br from-[#12101a] to-[#0e0c16] flex items-center justify-center">
+                      <span class="text-sm font-bold text-[#2a2838]/30 text-center px-4">{article.title}</span>
                     </div>
                   )}
                   <div class="p-4">
                     <div class="flex items-center gap-2 mb-1.5">
-                      <span class={`rounded-full px-2 py-0.5 text-[10px] font-medium ${categoryColors[article.category] ?? 'bg-[#55555e]/20 text-[#8a8a94]'}`}>
+                      <span class={`rounded-full px-2 py-0.5 text-[10px] font-medium ${categoryColors[article.category] ?? 'bg-[#55555e]/20 text-[#9890a8]'}`}>
                         {categoryLabels[article.category] ?? article.category}
                       </span>
-                      <span class="text-xs text-[#55555e]">{formatDate(article.published_at!)}</span>
+                      <span class="text-xs text-[#4a4560]">{formatDate(article.published_at!)}</span>
                     </div>
-                    <h2 class="text-sm font-bold text-white group-hover:text-[#7c6cf0] transition-colors line-clamp-2">
+                    <h2 class="text-sm font-bold text-white group-hover:text-[#a78bfa] transition-colors line-clamp-2">
                       {article.title}
                     </h2>
                     {article.lead && (
-                      <p class="mt-1.5 text-xs text-[#8a8a94] line-clamp-2">{article.lead}</p>
+                      <p class="mt-1.5 text-xs text-[#9890a8] line-clamp-2">{article.lead}</p>
                     )}
                   </div>
                 </a>
@@ -250,14 +249,14 @@ const remaining = articles.slice(5);     // Articles 6+
         )}
       </div>
     ) : (
-      <div class="section-atmospheric rounded-2xl border border-[#1a1a22] p-14 text-center">
-        <div class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-[#1a1a22]">
-          <svg class="h-8 w-8 text-[#35353e]" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+      <div class="section-atmospheric rounded-2xl border border-white/6 p-14 text-center">
+        <div class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-[#12101a]">
+          <svg class="h-8 w-8 text-[#2a2838]" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" d="M12 7.5h1.5m-1.5 3h1.5m-7.5 3h7.5m-7.5 3h7.5m3-9h3.375c.621 0 1.125.504 1.125 1.125V18a2.25 2.25 0 01-2.25 2.25M16.5 7.5V18a2.25 2.25 0 002.25 2.25M16.5 7.5V4.875c0-.621-.504-1.125-1.125-1.125H4.125C3.504 3.75 3 4.254 3 4.875V18a2.25 2.25 0 002.25 2.25h13.5M6 7.5h3v3H6v-3z" />
           </svg>
         </div>
         <h3 class="text-xl font-semibold text-white mb-2">Coming soon</h3>
-        <p class="text-[#8a8a94]">We're working on our first articles. Check back soon!</p>
+        <p class="text-[#9890a8]">We're working on our first articles. Check back soon!</p>
       </div>
     )}
 
@@ -267,18 +266,18 @@ const remaining = articles.slice(5);     // Articles 6+
         {page > 1 && (
           <a
             href={`/news?page=${page - 1}`}
-            class="rounded-full border border-[#25252e] bg-[#0f0f12] px-5 py-2.5 text-sm text-[#8a8a94] hover:border-[#7c6cf0]/50 hover:text-white transition-colors"
+            class="rounded-full border border-white/6 bg-[#0e0c16] px-5 py-2.5 text-sm text-[#9890a8] hover:border-[#a78bfa]/40 hover:text-white transition-colors"
           >
             &larr; Previous
           </a>
         )}
-        <span class="text-sm text-[#55555e] font-mono">
+        <span class="text-sm text-[#4a4560] font-mono">
           {page} / {totalPages}
         </span>
         {page < totalPages && (
           <a
             href={`/news?page=${page + 1}`}
-            class="rounded-full border border-[#25252e] bg-[#0f0f12] px-5 py-2.5 text-sm text-[#8a8a94] hover:border-[#7c6cf0]/50 hover:text-white transition-colors"
+            class="rounded-full border border-white/6 bg-[#0e0c16] px-5 py-2.5 text-sm text-[#9890a8] hover:border-[#a78bfa]/40 hover:text-white transition-colors"
           >
             Next &rarr;
           </a>

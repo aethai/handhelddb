@@ -105,10 +105,10 @@ export default function SteamImport({ currentUserId: _userId }: Props) {
   const hasMore = (result?.games.length ?? 0) > PREVIEW_COUNT;
 
   return (
-    <div className="rounded-xl border border-[#25252e]/50 bg-[#0f0f12]/60 backdrop-blur-sm">
+    <div className="rounded-xl border border-[#1a1828]/50 bg-[#0e0c16]/60 backdrop-blur-sm">
       {/* Header */}
-      <div className="flex items-center gap-3 border-b border-[#1a1a22] px-5 py-4">
-        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#1a1a22]">
+      <div className="flex items-center gap-3 border-b border-[#12101a] px-5 py-4">
+        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#12101a]">
           {/* Steam icon */}
           <svg className="h-5 w-5 text-gray-300" viewBox="0 0 24 24" fill="currentColor">
             <path d="M11.979 0C5.678 0 .511 4.86.022 10.895l6.432 2.658a3.387 3.387 0 0 1 1.912-.593c.064 0 .127.003.19.008l2.862-4.142v-.058c0-2.495 2.03-4.524 4.524-4.524 2.494 0 4.524 2.031 4.524 4.527s-2.03 4.525-4.524 4.525h-.105l-4.076 2.91c0 .052.004.105.004.159 0 1.875-1.515 3.396-3.39 3.396-1.635 0-3.016-1.173-3.331-2.727L.436 15.27C1.862 20.307 6.486 24 11.979 24c6.627 0 12-5.373 12-12S18.606 0 11.979 0zM7.54 18.21l-1.473-.61c.262.543.714.999 1.314 1.25a2.544 2.544 0 0 0 3.32-1.381 2.53 2.53 0 0 0-.005-1.949 2.527 2.527 0 0 0-1.371-1.37 2.524 2.524 0 0 0-1.872-.044l1.523.63a1.868 1.868 0 0 1-1.436 3.474zm9.405-8.972a3.016 3.016 0 0 0-3.015-3.015 3.016 3.016 0 1 0 3.015 3.015zm-5.276.003a2.264 2.264 0 1 1 4.527 0 2.264 2.264 0 0 1-4.527 0z" />
@@ -116,7 +116,7 @@ export default function SteamImport({ currentUserId: _userId }: Props) {
         </div>
         <div>
           <h3 className="text-sm font-semibold text-white">Import Steam Library</h3>
-          <p className="text-xs text-[#55555e]">
+          <p className="text-xs text-[#4a4560]">
             Sync your Steam games to track compatibility across devices
           </p>
         </div>
@@ -128,7 +128,7 @@ export default function SteamImport({ currentUserId: _userId }: Props) {
         {phase !== 'success' && (
           <div className="space-y-3">
             <div>
-              <label htmlFor="steam-id-input" className="mb-1.5 block text-xs font-medium text-[#8a8a94]">
+              <label htmlFor="steam-id-input" className="mb-1.5 block text-xs font-medium text-[#9890a8]">
                 Steam Profile URL or ID
               </label>
               <div className="flex gap-2">
@@ -140,12 +140,12 @@ export default function SteamImport({ currentUserId: _userId }: Props) {
                   onKeyDown={handleKeyDown}
                   disabled={phase === 'loading'}
                   placeholder="steamcommunity.com/id/yourname or 76561198..."
-                  className="flex-1 rounded-lg border border-[#25252e] bg-[#1a1a22]/80 px-3 py-2 text-sm text-white placeholder-gray-600 focus:border-[#7c6cf0] focus:outline-none focus:ring-1 focus:ring-[#7c6cf0] transition-colors disabled:opacity-50"
+                  className="flex-1 rounded-lg border border-[#1a1828] bg-[#12101a]/80 px-3 py-2 text-sm text-white placeholder-gray-600 focus:border-[#a78bfa] focus:outline-none focus:ring-1 focus:ring-[#a78bfa] transition-colors disabled:opacity-50"
                 />
                 <button
                   onClick={handleImport}
                   disabled={phase === 'loading' || !input.trim()}
-                  className="inline-flex items-center gap-2 rounded-lg bg-[#7c6cf0] px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-[#7c6cf0] focus:outline-none focus:ring-2 focus:ring-[#7c6cf0] focus:ring-offset-2 focus:ring-offset-[#0f0f12] disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="inline-flex items-center gap-2 rounded-lg bg-[#a78bfa] px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-[#a78bfa] focus:outline-none focus:ring-2 focus:ring-[#a78bfa] focus:ring-offset-2 focus:ring-offset-[#0e0c16] disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {phase === 'loading' ? (
                     <>
@@ -179,9 +179,9 @@ export default function SteamImport({ currentUserId: _userId }: Props) {
 
             {/* Loading progress message */}
             {phase === 'loading' && (
-              <div className="flex items-center gap-2 rounded-lg border border-[#25252e]/50 bg-[#1a1a22]/40 px-3 py-2.5">
-                <div className="h-2 w-2 animate-pulse rounded-full bg-[#7c6cf0]" />
-                <span className="text-xs text-[#8a8a94]">
+              <div className="flex items-center gap-2 rounded-lg border border-[#1a1828]/50 bg-[#12101a]/40 px-3 py-2.5">
+                <div className="h-2 w-2 animate-pulse rounded-full bg-[#a78bfa]" />
+                <span className="text-xs text-[#9890a8]">
                   Fetching your Steam library and matching against our database...
                 </span>
               </div>
@@ -216,7 +216,7 @@ export default function SteamImport({ currentUserId: _userId }: Props) {
                 href="https://help.steampowered.com/en/faqs/view/588C-C67D-0251-C276"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-[#7c6cf0]/70 hover:text-[#7c6cf0] transition-colors"
+                className="text-[#a78bfa]/70 hover:text-[#a78bfa] transition-colors"
               >
                 How to change privacy settings
               </a>
@@ -231,7 +231,7 @@ export default function SteamImport({ currentUserId: _userId }: Props) {
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-2">
                 <svg
-                  className="h-5 w-5 text-[#7c6cf0]"
+                  className="h-5 w-5 text-[#a78bfa]"
                   fill="none"
                   stroke="currentColor"
                   strokeWidth="2"
@@ -248,32 +248,32 @@ export default function SteamImport({ currentUserId: _userId }: Props) {
             </div>
 
             <div className="grid grid-cols-3 gap-3">
-              <div className="rounded-lg bg-[#1a1a22]/60 p-3 text-center">
+              <div className="rounded-lg bg-[#12101a]/60 p-3 text-center">
                 <p className="text-lg font-bold text-white">{result.totalOwned}</p>
-                <p className="text-[11px] text-[#55555e]">Games Owned</p>
+                <p className="text-[11px] text-[#4a4560]">Games Owned</p>
               </div>
-              <div className="rounded-lg bg-[#1a1a22]/60 p-3 text-center">
-                <p className="text-lg font-bold text-[#7c6cf0]">{result.matched}</p>
-                <p className="text-[11px] text-[#55555e]">Matched</p>
+              <div className="rounded-lg bg-[#12101a]/60 p-3 text-center">
+                <p className="text-lg font-bold text-[#a78bfa]">{result.matched}</p>
+                <p className="text-[11px] text-[#4a4560]">Matched</p>
               </div>
-              <div className="rounded-lg bg-[#1a1a22]/60 p-3 text-center">
-                <p className="text-lg font-bold text-[#8a8a94]">{result.totalOwned - result.matched}</p>
-                <p className="text-[11px] text-[#55555e]">Not in DB</p>
+              <div className="rounded-lg bg-[#12101a]/60 p-3 text-center">
+                <p className="text-lg font-bold text-[#9890a8]">{result.totalOwned - result.matched}</p>
+                <p className="text-[11px] text-[#4a4560]">Not in DB</p>
               </div>
             </div>
 
             {/* Matched games list */}
             {result.games.length > 0 && (
               <div>
-                <h4 className="mb-2 text-xs font-medium text-[#8a8a94]">
+                <h4 className="mb-2 text-xs font-medium text-[#9890a8]">
                   Matched Games ({result.matched})
                 </h4>
-                <div className="max-h-80 overflow-y-auto rounded-lg border border-[#1a1a22] divide-y divide-[#1a1a22]/80">
+                <div className="max-h-80 overflow-y-auto rounded-lg border border-[#12101a] divide-y divide-[#12101a]/80">
                   {gamesToShow.map((game) => (
                     <a
                       key={game.id}
                       href={`/games/${game.slug}`}
-                      className="flex items-center gap-3 px-3 py-2 hover:bg-[#1a1a22]/60 transition-colors"
+                      className="flex items-center gap-3 px-3 py-2 hover:bg-[#12101a]/60 transition-colors"
                     >
                       {game.headerImage ? (
                         <img
@@ -283,7 +283,7 @@ export default function SteamImport({ currentUserId: _userId }: Props) {
                           loading="lazy"
                         />
                       ) : (
-                        <div className="flex h-8 w-14 flex-shrink-0 items-center justify-center rounded bg-[#1a1a22]">
+                        <div className="flex h-8 w-14 flex-shrink-0 items-center justify-center rounded bg-[#12101a]">
                           <svg
                             className="h-4 w-4 text-gray-600"
                             fill="none"
@@ -303,7 +303,7 @@ export default function SteamImport({ currentUserId: _userId }: Props) {
                         <p className="truncate text-sm text-white">{game.name}</p>
                       </div>
                       {game.playtimeMinutes > 0 && (
-                        <span className="flex-shrink-0 text-xs text-[#55555e]">
+                        <span className="flex-shrink-0 text-xs text-[#4a4560]">
                           {formatPlaytime(game.playtimeMinutes)}
                         </span>
                       )}
@@ -315,7 +315,7 @@ export default function SteamImport({ currentUserId: _userId }: Props) {
                 {hasMore && (
                   <button
                     onClick={() => setShowAllGames((v) => !v)}
-                    className="mt-2 w-full rounded-lg border border-[#1a1a22] py-1.5 text-xs text-[#8a8a94] hover:border-[#25252e] hover:text-gray-300 transition-colors"
+                    className="mt-2 w-full rounded-lg border border-[#12101a] py-1.5 text-xs text-[#9890a8] hover:border-[#1a1828] hover:text-gray-300 transition-colors"
                   >
                     {showAllGames
                       ? 'Show less'
@@ -326,8 +326,8 @@ export default function SteamImport({ currentUserId: _userId }: Props) {
             )}
 
             {result.matched === 0 && (
-              <div className="rounded-lg border border-[#25252e]/50 bg-[#1a1a22]/40 px-3 py-3 text-center">
-                <p className="text-sm text-[#8a8a94]">
+              <div className="rounded-lg border border-[#1a1828]/50 bg-[#12101a]/40 px-3 py-3 text-center">
+                <p className="text-sm text-[#9890a8]">
                   None of your {result.totalOwned} Steam games are in our database yet.
                 </p>
                 <p className="mt-1 text-xs text-gray-600">
@@ -339,7 +339,7 @@ export default function SteamImport({ currentUserId: _userId }: Props) {
             {/* Import again button */}
             <button
               onClick={handleReset}
-              className="w-full rounded-lg border border-[#25252e] py-2 text-xs font-medium text-[#8a8a94] hover:border-[#35353e] hover:text-gray-300 transition-colors"
+              className="w-full rounded-lg border border-[#1a1828] py-2 text-xs font-medium text-[#9890a8] hover:border-[#2a2838] hover:text-gray-300 transition-colors"
             >
               Import from a different account
             </button>

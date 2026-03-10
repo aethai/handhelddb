@@ -10,53 +10,133 @@ interface Props {
 const { slug, name, headerImage, genres = [], deckCompatibility } = Astro.props;
 
 const deckBadge: Record<string, { label: string; class: string }> = {
-  verified: { label: 'Verified', class: 'bg-[#4ADE80]/15 text-[#4ADE80] border-[#4ADE80]/25' },
-  playable: { label: 'Playable', class: 'bg-[#FBBF24]/15 text-[#FBBF24] border-[#FBBF24]/25' },
-  unsupported: { label: 'Unsupported', class: 'bg-[#F87171]/15 text-[#F87171] border-[#F87171]/25' },
+  verified: { label: 'Verified', class: 'hdb-badge-verified' },
+  playable: { label: 'Playable', class: 'hdb-badge-playable' },
+  unsupported: { label: 'Unsupported', class: 'hdb-badge-unsupported' },
 };
 const deck = deckBadge[deckCompatibility ?? ''];
 ---
 
-<a
-  href={`/games/${slug}`}
-  class="group relative block overflow-hidden rounded-lg border border-[#1a1a22] bg-[#0f0f12] h-full min-h-[280px] hover:border-[#25252e] transition-all"
->
+<a href={`/games/${slug}`} class="hdb-featured-card group">
   {headerImage ? (
     <img
       src={headerImage}
       alt={name}
-      class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+      class="hdb-featured-img"
       loading="lazy"
     />
   ) : (
-    <div class="absolute inset-0 bg-gradient-to-br from-[#141418] via-[#0f0f12] to-[#08080a]"></div>
+    <div class="hdb-featured-placeholder"></div>
   )}
 
-  <!-- Gradient overlay -->
   <div class="game-card-overlay"></div>
 
-  <!-- Deck badge top-left -->
   {deck && (
-    <div class="absolute top-3 left-3 z-10">
-      <span class={`rounded border px-2 py-0.5 text-xs font-medium ${deck.class}`}>
-        {deck.label}
-      </span>
+    <div class="hdb-featured-badge">
+      <span class={`hdb-badge ${deck.class}`}>{deck.label}</span>
     </div>
   )}
 
-  <!-- Content at bottom -->
-  <div class="absolute bottom-0 left-0 right-0 p-4 sm:p-5 z-10">
-    <h3 class="text-xl sm:text-2xl font-semibold text-white leading-tight group-hover:text-[#9b8fff] transition-colors">
-      {name}
-    </h3>
+  <div class="hdb-featured-content">
+    <h3 class="hdb-featured-title">{name}</h3>
     {genres.length > 0 && (
-      <div class="mt-2 flex items-center gap-2 flex-wrap">
+      <div class="hdb-featured-genres">
         {genres.slice(0, 3).map((genre) => (
-          <span class="rounded bg-white/10 px-2 py-0.5 text-xs text-[#8a8a94] backdrop-blur-sm">
-            {genre}
-          </span>
+          <span class="hdb-featured-genre">{genre}</span>
         ))}
       </div>
     )}
   </div>
 </a>
+
+<style>
+  .hdb-featured-card {
+    position: relative;
+    display: block;
+    overflow: hidden;
+    border-radius: 14px;
+    border: 1px solid rgba(255,255,255,0.06);
+    background: var(--color-raised, #0e0c16);
+    height: 100%;
+    min-height: 280px;
+    text-decoration: none;
+    transition: all 0.2s ease;
+  }
+  .hdb-featured-card:hover {
+    border-color: rgba(255,255,255,0.12);
+    box-shadow: 0 4px 24px rgba(0,0,0,0.3), 0 0 20px rgba(167,139,250,0.06);
+    transform: translateY(-2px);
+  }
+
+  .hdb-featured-img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s ease;
+  }
+  .hdb-featured-card:hover .hdb-featured-img {
+    transform: scale(1.05);
+  }
+
+  .hdb-featured-placeholder {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, #12101a, #0e0c16, #08070c);
+  }
+
+  .hdb-featured-badge {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    z-index: 10;
+  }
+  .hdb-badge {
+    display: inline-block;
+    border-radius: 6px;
+    border: 1px solid;
+    padding: 2px 8px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .hdb-badge-verified { background: rgba(74,222,128,0.15); color: #4ade80; border-color: rgba(74,222,128,0.25); }
+  .hdb-badge-playable { background: rgba(251,191,36,0.15); color: #fbbf24; border-color: rgba(251,191,36,0.25); }
+  .hdb-badge-unsupported { background: rgba(248,113,113,0.15); color: #f87171; border-color: rgba(248,113,113,0.25); }
+
+  .hdb-featured-content {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 16px 18px;
+    z-index: 10;
+  }
+  .hdb-featured-title {
+    font-family: var(--font-display);
+    font-size: clamp(18px, 2.5vw, 24px);
+    font-weight: 700;
+    color: white;
+    line-height: 1.2;
+    transition: color 0.2s;
+  }
+  .hdb-featured-card:hover .hdb-featured-title {
+    color: #c4b5fd;
+  }
+
+  .hdb-featured-genres {
+    margin-top: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .hdb-featured-genre {
+    border-radius: 4px;
+    background: rgba(255,255,255,0.1);
+    backdrop-filter: blur(8px);
+    padding: 2px 8px;
+    font-size: 11px;
+    color: #9890a8;
+  }
+</style>

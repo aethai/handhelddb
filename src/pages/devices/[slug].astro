@@ -143,23 +143,25 @@ if (device.chipset_generation) specs.push({ label: 'Generation', value: device.c
       { "@type": "ListItem", "position": 3, "name": device.name, "item": `https://handhelddb.com/devices/${device.slug}` },
     ],
   })} />
-  <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
+  <div style="max-width:1080px;margin:0 auto;padding:24px 24px 40px;">
 
     <!-- Breadcrumb -->
-    <nav class="mb-6 text-sm text-[#55555e]">
-      <a href="/" class="hover:text-white transition-colors">Home</a>
-      <span class="mx-2">/</span>
-      <a href="/devices" class="hover:text-white transition-colors">Devices</a>
-      <span class="mx-2">/</span>
-      <span class="text-[#8a8a94]">{device.name}</span>
+    <nav aria-label="Breadcrumb" style="margin-bottom:16px;">
+      <ol class="hdb-breadcrumb">
+        <li><a href="/">Home</a></li>
+        <li class="hdb-breadcrumb-sep" aria-hidden="true">›</li>
+        <li><a href="/devices">Devices</a></li>
+        <li class="hdb-breadcrumb-sep" aria-hidden="true">›</li>
+        <li class="hdb-breadcrumb-current" aria-current="page">{device.name}</li>
+      </ol>
     </nav>
 
     <!-- Full-width Device Hero -->
-    <section class="rounded-2xl border border-[#1a1a22] bg-[#0f0f12] p-6 sm:p-10 mb-8">
+    <section style="border-radius:16px;border:1px solid rgba(255,255,255,0.06);background:#0e0c16;padding:24px;margin-bottom:28px;" class="sm:!p-10">
       <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
 
         <!-- Left: Device Image -->
-        <div class="flex items-center justify-center h-64 md:h-80 bg-gradient-to-br from-[#1a1a22]/50 to-transparent rounded-2xl p-8">
+        <div class="flex items-center justify-center h-64 md:h-80 bg-gradient-to-br from-[#12101a]/50 to-transparent rounded-2xl p-8">
           {device.image ? (
             <img
               src={device.image}
@@ -168,7 +170,7 @@ if (device.chipset_generation) specs.push({ label: 'Generation', value: device.c
               loading="eager"
             />
           ) : (
-            <svg class="h-32 w-32 text-[#25252e]" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <svg class="h-32 w-32 text-[#2a2838]" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
               <rect x="4" y="8" width="24" height="16" rx="4" stroke="currentColor" stroke-width="1.5" />
               <circle cx="11" cy="16" r="2" fill="currentColor" />
               <circle cx="21" cy="14" r="1.5" fill="currentColor" />
@@ -185,7 +187,7 @@ if (device.chipset_generation) specs.push({ label: 'Generation', value: device.c
           <h1 class="text-4xl sm:text-5xl font-bold text-white leading-tight">{device.name}</h1>
 
           {device.chipset_generation && (
-            <span class="mt-3 inline-block rounded-full bg-[#7c6cf0]/10 border border-[#7c6cf0]/20 px-3 py-1 text-xs text-[#7c6cf0] font-medium">
+            <span class="mt-3 inline-block rounded-full bg-[#a78bfa]/10 border border-[#a78bfa]/20 px-3 py-1 text-xs text-[#a78bfa] font-medium">
               {device.chipset_generation}
             </span>
           )}
@@ -197,9 +199,9 @@ if (device.chipset_generation) specs.push({ label: 'Generation', value: device.c
           <!-- Bento Spec Grid -->
           <div class="mt-6 grid grid-cols-3 gap-2">
             {specs.slice(0, 9).map((spec) => (
-              <div class="rounded-lg bg-[#1a1a22] p-3 text-center">
+              <div class="rounded-lg bg-[#12101a] p-3 text-center">
                 <p class="text-lg font-bold font-mono text-white truncate" title={spec.value}>{spec.value}</p>
-                <p class="text-xs text-[#55555e] mt-0.5">{spec.label}</p>
+                <p class="text-xs text-[#4a4560] mt-0.5">{spec.label}</p>
               </div>
             ))}
           </div>
@@ -208,9 +210,9 @@ if (device.chipset_generation) specs.push({ label: 'Generation', value: device.c
           {specs.length > 9 && (
             <div class="mt-2 grid grid-cols-3 gap-2">
               {specs.slice(9).map((spec) => (
-                <div class="rounded-lg bg-[#1a1a22] p-3 text-center">
+                <div class="rounded-lg bg-[#12101a] p-3 text-center">
                   <p class="text-lg font-bold font-mono text-white truncate" title={spec.value}>{spec.value}</p>
-                  <p class="text-xs text-[#55555e] mt-0.5">{spec.label}</p>
+                  <p class="text-xs text-[#4a4560] mt-0.5">{spec.label}</p>
                 </div>
               ))}
             </div>
@@ -230,7 +232,7 @@ if (device.chipset_generation) specs.push({ label: 'Generation', value: device.c
           {otherDevices.map(d => (
             <a
               href={`/compare/${slug}/${d.slug}`}
-              class="rounded-full border border-[#7c6cf0]/30 text-[#7c6cf0] px-4 py-2 text-sm hover:bg-[#7c6cf0]/10 hover:border-[#7c6cf0]/50 transition-all"
+              class="rounded-full border border-[#a78bfa]/30 text-[#a78bfa] px-4 py-2 text-sm hover:bg-[#a78bfa]/10 hover:border-[#a78bfa]/50 transition-all"
             >
               vs {d.name}
             </a>
@@ -246,7 +248,7 @@ if (device.chipset_generation) specs.push({ label: 'Generation', value: device.c
           <span class="editorial-label">Performance</span>
           <div class="flex-1 metallic-line"></div>
         </div>
-        <div class="rounded-2xl border border-[#1a1a22] bg-[#0f0f12] p-6 sm:p-8">
+        <div class="rounded-2xl border border-white/6 bg-[#0e0c16] p-6 sm:p-8">
           <PerformanceHeatmap
             client:visible
             data={heatmapData}
@@ -261,19 +263,19 @@ if (device.chipset_generation) specs.push({ label: 'Generation', value: device.c
           <span class="editorial-label">Performance</span>
           <div class="flex-1 metallic-line"></div>
         </div>
-        <div class="section-atmospheric rounded-2xl border border-[#1a1a22] p-10 sm:p-14 text-center">
-          <div class="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-2xl bg-[#1a1a22] border border-[#25252e]">
-            <svg class="h-10 w-10 text-[#7c6cf0]/40" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+        <div class="section-atmospheric rounded-2xl border border-white/6 p-10 sm:p-14 text-center">
+          <div class="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-2xl bg-[#12101a] border border-white/9">
+            <svg class="h-10 w-10 text-[#a78bfa]/40" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3v11.25A2.25 2.25 0 006 16.5h2.25M3.75 3h-1.5m1.5 0h16.5m0 0h1.5m-1.5 0v11.25A2.25 2.25 0 0118 16.5h-2.25m-7.5 0h7.5m-7.5 0l-1 3m8.5-3l1 3m0 0l.5 1.5m-.5-1.5h-9.5m0 0l-.5 1.5" />
             </svg>
           </div>
           <h3 class="text-xl font-semibold text-white mb-2">No performance data yet</h3>
-          <p class="text-[#8a8a94] max-w-lg mx-auto mb-6">
+          <p class="text-[#9890a8] max-w-lg mx-auto mb-6">
             Be the first to submit a performance report for the {device.name}. Your benchmarks help the entire community find optimal settings.
           </p>
           <a
             href="/report/new"
-            class="inline-flex items-center gap-2 rounded-xl bg-[#7c6cf0] px-6 py-3 text-sm font-semibold text-white hover:bg-[#6d5cff] transition-colors"
+            class="inline-flex items-center gap-2 rounded-xl bg-[#a78bfa] px-6 py-3 text-sm font-semibold text-white hover:bg-[#c4b5fd] transition-colors"
           >
             <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" /></svg>
             Submit First Report
