@@ -13,6 +13,7 @@ if (!_cached) {
 const [
   devicesRes, topGamesRes, gameCountRes, deviceCountRes,
   reportCountRes, articlesRes, trendingRes, userCountRes,
+  spotlightRes, battleTestedRes,
 ] = await Promise.all([
   supabaseAdmin
     .from('devices')
@@ -43,6 +44,20 @@ const [
     .order('created_at', { ascending: false })
     .limit(12),
   supabaseAdmin.from('users').select('*', { count: 'exact', head: true }),
+  // Spotlight: get the most-reported game with its cross-device performance
+  supabaseAdmin
+    .from('performance_reports')
+    .select('fps_avg, graphics_preset, estimated_battery, games(name, slug, header_image, genres, metacritic_score), devices(name)')
+    .eq('moderation_status', 'approved')
+    .order('created_at', { ascending: false })
+    .limit(50),
+  // Battle Tested: highest FPS reports across all combos
+  supabaseAdmin
+    .from('performance_reports')
+    .select('fps_avg, graphics_preset, estimated_battery, overall_rating, games(name, slug, header_image), devices(name)')
+    .eq('moderation_status', 'approved')
+    .order('fps_avg', { ascending: false })
+    .limit(30),
 ]);
 
 const gameCount = gameCountRes.count ?? 0;
@@ -97,11 +112,70 @@ const liveFeed = (trendingRes.data ?? [])
     };
   });
 
-  _cached = { gameCount, deviceCount, reportCount, userCount, devices, topGames, articles, liveFeed };
+// Performance Spotlight — find the most-reported game and aggregate its cross-device data
+const spotlightMap = new Map<string, { name: string; slug: string; image: string; genres: string[]; metacritic: number | null; devices: { name: string; fps: number; preset: string; battery: number | null }[] }>();
+for (const r of (spotlightRes.data ?? [])) {
+  const g = r.games as any;
+  const d = r.devices as any;
+  if (!g?.name || !d?.name) continue;
+  if (!spotlightMap.has(g.slug)) {
+    spotlightMap.set(g.slug, {
+      name: g.name, slug: g.slug, image: g.header_image ?? '',
+      genres: ((g.genres as string[]) ?? []).slice(0, 2),
+      metacritic: g.metacritic_score,
+      devices: [],
+    });
+  }
+  const entry = spotlightMap.get(g.slug)!;
+  const deviceName = d.name.replace('ASUS ', '').replace('Lenovo ', '');
+  if (!entry.devices.some(dd => dd.name === deviceName)) {
+    entry.devices.push({
+      name: deviceName,
+      fps: Math.round(r.fps_avg ?? 0),
+      preset: r.graphics_preset ?? '—',
+      battery: r.estimated_battery ?? null,
+    });
+  }
+}
+// Pick the game with most device entries
+const spotlight = [...spotlightMap.values()]
+  .filter(s => s.devices.length >= 2 && s.image)
+  .sort((a, b) => b.devices.length - a.devices.length)[0] ?? null;
+
+// Battle Tested — top game+device combos by FPS
+const seenBattle = new Set<string>();
+const battleTested = (battleTestedRes.data ?? [])
+  .filter(r => {
+    const g = r.games as any;
+    const d = r.devices as any;
+    if (!g?.name || !d?.name) return false;
+    const key = `${g.slug}|${d.name}`;
+    if (seenBattle.has(key)) return false;
+    seenBattle.add(key);
+    return true;
+  })
+  .slice(0, 6)
+  .map((r, i) => {
+    const g = r.games as any;
+    const d = r.devices as any;
+    return {
+      rank: i + 1,
+      game: g.name,
+      gameSlug: g.slug,
+      gameImage: g.header_image ?? '',
+      device: d.name.replace('ASUS ', '').replace('Lenovo ', ''),
+      fps: Math.round(r.fps_avg ?? 0),
+      preset: r.graphics_preset ?? '—',
+      battery: r.estimated_battery ? `~${r.estimated_battery.toFixed(1)}h` : null,
+      rating: r.overall_rating ?? null,
+    };
+  });
+
+  _cached = { gameCount, deviceCount, reportCount, userCount, devices, topGames, articles, liveFeed, spotlight, battleTested };
   setCache(CACHE_KEY, _cached, 120);
 }
 
-const { gameCount, deviceCount, reportCount, userCount, devices, topGames, articles, liveFeed } = _cached;
+const { gameCount, deviceCount, reportCount, userCount, devices, topGames, articles, liveFeed, spotlight, battleTested } = _cached;
 
 // Helpers
 const fmtDate = (d: Date | null) => d ? d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '';
@@ -290,8 +364,51 @@ const schemaWebSite = {
       </section>
     )}
 
-    <!-- ══════ 3. TOP GAMES ══════ -->
-    <section class="hp-section hp-section-alt hp-section-animate hp-section-divider">
+    <!-- ══════ 3. PERFORMANCE SPOTLIGHT ══════ -->
+    {spotlight && (
+      <section class="hp-section hp-section-alt hp-section-animate hp-section-divider">
+        <SectionHeader title="Performance Spotlight" href={`/games/${spotlight.slug}`} linkText="Full details" editorial="FEATURED" />
+        <div class="hp-spotlight">
+          <div class="hp-spotlight-hero">
+            <img src={spotlight.image} alt={spotlight.name} class="hp-spotlight-bg" loading="lazy" />
+            <div class="hp-spotlight-overlay"></div>
+            <div class="hp-spotlight-info">
+              <div class="hp-spotlight-meta">
+                {spotlight.metacritic && (
+                  <span class={`hp-spotlight-score ${spotlight.metacritic >= 80 ? 'score-high' : spotlight.metacritic >= 60 ? 'score-mid' : 'score-low'}`}>{spotlight.metacritic}</span>
+                )}
+                {spotlight.genres.length > 0 && <span class="hp-spotlight-genre">{spotlight.genres.join(' · ')}</span>}
+              </div>
+              <h3 class="hp-spotlight-title">{spotlight.name}</h3>
+              <p class="hp-spotlight-subtitle">Tested on {spotlight.devices.length} devices by the community</p>
+            </div>
+          </div>
+          <div class="hp-spotlight-bars">
+            <div class="hp-spotlight-bars-header">
+              <span class="hp-spotlight-bars-label">CROSS-DEVICE PERFORMANCE</span>
+              <span class="hp-spotlight-bars-unit">AVG FPS</span>
+            </div>
+            {spotlight.devices.slice(0, 5).map(d => {
+              const maxFps = Math.max(...spotlight.devices.map(dd => dd.fps));
+              const pct = maxFps > 0 ? (d.fps / maxFps) * 100 : 0;
+              const cls = d.fps >= 55 ? 'bar-green' : d.fps >= 40 ? 'bar-yellow' : d.fps >= 30 ? 'bar-orange' : 'bar-red';
+              return (
+                <div class="hp-spotlight-bar-row">
+                  <span class="hp-spotlight-bar-device">{d.name}</span>
+                  <div class="hp-spotlight-bar-track">
+                    <div class={`hp-spotlight-bar-fill ${cls}`} style={`width:${pct}%`}></div>
+                  </div>
+                  <span class={`hp-spotlight-bar-fps ${cls}`}>{d.fps}<span class="hp-fps-unit">fps</span></span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+    )}
+
+    <!-- ══════ 3b. TOP GAMES (compact) ══════ -->
+    <section class="hp-section hp-section-animate hp-section-divider">
       <SectionHeader title="Top Rated" href="/games" linkText="All games" editorial="METACRITIC" />
       <div class="hp-games-grid">
         {topGames.map(g => (
@@ -311,7 +428,40 @@ const schemaWebSite = {
       </div>
     </section>
 
-    <!-- ══════ 4. DEVICES ══════ -->
+    <!-- ══════ 4a. BATTLE TESTED — Leaderboard ══════ -->
+    {battleTested.length > 0 && (
+      <section class="hp-section hp-section-alt hp-section-animate hp-section-divider">
+        <SectionHeader title="Battle Tested" href="/games" linkText="Explore" editorial="LEADERBOARD" />
+        <p class="hp-battle-subtitle">The highest-performing game + device combos reported by the community.</p>
+        <div class="hp-battle">
+          {battleTested.map(b => {
+            const fpsClass = b.fps >= 55 ? 'fps-green' : b.fps >= 40 ? 'fps-yellow' : b.fps >= 30 ? 'fps-orange' : 'fps-red';
+            return (
+              <a href={`/games/${b.gameSlug}`} class="hp-battle-row">
+                <span class="hp-battle-rank">#{b.rank}</span>
+                <div class="hp-battle-thumb-wrap">
+                  {b.gameImage && <img src={b.gameImage} alt="" class="hp-battle-thumb" loading="lazy" />}
+                </div>
+                <div class="hp-battle-info">
+                  <span class="hp-battle-game">{b.game}</span>
+                  <span class="hp-battle-device">
+                    <svg class="hp-battle-device-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12" y2="18.01"/></svg>
+                    {b.device}
+                  </span>
+                </div>
+                <div class="hp-battle-stats">
+                  <span class={`hp-battle-fps ${fpsClass}`}>{b.fps}<span class="hp-fps-unit">fps</span></span>
+                  <span class="hp-battle-preset">{b.preset}</span>
+                </div>
+                {b.battery && <span class="hp-battle-battery">{b.battery}</span>}
+              </a>
+            );
+          })}
+        </div>
+      </section>
+    )}
+
+    <!-- ══════ 4b. DEVICES ══════ -->
     <section class="hp-section hp-section-animate hp-section-divider">
       <SectionHeader title="Devices" href="/devices" linkText="All devices" />
       <div class="hp-devices-grid">
@@ -339,72 +489,98 @@ const schemaWebSite = {
       </div>
     </section>
 
-    <!-- ══════ 5. NEWS ══════ -->
+    <!-- ══════ 5. NEWS — Editorial Highlights ══════ -->
     {articles.length > 0 && (
       <section class="hp-section hp-section-alt hp-section-animate hp-section-divider">
-        <SectionHeader title="Latest News" href="/news" linkText="All news" />
-        <div class="hp-news">
-          {articles.map((a, i) => {
-            const tag = categoryTag[a.category] ?? 'NEWS';
-            if (i === 0) {
-              return (
-                <a href={`/news/${a.slug}`} class="hp-news-featured">
-                  <div class="hp-news-featured-img">
-                    {a.coverImage ? (
-                      <img src={a.coverImage} alt={a.title} loading="lazy" />
-                    ) : (
-                      <div class="hp-news-featured-placeholder"></div>
+        <SectionHeader title="Editorial" href="/news" linkText="All articles" editorial="NEWS & GUIDES" />
+        <div class="hp-editorial">
+          {articles[0] && (
+            <a href={`/news/${articles[0].slug}`} class="hp-editorial-hero">
+              <div class="hp-editorial-hero-img">
+                {articles[0].coverImage ? (
+                  <img src={articles[0].coverImage} alt={articles[0].title} loading="lazy" />
+                ) : (
+                  <div class="hp-editorial-hero-placeholder"></div>
+                )}
+                <div class="hp-editorial-hero-gradient"></div>
+              </div>
+              <div class="hp-editorial-hero-content">
+                <span class="hp-editorial-tag">{categoryTag[articles[0].category] ?? 'NEWS'}</span>
+                <h3 class="hp-editorial-hero-title">{articles[0].title}</h3>
+                {articles[0].lead && <p class="hp-editorial-hero-lead">{articles[0].lead}</p>}
+                <div class="hp-editorial-hero-footer">
+                  <span class="hp-editorial-date">{fmtDate(articles[0].publishedAt)}</span>
+                  <span class="hp-editorial-read">Read article →</span>
+                </div>
+              </div>
+            </a>
+          )}
+          {articles.length > 1 && (
+            <div class="hp-editorial-cards">
+              {articles.slice(1).map(a => {
+                const tag = categoryTag[a.category] ?? 'NEWS';
+                return (
+                  <a href={`/news/${a.slug}`} class="hp-editorial-card">
+                    {a.coverImage && (
+                      <div class="hp-editorial-card-img">
+                        <img src={a.coverImage} alt="" loading="lazy" />
+                      </div>
                     )}
-                  </div>
-                  <div class="hp-news-featured-body">
-                    <span class="hp-news-tag">{tag}</span>
-                    <h3 class="hp-news-featured-title">{a.title}</h3>
-                    {a.lead && <p class="hp-news-featured-lead">{a.lead}</p>}
-                    <span class="hp-news-date">{fmtDate(a.publishedAt)}</span>
-                  </div>
-                </a>
-              );
-            }
-            return (
-              <a href={`/news/${a.slug}`} class="hp-news-row">
-                <span class="hp-news-row-title">{a.title}</span>
-                <span class="hp-news-row-meta">
-                  <span class="hp-news-tag">{tag}</span>
-                  <span class="hp-news-date">{fmtDate(a.publishedAt)}</span>
-                </span>
-              </a>
-            );
-          })}
+                    <div class="hp-editorial-card-body">
+                      <span class="hp-editorial-tag">{tag}</span>
+                      <h4 class="hp-editorial-card-title">{a.title}</h4>
+                      <span class="hp-editorial-date">{fmtDate(a.publishedAt)}</span>
+                    </div>
+                  </a>
+                );
+              })}
+            </div>
+          )}
         </div>
       </section>
     )}
 
-    <!-- ══════ 6. CTA ══════ -->
+    <!-- ══════ 6. CTA — Join the Mission ══════ -->
     <section class="hp-section hp-section-animate">
-      <div class="hp-cta">
-        <div class="hp-cta-icon" aria-hidden="true">
-          <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="24" cy="24" r="20"/>
-            <path d="M24 8v16l11 6.5"/>
-            <path d="M16 38l3-6m13 6l-3-6" opacity="0.4"/>
-            <circle cx="24" cy="24" r="3" fill="currentColor" stroke="none"/>
-          </svg>
+      <div class="hp-cta2">
+        <div class="hp-cta2-bg" aria-hidden="true">
+          <div class="hp-cta2-orb hp-cta2-orb-1"></div>
+          <div class="hp-cta2-orb hp-cta2-orb-2"></div>
+          <div class="hp-cta2-grid-lines"></div>
         </div>
-        <div class="hp-cta-text">
-          <p class="hp-cta-eyebrow">COMMUNITY MILESTONE</p>
-          <h2 class="hp-cta-title">HELP US BENCHMARK<br/>HANDHELD GAMING.</h2>
-          <div class="hp-cta-progress-wrap">
-            <div class="hp-cta-progress">
-              <div class="hp-cta-progress-fill" style={`width:${ctaPct}%;`}></div>
+        <div class="hp-cta2-content">
+          <p class="hp-cta2-eyebrow">JOIN THE MISSION</p>
+          <h2 class="hp-cta2-title">YOUR BENCHMARKS<br/>HELP EVERYONE.</h2>
+          <p class="hp-cta2-desc">Every report you submit helps another gamer decide if a game runs on their device. Be part of the largest handheld gaming database.</p>
+
+          <div class="hp-cta2-stats">
+            <div class="hp-cta2-stat">
+              <span class="hp-cta2-stat-val">{reportCount.toLocaleString()}</span>
+              <span class="hp-cta2-stat-lbl">reports submitted</span>
             </div>
-            <span class="hp-cta-milestone">
-              <strong>{reportCount.toLocaleString()}</strong> / {nextMilestone.toLocaleString()} reports — every one counts
+            <div class="hp-cta2-stat">
+              <span class="hp-cta2-stat-val">{userCount.toLocaleString()}</span>
+              <span class="hp-cta2-stat-lbl">contributors</span>
+            </div>
+            <div class="hp-cta2-stat">
+              <span class="hp-cta2-stat-val">{deviceCount}</span>
+              <span class="hp-cta2-stat-lbl">devices tracked</span>
+            </div>
+          </div>
+
+          <div class="hp-cta2-progress-wrap">
+            <div class="hp-cta2-progress">
+              <div class="hp-cta2-progress-fill" style={`width:${ctaPct}%;`}></div>
+            </div>
+            <span class="hp-cta2-milestone">
+              <strong>{reportCount.toLocaleString()}</strong> / {nextMilestone.toLocaleString()} — next milestone
             </span>
           </div>
-        </div>
-        <div class="hp-cta-action">
-          <a href="/report/new" class="btn-primary hp-cta-btn">SUBMIT A REPORT</a>
-          <span class="hp-cta-hint">Takes ~2 minutes</span>
+
+          <div class="hp-cta2-actions">
+            <a href="/report/new" class="btn-primary hp-cta2-btn">SUBMIT A REPORT</a>
+            <span class="hp-cta2-hint">Takes ~2 min · No account needed</span>
+          </div>
         </div>
       </div>
     </section>
@@ -882,7 +1058,255 @@ const schemaWebSite = {
     margin-top: 3px;
   }
 
-  /* ─── 4. DEVICES (card grid) ─── */
+  /* ─── 3. PERFORMANCE SPOTLIGHT ─── */
+  .hp-spotlight {
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    overflow: hidden;
+    background: var(--color-raised);
+  }
+  .hp-spotlight-hero {
+    position: relative;
+    height: 280px;
+    overflow: hidden;
+  }
+  .hp-spotlight-bg {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .hp-spotlight-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      to top,
+      rgba(10,10,10,0.95) 0%,
+      rgba(10,10,10,0.6) 40%,
+      rgba(10,10,10,0.2) 100%
+    );
+  }
+  .hp-spotlight-info {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 28px 28px 24px;
+  }
+  .hp-spotlight-meta {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+  .hp-spotlight-score {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 4px;
+    line-height: 1.3;
+  }
+  .hp-spotlight-score.score-high { background: rgba(34,197,94,0.9); color: #fff; }
+  .hp-spotlight-score.score-mid { background: rgba(234,179,8,0.9); color: #fff; }
+  .hp-spotlight-score.score-low { background: rgba(249,115,22,0.9); color: #fff; }
+  .hp-spotlight-genre {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--color-text-3);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .hp-spotlight-title {
+    font-family: var(--font-heading);
+    font-size: clamp(24px, 4vw, 36px);
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: -0.02em;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  .hp-spotlight-subtitle {
+    font-size: 13px;
+    color: var(--color-text-3);
+  }
+  .hp-spotlight-bars {
+    padding: 20px 28px 24px;
+  }
+  .hp-spotlight-bars-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 16px;
+  }
+  .hp-spotlight-bars-label,
+  .hp-spotlight-bars-unit {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--color-text-dim);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+  .hp-spotlight-bar-row {
+    display: grid;
+    grid-template-columns: 120px 1fr 60px;
+    gap: 12px;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+  .hp-spotlight-bar-row:last-child { margin-bottom: 0; }
+  .hp-spotlight-bar-device {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--color-text-2);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .hp-spotlight-bar-track {
+    height: 20px;
+    background: var(--color-elevated);
+    border-radius: 4px;
+    overflow: hidden;
+    position: relative;
+  }
+  .hp-spotlight-bar-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+    position: relative;
+  }
+  .hp-spotlight-bar-fill.bar-green { background: linear-gradient(90deg, rgba(34,197,94,0.7), rgba(34,197,94,0.9)); }
+  .hp-spotlight-bar-fill.bar-yellow { background: linear-gradient(90deg, rgba(234,179,8,0.7), rgba(234,179,8,0.9)); }
+  .hp-spotlight-bar-fill.bar-orange { background: linear-gradient(90deg, rgba(249,115,22,0.7), rgba(249,115,22,0.9)); }
+  .hp-spotlight-bar-fill.bar-red { background: linear-gradient(90deg, rgba(239,68,68,0.7), rgba(239,68,68,0.9)); }
+  .hp-spotlight-bar-fps {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: 13px;
+    text-align: right;
+  }
+  .hp-spotlight-bar-fps.bar-green { color: var(--color-fps-green); }
+  .hp-spotlight-bar-fps.bar-yellow { color: var(--color-fps-yellow); }
+  .hp-spotlight-bar-fps.bar-orange { color: var(--color-fps-orange); }
+  .hp-spotlight-bar-fps.bar-red { color: var(--color-fps-red); }
+
+  /* ─── 4a. BATTLE TESTED ─── */
+  .hp-battle-subtitle {
+    font-size: 13px;
+    color: var(--color-text-3);
+    margin-bottom: 16px;
+    margin-top: -8px;
+  }
+  .hp-battle {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+  .hp-battle-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 16px;
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    text-decoration: none;
+    transition: border-color 0.15s, background 0.15s, transform 0.2s;
+    background: var(--color-base);
+  }
+  .hp-battle-row:hover {
+    border-color: rgba(212,255,0,0.3);
+    background: var(--color-elevated);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(212,255,0,0.06);
+  }
+  .hp-battle-rank {
+    font-family: var(--font-heading);
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--color-accent);
+    min-width: 28px;
+    text-align: center;
+    opacity: 0.8;
+  }
+  .hp-battle-row:nth-child(1) .hp-battle-rank {
+    font-size: 22px;
+    opacity: 1;
+  }
+  .hp-battle-thumb-wrap {
+    width: 56px;
+    height: 32px;
+    border-radius: 4px;
+    overflow: hidden;
+    flex-shrink: 0;
+    background: var(--color-elevated);
+  }
+  .hp-battle-thumb {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .hp-battle-info {
+    flex: 1;
+    min-width: 0;
+  }
+  .hp-battle-game {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--color-text);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    transition: color 0.12s;
+  }
+  .hp-battle-row:hover .hp-battle-game { color: var(--color-accent); }
+  .hp-battle-device {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--color-text-dim);
+    margin-top: 2px;
+  }
+  .hp-battle-device-icon {
+    width: 12px;
+    height: 12px;
+    flex-shrink: 0;
+  }
+  .hp-battle-stats {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
+    flex-shrink: 0;
+  }
+  .hp-battle-fps {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: 15px;
+    display: inline-flex;
+    align-items: baseline;
+    gap: 2px;
+  }
+  .hp-battle-preset {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    color: var(--color-text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .hp-battle-battery {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--color-text-3);
+    flex-shrink: 0;
+    display: none;
+  }
+
+  /* ─── 4b. DEVICES (card grid) ─── */
   .hp-devices-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -974,143 +1398,271 @@ const schemaWebSite = {
     color: var(--color-text-2);
   }
 
-  /* ─── 5. NEWS ─── */
-  .hp-news {
-    border: 1px solid var(--color-border);
-    border-radius: 8px;
-    overflow: hidden;
-  }
-  .hp-news-featured {
+  /* ─── 5. EDITORIAL (News redesign) ─── */
+  .hp-editorial {
     display: grid;
-    grid-template-columns: 1.2fr 1fr;
-    text-decoration: none;
-    border-bottom: 1px solid var(--color-border);
-    transition: background 0.12s;
-    min-height: 200px;
+    gap: 14px;
   }
-  .hp-news-featured:hover { background: var(--color-elevated); }
-  .hp-news-featured:hover .hp-news-featured-title { color: var(--color-accent); }
-  .hp-news-featured-img {
-    aspect-ratio: 16/10;
-    overflow: hidden;
-    background: var(--color-elevated);
+  .hp-editorial-hero {
+    display: block;
     position: relative;
+    border-radius: 12px;
+    overflow: hidden;
+    text-decoration: none;
+    min-height: 320px;
+    background: var(--color-elevated);
   }
-  .hp-news-featured-img img {
+  .hp-editorial-hero:hover .hp-editorial-hero-title { color: var(--color-accent); }
+  .hp-editorial-hero:hover .hp-editorial-hero-img img { transform: scale(1.03); }
+  .hp-editorial-hero-img {
+    position: absolute;
+    inset: 0;
+  }
+  .hp-editorial-hero-img img {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    transition: transform 0.3s ease;
+    transition: transform 0.4s ease;
   }
-  .hp-news-featured:hover .hp-news-featured-img img { transform: scale(1.03); }
-  .hp-news-featured-placeholder {
+  .hp-editorial-hero-placeholder {
     width: 100%;
     height: 100%;
     background: var(--color-elevated);
   }
-  .hp-news-featured-body {
-    padding: 24px;
+  .hp-editorial-hero-gradient {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      to top,
+      rgba(10,10,10,0.95) 0%,
+      rgba(10,10,10,0.7) 35%,
+      rgba(10,10,10,0.1) 100%
+    );
+  }
+  .hp-editorial-hero-content {
+    position: relative;
+    z-index: 1;
+    padding: 32px;
     display: flex;
     flex-direction: column;
-    justify-content: center;
+    justify-content: flex-end;
+    min-height: 320px;
   }
-  .hp-news-tag {
-    font-family: var(--font-mono);
-    font-size: 10px;
-    font-weight: 600;
-    color: var(--color-accent);
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    margin-bottom: 8px;
-  }
-  .hp-news-featured-title {
-    font-family: var(--font-heading);
-    font-size: 20px;
-    font-weight: 700;
-    color: var(--color-text);
-    line-height: 1.25;
-    margin-bottom: 8px;
-    transition: color 0.12s;
-  }
-  .hp-news-featured-lead {
-    font-size: 13px;
-    color: var(--color-text-3);
-    line-height: 1.55;
-    display: -webkit-box;
-    -webkit-line-clamp: 3;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    margin-bottom: 12px;
-  }
-  .hp-news-date {
-    font-family: var(--font-mono);
-    font-size: 10px;
-    color: var(--color-text-dim);
-    letter-spacing: 0.04em;
-  }
-  .hp-news-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 16px;
-    padding: 12px 16px;
-    text-decoration: none;
-    border-bottom: 1px solid var(--color-border-subtle);
-    transition: background 0.12s;
-  }
-  .hp-news-row:last-child { border-bottom: none; }
-  .hp-news-row:hover { background: var(--color-elevated); }
-  .hp-news-row:hover .hp-news-row-title { color: var(--color-accent); }
-  .hp-news-row-title {
-    font-size: 13px;
-    font-weight: 500;
-    color: var(--color-text);
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    transition: color 0.12s;
-  }
-  .hp-news-row-meta {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    flex-shrink: 0;
-  }
-
-  /* ─── 6. CTA ─── */
-  .hp-cta-icon {
-    width: 56px;
-    height: 56px;
-    flex-shrink: 0;
-    color: var(--color-accent);
-    opacity: 0.7;
-  }
-  .hp-cta-icon svg {
-    width: 100%;
-    height: 100%;
-  }
-  .hp-cta-text { flex: 1; }
-  .hp-cta-eyebrow {
+  .hp-editorial-tag {
     font-family: var(--font-mono);
     font-size: 10px;
     font-weight: 600;
     color: var(--color-accent);
     letter-spacing: 0.12em;
     text-transform: uppercase;
-    margin-bottom: 8px;
+    margin-bottom: 10px;
+    display: inline-block;
+    background: rgba(212,255,0,0.08);
+    padding: 4px 10px;
+    border-radius: 3px;
+    width: fit-content;
   }
-  .hp-cta-title {
+  .hp-editorial-hero-title {
     font-family: var(--font-heading);
+    font-size: clamp(22px, 3.5vw, 32px);
     font-weight: 700;
-    font-size: clamp(18px, 2.5vw, 24px);
-    color: var(--color-text);
-    text-transform: uppercase;
+    color: #fff;
+    line-height: 1.15;
     letter-spacing: -0.02em;
-    line-height: 1.2;
+    margin-bottom: 10px;
+    transition: color 0.15s;
+    text-transform: uppercase;
+  }
+  .hp-editorial-hero-lead {
+    font-size: 14px;
+    color: var(--color-text-3);
+    line-height: 1.55;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    max-width: 560px;
+    margin-bottom: 14px;
+  }
+  .hp-editorial-hero-footer {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .hp-editorial-date {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--color-text-dim);
+    letter-spacing: 0.04em;
+  }
+  .hp-editorial-read {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--color-accent);
+    letter-spacing: 0.04em;
+  }
+  .hp-editorial-cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+  }
+  .hp-editorial-card {
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    overflow: hidden;
+    text-decoration: none;
+    background: var(--color-base);
+    transition: border-color 0.15s, transform 0.2s;
+  }
+  .hp-editorial-card:hover {
+    border-color: rgba(212,255,0,0.3);
+    transform: translateY(-2px);
+  }
+  .hp-editorial-card:hover .hp-editorial-card-title { color: var(--color-accent); }
+  .hp-editorial-card-img {
+    aspect-ratio: 16/9;
+    overflow: hidden;
+    background: var(--color-elevated);
+  }
+  .hp-editorial-card-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+  }
+  .hp-editorial-card:hover .hp-editorial-card-img img { transform: scale(1.04); }
+  .hp-editorial-card-body {
+    padding: 14px 16px;
+  }
+  .hp-editorial-card-title {
+    font-family: var(--font-heading);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--color-text);
+    line-height: 1.3;
+    margin-bottom: 8px;
+    transition: color 0.12s;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  /* ─── 6. CTA v2 — Join the Mission ─── */
+  .hp-cta2 {
+    position: relative;
+    border: 1px solid var(--color-border);
+    border-radius: 16px;
+    padding: 56px 48px;
+    overflow: hidden;
+    text-align: center;
+  }
+  .hp-cta2-bg {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .hp-cta2-orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(80px);
+  }
+  .hp-cta2-orb-1 {
+    width: 400px;
+    height: 400px;
+    top: -200px;
+    left: -100px;
+    background: rgba(212,255,0,0.06);
+    animation: hp-orb-float 8s ease-in-out infinite;
+  }
+  .hp-cta2-orb-2 {
+    width: 300px;
+    height: 300px;
+    bottom: -150px;
+    right: -50px;
+    background: rgba(212,255,0,0.04);
+    animation: hp-orb-float 8s ease-in-out infinite reverse;
+  }
+  @keyframes hp-orb-float {
+    0%, 100% { transform: translate(0, 0); }
+    50% { transform: translate(20px, -20px); }
+  }
+  .hp-cta2-grid-lines {
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(212,255,0,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(212,255,0,0.03) 1px, transparent 1px);
+    background-size: 48px 48px;
+    mask-image: radial-gradient(ellipse 70% 70% at 50% 50%, black 20%, transparent 80%);
+    -webkit-mask-image: radial-gradient(ellipse 70% 70% at 50% 50%, black 20%, transparent 80%);
+  }
+  .hp-cta2-content {
+    position: relative;
+    z-index: 1;
+    max-width: 560px;
+    margin: 0 auto;
+  }
+  .hp-cta2-eyebrow {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--color-accent);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
     margin-bottom: 16px;
   }
-  .hp-cta-progress-wrap { max-width: 400px; }
-  .hp-cta-progress {
+  .hp-cta2-title {
+    font-family: var(--font-heading);
+    font-weight: 700;
+    font-size: clamp(28px, 4vw, 42px);
+    color: var(--color-text);
+    text-transform: uppercase;
+    letter-spacing: -0.03em;
+    line-height: 1.05;
+    margin-bottom: 16px;
+  }
+  .hp-cta2-desc {
+    font-size: 15px;
+    color: var(--color-text-3);
+    line-height: 1.6;
+    margin-bottom: 32px;
+  }
+  .hp-cta2-stats {
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+    margin-bottom: 28px;
+    padding: 20px 0;
+    border-top: 1px solid var(--color-border-subtle);
+    border-bottom: 1px solid var(--color-border-subtle);
+  }
+  .hp-cta2-stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+  }
+  .hp-cta2-stat-val {
+    font-family: var(--font-mono);
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--color-text);
+  }
+  .hp-cta2-stat-lbl {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--color-text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .hp-cta2-progress-wrap {
+    max-width: 360px;
+    margin: 0 auto 24px;
+  }
+  .hp-cta2-progress {
     height: 6px;
     background: var(--color-border);
     border-radius: 3px;
@@ -1118,34 +1670,34 @@ const schemaWebSite = {
     margin-bottom: 8px;
     overflow: hidden;
   }
-  .hp-cta-progress-fill {
+  .hp-cta2-progress-fill {
     height: 100%;
     background: var(--color-accent);
     border-radius: 3px;
     transition: width 0.5s ease;
-    box-shadow: 0 0 8px rgba(212,255,0,0.3);
+    box-shadow: 0 0 12px rgba(212,255,0,0.4);
   }
-  .hp-cta-milestone {
+  .hp-cta2-milestone {
     font-family: var(--font-mono);
     font-size: 11px;
     color: var(--color-text-3);
   }
-  .hp-cta-milestone strong {
+  .hp-cta2-milestone strong {
     color: var(--color-text);
     font-weight: 700;
   }
-  .hp-cta-action {
+  .hp-cta2-actions {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 8px;
-    flex-shrink: 0;
+    gap: 10px;
   }
-  .hp-cta-btn {
-    padding: 14px 32px;
-    font-size: 13px;
+  .hp-cta2-btn {
+    padding: 16px 40px;
+    font-size: 14px;
+    letter-spacing: 0.04em;
   }
-  .hp-cta-hint {
+  .hp-cta2-hint {
     font-family: var(--font-mono);
     font-size: 10px;
     color: var(--color-text-dim);
@@ -1293,37 +1845,8 @@ const schemaWebSite = {
     box-shadow: 0 0 30px rgba(212,255,0,0.04);
   }
 
-  /* ─── News gradient overlay ─── */
-  .hp-news-featured-img::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(
-      135deg,
-      rgba(212,255,0,0.08) 0%,
-      transparent 40%,
-      transparent 60%,
-      rgba(0,0,0,0.4) 100%
-    );
-    pointer-events: none;
-  }
-
-  /* ─── CTA animated gradient ─── */
-  .hp-cta {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 32px;
-    padding: 36px 40px;
-    border: 1px solid var(--color-border);
-    border-radius: 8px;
-    background:
-      linear-gradient(135deg, rgba(212,255,0,0.03) 0%, transparent 50%, rgba(212,255,0,0.02) 100%),
-      var(--color-raised);
-    position: relative;
-    overflow: hidden;
-  }
-  .hp-cta::before {
+  /* ─── CTA2 glow line ─── */
+  .hp-cta2::before {
     content: '';
     position: absolute;
     top: 0;
@@ -1331,21 +1854,12 @@ const schemaWebSite = {
     right: 0;
     height: 2px;
     background: linear-gradient(90deg, transparent, var(--color-accent), transparent);
-    animation: hp-cta-glow 4s ease-in-out infinite;
+    animation: hp-cta2-glow 4s ease-in-out infinite;
+    z-index: 1;
   }
-  @keyframes hp-cta-glow {
-    0%, 100% { opacity: 0.5; }
+  @keyframes hp-cta2-glow {
+    0%, 100% { opacity: 0.4; }
     50% { opacity: 1; }
-  }
-  .hp-cta::after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, var(--color-accent), transparent);
-    opacity: 0.3;
   }
 
   /* ─── Responsive: tablet ─── */
@@ -1387,13 +1901,6 @@ const schemaWebSite = {
       gap: 10px;
     }
 
-    .hp-news-featured {
-      grid-template-columns: 1fr;
-    }
-    .hp-news-featured-img {
-      aspect-ratio: 2/1;
-    }
-
     .hp-feed-thumb { display: none; }
 
     .hp-section-alt::before {
@@ -1401,13 +1908,28 @@ const schemaWebSite = {
       bottom: -20px;
     }
 
-    .hp-cta {
-      flex-direction: column;
-      text-align: center;
-      padding: 28px 24px;
+    /* Spotlight mobile */
+    .hp-spotlight-hero { height: 200px; }
+    .hp-spotlight-info { padding: 16px 20px; }
+    .hp-spotlight-bars { padding: 16px 20px; }
+    .hp-spotlight-bar-row {
+      grid-template-columns: 80px 1fr 50px;
+      gap: 8px;
     }
-    .hp-cta-icon { display: none; }
-    .hp-cta-progress-wrap { max-width: 100%; }
+
+    /* Battle Tested mobile */
+    .hp-battle { grid-template-columns: 1fr; }
+    .hp-battle-thumb-wrap { display: none; }
+
+    /* Editorial mobile */
+    .hp-editorial-hero { min-height: 260px; }
+    .hp-editorial-hero-content { min-height: 260px; padding: 20px; }
+    .hp-editorial-cards { grid-template-columns: 1fr; }
+
+    /* CTA2 mobile */
+    .hp-cta2 { padding: 36px 24px; }
+    .hp-cta2-stats { gap: 20px; flex-wrap: wrap; }
+    .hp-cta2-stat-val { font-size: 20px; }
 
     .hp-ticker-item { padding: 0 16px; font-size: 11px; }
 
@@ -1425,6 +1947,16 @@ const schemaWebSite = {
     .hp-devices-grid {
       grid-template-columns: 1fr;
     }
+
+    .hp-spotlight-bar-row {
+      grid-template-columns: 60px 1fr 44px;
+      gap: 6px;
+    }
+    .hp-spotlight-bar-device { font-size: 10px; }
+    .hp-spotlight-bar-track { height: 16px; }
+
+    .hp-battle-rank { min-width: 22px; font-size: 14px; }
+    .hp-battle-row:nth-child(1) .hp-battle-rank { font-size: 16px; }
   }
 
   /* ─── Accessibility: reduced motion ─── */
@@ -1433,16 +1965,21 @@ const schemaWebSite = {
     .hp-hero-inner,
     .hp-hero-accent,
     .hp-ticker-track,
-    .hp-cta::before {
+    .hp-cta2::before,
+    .hp-cta2-orb {
       animation: none !important;
     }
     .hp-game-card,
     .hp-game-card-img img,
-    .hp-news-featured-img img,
+    .hp-editorial-hero-img img,
+    .hp-editorial-card-img img,
+    .hp-spotlight-bar-fill,
     .hp-feed-row,
     .hp-feed-name,
     .hp-device-card,
     .hp-device-card-logo,
+    .hp-battle-row,
+    .hp-editorial-card,
     .hp-widget-dot {
       transition: none !important;
       animation: none !important;
