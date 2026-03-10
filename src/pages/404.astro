@@ -9,9 +9,9 @@ import SearchBar from '@components/react/SearchBar';
       <!-- Glowing accent -->
       <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[300px] bg-[#a78bfa]/5 rounded-full blur-3xl pointer-events-none"></div>
 
-      <!-- 404 badge -->
-      <div class="relative">
-        <p class="text-[8rem] sm:text-[10rem] font-extrabold leading-none tracking-tighter bg-gradient-to-b from-[#4a4560] to-[#1a1828] bg-clip-text text-transparent select-none animate-breathe" aria-label="Error 404">
+      <!-- 404 badge with glitch -->
+      <div class="relative hdb-404-wrap">
+        <p class="text-[8rem] sm:text-[10rem] font-extrabold leading-none tracking-tighter bg-gradient-to-b from-[#4a4560] to-[#1a1828] bg-clip-text text-transparent select-none hdb-404-text" aria-label="Error 404" data-text="404">
           404
         </p>
       </div>
@@ -63,4 +63,16 @@ import SearchBar from '@components/react/SearchBar';
       </div>
     </div>
   </section>
+
+  <style>
+    .hdb-404-text {
+      animation: hdb-glitch 6s ease-in-out infinite;
+    }
+    @keyframes hdb-glitch {
+      0%, 90%, 100% { transform: none; filter: none; }
+      92% { transform: translateX(-4px) skewX(-1deg); filter: hue-rotate(30deg); }
+      94% { transform: translateX(4px) skewX(1deg); filter: hue-rotate(-30deg); }
+      96% { transform: translateX(-2px); filter: none; }
+    }
+  </style>
 </BaseLayout>
