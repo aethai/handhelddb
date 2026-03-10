@@ -106,7 +106,7 @@ function truncate(str: string, maxLen: number): string {
             class:list={[
               'rounded-lg px-3 py-1.5 text-sm font-medium transition-colors',
               !filter
-                ? 'bg-[#7c6cf0]/20 text-[#7c6cf0] border border-[#7c6cf0]/30'
+                ? 'bg-[#D4FF00]/20 text-[#D4FF00] border border-[#D4FF00]/30'
                 : 'text-[#8a8a94] hover:text-white border border-[#25252e] hover:bg-[#1a1a22]',
             ]}
           >
@@ -139,14 +139,14 @@ function truncate(str: string, maxLen: number): string {
         <!-- Comments List -->
         <div class="space-y-3">
           {enrichedComments.length === 0 ? (
-            <div class="rounded-xl border border-[#1a1a22] bg-[#0f0f12] p-8 text-center text-[#55555e]">
+            <div class="rounded-lg border border-[#1a1a22] bg-[#0f0f12] p-8 text-center text-[#55555e]">
               No comments found.
             </div>
           ) : (
             enrichedComments.map(comment => (
               <div
                 class:list={[
-                  'rounded-xl border bg-[#0f0f12] p-4 transition-colors',
+                  'rounded-lg border bg-[#0f0f12] p-4 transition-colors',
                   comment.isFlagged ? 'border-amber-700/50' : comment.isDeleted ? 'border-red-700/50' : 'border-[#1a1a22]',
                 ]}
                 data-comment-id={comment.id}
@@ -156,7 +156,7 @@ function truncate(str: string, maxLen: number): string {
                     <div class="flex items-center gap-2 mb-1">
                       <span class="text-sm font-medium text-white">{comment.authorName}</span>
                       <span class="text-xs text-[#35353e]">on</span>
-                      <a href={`/games/${comment.gameSlug}`} class="text-sm text-[#7c6cf0] hover:text-[#9b8fff] transition-colors">
+                      <a href={`/games/${comment.gameSlug}`} class="text-sm text-[#D4FF00] hover:text-[#9b8fff] transition-colors">
                         {comment.gameName}
                       </a>
                       {comment.isFlagged && (

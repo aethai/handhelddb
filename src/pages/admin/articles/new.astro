@@ -54,7 +54,7 @@ function categoryLabel(cat: string): string {
                 id="title"
                 name="title"
                 required
-                class="w-full rounded-lg border border-[#25252e] bg-[#0f0f12] px-4 py-2.5 text-sm text-white placeholder-[#55555e] focus:border-[#7c6cf0] focus:ring-1 focus:ring-[#7c6cf0] focus:outline-none"
+                class="w-full rounded-lg border border-[#25252e] bg-[#0f0f12] px-4 py-2.5 text-sm text-white placeholder-[#55555e] focus:border-[#D4FF00] focus:ring-1 focus:ring-[#D4FF00] focus:outline-none"
                 placeholder="Article title"
               />
             </div>
@@ -64,7 +64,7 @@ function categoryLabel(cat: string): string {
                 type="text"
                 id="slug"
                 name="slug"
-                class="w-full rounded-lg border border-[#25252e] bg-[#0f0f12] px-4 py-2.5 text-sm text-white placeholder-[#55555e] focus:border-[#7c6cf0] focus:ring-1 focus:ring-[#7c6cf0] focus:outline-none"
+                class="w-full rounded-lg border border-[#25252e] bg-[#0f0f12] px-4 py-2.5 text-sm text-white placeholder-[#55555e] focus:border-[#D4FF00] focus:ring-1 focus:ring-[#D4FF00] focus:outline-none"
                 placeholder="auto-generated-from-title"
               />
             </div>
@@ -78,7 +78,7 @@ function categoryLabel(cat: string): string {
                 id="category"
                 name="category"
                 required
-                class="w-full rounded-lg border border-[#25252e] bg-[#0f0f12] px-4 py-2.5 text-sm text-white focus:border-[#7c6cf0] focus:ring-1 focus:ring-[#7c6cf0] focus:outline-none"
+                class="w-full rounded-lg border border-[#25252e] bg-[#0f0f12] px-4 py-2.5 text-sm text-white focus:border-[#D4FF00] focus:ring-1 focus:ring-[#D4FF00] focus:outline-none"
               >
                 {categories.map(cat => (
                   <option value={cat}>{categoryLabel(cat)}</option>
@@ -90,7 +90,7 @@ function categoryLabel(cat: string): string {
               <select
                 id="status"
                 name="status"
-                class="w-full rounded-lg border border-[#25252e] bg-[#0f0f12] px-4 py-2.5 text-sm text-white focus:border-[#7c6cf0] focus:ring-1 focus:ring-[#7c6cf0] focus:outline-none"
+                class="w-full rounded-lg border border-[#25252e] bg-[#0f0f12] px-4 py-2.5 text-sm text-white focus:border-[#D4FF00] focus:ring-1 focus:ring-[#D4FF00] focus:outline-none"
               >
                 {statuses.map(s => (
                   <option value={s}>{s.replace('_', ' ').replace(/\b\w/g, c => c.toUpperCase())}</option>
@@ -107,7 +107,7 @@ function categoryLabel(cat: string): string {
               name="lead"
               required
               rows="3"
-              class="w-full rounded-lg border border-[#25252e] bg-[#0f0f12] px-4 py-2.5 text-sm text-white placeholder-[#55555e] focus:border-[#7c6cf0] focus:ring-1 focus:ring-[#7c6cf0] focus:outline-none resize-y"
+              class="w-full rounded-lg border border-[#25252e] bg-[#0f0f12] px-4 py-2.5 text-sm text-white placeholder-[#55555e] focus:border-[#D4FF00] focus:ring-1 focus:ring-[#D4FF00] focus:outline-none resize-y"
               placeholder="Brief summary of the article..."
             ></textarea>
           </div>
@@ -120,7 +120,7 @@ function categoryLabel(cat: string): string {
               name="body"
               required
               rows="16"
-              class="w-full rounded-lg border border-[#25252e] bg-[#0f0f12] px-4 py-2.5 text-sm text-white font-mono placeholder-[#55555e] focus:border-[#7c6cf0] focus:ring-1 focus:ring-[#7c6cf0] focus:outline-none resize-y"
+              class="w-full rounded-lg border border-[#25252e] bg-[#0f0f12] px-4 py-2.5 text-sm text-white font-mono placeholder-[#55555e] focus:border-[#D4FF00] focus:ring-1 focus:ring-[#D4FF00] focus:outline-none resize-y"
               placeholder="<p>Article content goes here...</p>"
             ></textarea>
           </div>
@@ -132,7 +132,7 @@ function categoryLabel(cat: string): string {
               type="url"
               id="cover_image"
               name="cover_image"
-              class="w-full rounded-lg border border-[#25252e] bg-[#0f0f12] px-4 py-2.5 text-sm text-white placeholder-[#55555e] focus:border-[#7c6cf0] focus:ring-1 focus:ring-[#7c6cf0] focus:outline-none"
+              class="w-full rounded-lg border border-[#25252e] bg-[#0f0f12] px-4 py-2.5 text-sm text-white placeholder-[#55555e] focus:border-[#D4FF00] focus:ring-1 focus:ring-[#D4FF00] focus:outline-none"
               placeholder="https://example.com/image.jpg"
             />
           </div>
@@ -145,7 +145,7 @@ function categoryLabel(cat: string): string {
                 type="text"
                 id="tags"
                 name="tags"
-                class="w-full rounded-lg border border-[#25252e] bg-[#0f0f12] px-4 py-2.5 text-sm text-white placeholder-[#55555e] focus:border-[#7c6cf0] focus:ring-1 focus:ring-[#7c6cf0] focus:outline-none"
+                class="w-full rounded-lg border border-[#25252e] bg-[#0f0f12] px-4 py-2.5 text-sm text-white placeholder-[#55555e] focus:border-[#D4FF00] focus:ring-1 focus:ring-[#D4FF00] focus:outline-none"
                 placeholder="steam-deck, performance, update"
               />
             </div>
@@ -155,14 +155,14 @@ function categoryLabel(cat: string): string {
                 type="text"
                 id="devices"
                 name="devices"
-                class="w-full rounded-lg border border-[#25252e] bg-[#0f0f12] px-4 py-2.5 text-sm text-white placeholder-[#55555e] focus:border-[#7c6cf0] focus:ring-1 focus:ring-[#7c6cf0] focus:outline-none"
+                class="w-full rounded-lg border border-[#25252e] bg-[#0f0f12] px-4 py-2.5 text-sm text-white placeholder-[#55555e] focus:border-[#D4FF00] focus:ring-1 focus:ring-[#D4FF00] focus:outline-none"
                 placeholder="steam-deck-oled, rog-ally-x"
               />
             </div>
           </div>
 
           <!-- SEO -->
-          <div class="rounded-xl border border-[#1a1a22] bg-[#0f0f12]/50 p-4 space-y-4">
+          <div class="rounded-lg border border-[#1a1a22] bg-[#0f0f12]/50 p-4 space-y-4">
             <h3 class="text-sm font-semibold text-[#8a8a94]">SEO</h3>
             <div>
               <label for="meta_title" class="block text-sm font-medium text-[#8a8a94] mb-1">Meta Title</label>
@@ -170,7 +170,7 @@ function categoryLabel(cat: string): string {
                 type="text"
                 id="meta_title"
                 name="meta_title"
-                class="w-full rounded-lg border border-[#25252e] bg-[#0f0f12] px-4 py-2.5 text-sm text-white placeholder-[#55555e] focus:border-[#7c6cf0] focus:ring-1 focus:ring-[#7c6cf0] focus:outline-none"
+                class="w-full rounded-lg border border-[#25252e] bg-[#0f0f12] px-4 py-2.5 text-sm text-white placeholder-[#55555e] focus:border-[#D4FF00] focus:ring-1 focus:ring-[#D4FF00] focus:outline-none"
                 placeholder="Custom meta title (optional)"
               />
             </div>
@@ -180,7 +180,7 @@ function categoryLabel(cat: string): string {
                 id="meta_description"
                 name="meta_description"
                 rows="2"
-                class="w-full rounded-lg border border-[#25252e] bg-[#0f0f12] px-4 py-2.5 text-sm text-white placeholder-[#55555e] focus:border-[#7c6cf0] focus:ring-1 focus:ring-[#7c6cf0] focus:outline-none resize-y"
+                class="w-full rounded-lg border border-[#25252e] bg-[#0f0f12] px-4 py-2.5 text-sm text-white placeholder-[#55555e] focus:border-[#D4FF00] focus:ring-1 focus:ring-[#D4FF00] focus:outline-none resize-y"
                 placeholder="Custom meta description (optional)"
               ></textarea>
             </div>
@@ -198,7 +198,7 @@ function categoryLabel(cat: string): string {
             <button
               type="button"
               id="btn-publish"
-              class="rounded-lg bg-[#7c6cf0] px-5 py-2.5 text-sm font-medium text-white hover:bg-[#6d5cff] transition-colors"
+              class="rounded-lg bg-[#D4FF00] px-5 py-2.5 text-sm font-medium text-[#0a0a0a] hover:bg-[#6d5cff] transition-colors"
             >
               Save &amp; Publish
             </button>
@@ -298,7 +298,7 @@ function categoryLabel(cat: string): string {
         }
 
         saveStatus.textContent = 'Saved!';
-        saveStatus.classList.add('text-[#7c6cf0]');
+        saveStatus.classList.add('text-[#D4FF00]');
 
         // Redirect to edit page
         if (data.article?.id) {

@@ -29,10 +29,10 @@ interface Props {
 }
 
 const DECK_BADGES: Record<string, { label: string; class: string }> = {
-  verified: { label: 'Verified', class: 'bg-[#a78bfa]/20 text-[#a78bfa] border-[#a78bfa]/30' },
+  verified: { label: 'Verified', class: 'bg-[#D4FF00]/20 text-[#D4FF00] border-[#D4FF00]/30' },
   playable: { label: 'Playable', class: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30' },
   unsupported: { label: 'Unsupported', class: 'bg-red-500/20 text-red-400 border-red-500/30' },
-  unknown: { label: 'Unknown', class: 'bg-[#4a4560]/20 text-[#9890a8] border-[#4a4560]/30' },
+  unknown: { label: 'Unknown', class: 'bg-[var(--color-text-dim)]/20 text-[var(--color-text-2)] border-[var(--color-text-dim)]/30' },
 };
 
 const SORT_OPTIONS = [
@@ -131,10 +131,10 @@ function GamesBrowserInner({ initialGames, totalGames, allGenres }: Props) {
   return (
     <div>
       {/* Search + Controls */}
-      <div className="mb-6 rounded-xl border border-[#12101a] bg-[#0e0c16] p-4">
+      <div className="mb-6 rounded-lg border border-[var(--color-elevated)] bg-[var(--color-raised)] p-4">
         <div className="flex gap-3">
           <div className="relative flex-1">
-            <svg className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-[#4a4560]" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+            <svg className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-[var(--color-text-dim)]" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z" />
             </svg>
             <input
@@ -142,13 +142,13 @@ function GamesBrowserInner({ initialGames, totalGames, allGenres }: Props) {
               value={query}
               onChange={e => setQuery(e.target.value)}
               placeholder="Search games..."
-              className="w-full rounded-lg border border-[#1a1828] bg-[#12101a] py-2.5 pl-12 pr-4 text-white placeholder-[#4a4560] focus:border-[#a78bfa] focus:outline-none focus:ring-1 focus:ring-[#a78bfa]"
+              className="w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-elevated)] py-2.5 pl-12 pr-4 text-white placeholder-[var(--color-text-dim)] focus:border-[#D4FF00] focus:outline-none focus:ring-1 focus:ring-[#D4FF00]"
             />
           </div>
           <select
             value={sort}
             onChange={e => setSort(e.target.value)}
-            className="rounded-lg border border-[#1a1828] bg-[#12101a] px-3 py-2.5 text-sm text-gray-300 focus:border-[#a78bfa] focus:outline-none"
+            className="rounded-lg border border-[var(--color-border)] bg-[var(--color-elevated)] px-3 py-2.5 text-sm text-gray-300 focus:border-[#D4FF00] focus:outline-none"
           >
             {SORT_OPTIONS.map(o => (
               <option key={o.value} value={o.value}>{o.label}</option>
@@ -158,8 +158,8 @@ function GamesBrowserInner({ initialGames, totalGames, allGenres }: Props) {
             onClick={() => setShowFilters(!showFilters)}
             className={`rounded-lg border px-3 py-2.5 text-sm transition-colors flex items-center gap-1.5 ${
               showFilters || selectedGenres.length > 0 || selectedDeck.length > 0
-                ? 'border-[#a78bfa] bg-[#a78bfa]/10 text-[#a78bfa]'
-                : 'border-[#1a1828] bg-[#12101a] text-gray-300 hover:border-[#2a2838]'
+                ? 'border-[#D4FF00] bg-[#D4FF00]/10 text-[#D4FF00]'
+                : 'border-[var(--color-border)] bg-[var(--color-elevated)] text-gray-300 hover:border-[var(--color-text-dim)]'
             }`}
           >
             <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
@@ -167,7 +167,7 @@ function GamesBrowserInner({ initialGames, totalGames, allGenres }: Props) {
             </svg>
             <span className="hidden sm:inline">Filters</span>
             {(selectedGenres.length + selectedDeck.length) > 0 && (
-              <span className="rounded-full bg-[#a78bfa] px-1.5 text-[10px] font-bold text-white">
+              <span className="rounded-full bg-[#D4FF00] px-1.5 text-[10px] font-bold text-[#0a0a0a]">
                 {selectedGenres.length + selectedDeck.length}
               </span>
             )}
@@ -176,10 +176,10 @@ function GamesBrowserInner({ initialGames, totalGames, allGenres }: Props) {
 
         {/* Filter Panel */}
         {showFilters && (
-          <div className="mt-4 space-y-4 border-t border-[#12101a] pt-4">
+          <div className="mt-4 space-y-4 border-t border-[var(--color-elevated)] pt-4">
             {/* Deck Compatibility */}
             <div>
-              <p className="text-xs font-semibold text-[#9890a8] uppercase tracking-wider mb-2">Deck Compatibility</p>
+              <p className="text-xs font-semibold text-[var(--color-text-2)] uppercase tracking-wider mb-2">Deck Compatibility</p>
               <div className="flex flex-wrap gap-2">
                 {DECK_FILTERS.map(d => (
                   <button
@@ -187,8 +187,8 @@ function GamesBrowserInner({ initialGames, totalGames, allGenres }: Props) {
                     onClick={() => toggleDeck(d.value)}
                     className={`rounded-full border px-3 py-1 text-xs transition-colors ${
                       selectedDeck.includes(d.value)
-                        ? 'border-[#a78bfa] bg-[#a78bfa]/10 text-[#a78bfa]'
-                        : 'border-[#1a1828] text-[#9890a8] hover:border-[#2a2838] hover:text-white'
+                        ? 'border-[#D4FF00] bg-[#D4FF00]/10 text-[#D4FF00]'
+                        : 'border-[var(--color-border)] text-[var(--color-text-2)] hover:border-[var(--color-text-dim)] hover:text-white'
                     }`}
                   >
                     {d.label}
@@ -199,7 +199,7 @@ function GamesBrowserInner({ initialGames, totalGames, allGenres }: Props) {
 
             {/* Genres */}
             <div>
-              <p className="text-xs font-semibold text-[#9890a8] uppercase tracking-wider mb-2">Genres</p>
+              <p className="text-xs font-semibold text-[var(--color-text-2)] uppercase tracking-wider mb-2">Genres</p>
               <div className="flex flex-wrap gap-2">
                 {allGenres.map(g => (
                   <button
@@ -207,8 +207,8 @@ function GamesBrowserInner({ initialGames, totalGames, allGenres }: Props) {
                     onClick={() => toggleGenre(g)}
                     className={`rounded-full border px-3 py-1 text-xs transition-colors ${
                       selectedGenres.includes(g)
-                        ? 'border-[#a78bfa] bg-[#a78bfa]/10 text-[#a78bfa]'
-                        : 'border-[#1a1828] text-[#9890a8] hover:border-[#2a2838] hover:text-white'
+                        ? 'border-[#D4FF00] bg-[#D4FF00]/10 text-[#D4FF00]'
+                        : 'border-[var(--color-border)] text-[var(--color-text-2)] hover:border-[var(--color-text-dim)] hover:text-white'
                     }`}
                   >
                     {g}
@@ -218,7 +218,7 @@ function GamesBrowserInner({ initialGames, totalGames, allGenres }: Props) {
             </div>
 
             {hasFilters && (
-              <button onClick={clearFilters} className="text-xs text-[#4a4560] hover:text-white transition-colors">
+              <button onClick={clearFilters} className="text-xs text-[var(--color-text-dim)] hover:text-white transition-colors">
                 Clear all filters
               </button>
             )}
@@ -228,13 +228,13 @@ function GamesBrowserInner({ initialGames, totalGames, allGenres }: Props) {
 
       {/* Results count + View toggle */}
       <div className="mb-4 flex items-center justify-between">
-        <p className="text-sm text-[#4a4560]">
+        <p className="text-sm text-[var(--color-text-dim)]">
           {loading ? 'Searching...' : `${totalHits} game${totalHits !== 1 ? 's' : ''}`}
         </p>
-        <div className="flex items-center gap-1 rounded-lg border border-[#12101a] p-0.5">
+        <div className="flex items-center gap-1 rounded-lg border border-[var(--color-elevated)] p-0.5">
           <button
             onClick={() => setViewMode('grid')}
-            className={`rounded-md p-1.5 transition-colors ${viewMode === 'grid' ? 'bg-[#12101a] text-white' : 'text-[#4a4560] hover:text-gray-300'}`}
+            className={`rounded-md p-1.5 transition-colors ${viewMode === 'grid' ? 'bg-[var(--color-elevated)] text-white' : 'text-[var(--color-text-dim)] hover:text-gray-300'}`}
             title="Grid view"
           >
             <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
@@ -243,7 +243,7 @@ function GamesBrowserInner({ initialGames, totalGames, allGenres }: Props) {
           </button>
           <button
             onClick={() => setViewMode('list')}
-            className={`rounded-md p-1.5 transition-colors ${viewMode === 'list' ? 'bg-[#12101a] text-white' : 'text-[#4a4560] hover:text-gray-300'}`}
+            className={`rounded-md p-1.5 transition-colors ${viewMode === 'list' ? 'bg-[var(--color-elevated)] text-white' : 'text-[var(--color-text-dim)] hover:text-gray-300'}`}
             title="List view"
           >
             <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
@@ -257,7 +257,7 @@ function GamesBrowserInner({ initialGames, totalGames, allGenres }: Props) {
       {loading && games.length === 0 && (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
           {Array.from({ length: 10 }).map((_, i) => (
-            <div key={i} className="rounded-lg border border-[#12101a] bg-[#0e0c16] overflow-hidden">
+            <div key={i} className="rounded-lg border border-[var(--color-elevated)] bg-[var(--color-raised)] overflow-hidden">
               <div className="aspect-[460/300] hdb-skeleton" />
               <div style={{ padding: '10px 12px' }}>
                 <div className="hdb-skeleton hdb-skeleton-text" />
@@ -276,7 +276,7 @@ function GamesBrowserInner({ initialGames, totalGames, allGenres }: Props) {
               <a
                 key={game.id}
                 href={`/games/${game.slug}`}
-                className="group relative rounded-lg border border-[#12101a] bg-[#0e0c16] overflow-hidden hover:border-[#1a1828] transition-colors"
+                className="group relative rounded-lg border border-[var(--color-elevated)] bg-[var(--color-raised)] overflow-hidden hover:border-[var(--color-border)] transition-colors"
               >
                 <div className="relative aspect-[460/300]">
                   {game.header_image ? (
@@ -287,7 +287,7 @@ function GamesBrowserInner({ initialGames, totalGames, allGenres }: Props) {
                       loading="lazy"
                     />
                   ) : (
-                    <div className="absolute inset-0 bg-gradient-to-br from-[#12101a] to-[#0e0c16]" />
+                    <div className="absolute inset-0 bg-gradient-to-br from-[var(--color-elevated)] to-[var(--color-raised)]" />
                   )}
                   {/* Overlay with game info at bottom */}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent" />
@@ -295,7 +295,7 @@ function GamesBrowserInner({ initialGames, totalGames, allGenres }: Props) {
                     <h3 className="font-semibold text-white text-sm leading-tight line-clamp-2">{game.name}</h3>
                     <div className="mt-1 flex items-center gap-1.5">
                       {game.genres?.slice(0, 1).map(g => (
-                        <span key={g} className="text-[10px] text-[#9890a8]">{g}</span>
+                        <span key={g} className="text-[10px] text-[var(--color-text-2)]">{g}</span>
                       ))}
                       {game.metacritic_score && (
                         <span className={`ml-auto text-[10px] font-bold ${
@@ -312,15 +312,15 @@ function GamesBrowserInner({ initialGames, totalGames, allGenres }: Props) {
           </div>
         ) : (
           /* List view */
-          <div className="rounded-xl border border-[#12101a] bg-[#0e0c16] divide-y divide-[#12101a]">
+          <div className="rounded-lg border border-[var(--color-elevated)] bg-[var(--color-raised)] divide-y divide-[var(--color-elevated)]">
             {games.map(game => (
               <a
                 key={game.id}
                 href={`/games/${game.slug}`}
-                className="flex items-center gap-4 px-4 py-3 hover:bg-[#12101a]/50 transition-colors"
+                className="flex items-center gap-4 px-4 py-3 hover:bg-[var(--color-elevated)]/50 transition-colors"
               >
                 {/* Thumbnail */}
-                <div className="w-16 h-9 rounded overflow-hidden flex-shrink-0 bg-[#12101a]">
+                <div className="w-16 h-9 rounded overflow-hidden flex-shrink-0 bg-[var(--color-elevated)]">
                   {game.header_image && (
                     <img src={game.header_image} alt="" className="w-full h-full object-cover" loading="lazy" />
                   )}
@@ -330,7 +330,7 @@ function GamesBrowserInner({ initialGames, totalGames, allGenres }: Props) {
                 {/* Genres */}
                 <div className="hidden sm:flex items-center gap-1.5 flex-shrink-0">
                   {game.genres?.slice(0, 2).map(g => (
-                    <span key={g} className="text-[10px] text-[#4a4560]">{g}</span>
+                    <span key={g} className="text-[10px] text-[var(--color-text-dim)]">{g}</span>
                   ))}
                 </div>
                 {/* Deck badge */}
@@ -354,14 +354,14 @@ function GamesBrowserInner({ initialGames, totalGames, allGenres }: Props) {
           </div>
         )
       ) : (
-        <div className="rounded-xl border border-[#12101a] bg-[#0e0c16] p-12 text-center">
-          <svg className="mx-auto h-12 w-12 text-[#2a2838] mb-4" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+        <div className="rounded-lg border border-[var(--color-elevated)] bg-[var(--color-raised)] p-12 text-center">
+          <svg className="mx-auto h-12 w-12 text-[var(--color-text-dim)] mb-4" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z" />
           </svg>
-          <p className="text-[#6d6882] font-medium">No games found</p>
-          <p className="mt-1 text-sm text-[#4a4560]">Try adjusting your search or filters</p>
+          <p className="text-[var(--color-text-3)] font-medium">No games found</p>
+          <p className="mt-1 text-sm text-[var(--color-text-dim)]">Try adjusting your search or filters</p>
           {hasFilters && (
-            <button onClick={clearFilters} className="mt-4 rounded-lg border border-[#a78bfa]/20 bg-[#a78bfa]/5 px-4 py-2 text-sm text-[#a78bfa] hover:bg-[#a78bfa]/10 transition-colors">
+            <button onClick={clearFilters} className="mt-4 rounded-lg border border-[#D4FF00]/20 bg-[#D4FF00]/5 px-4 py-2 text-sm text-[#D4FF00] hover:bg-[#D4FF00]/10 transition-colors">
               Clear all filters
             </button>
           )}
@@ -374,7 +374,7 @@ function GamesBrowserInner({ initialGames, totalGames, allGenres }: Props) {
           <button
             onClick={() => doSearch(true)}
             disabled={loadingMore}
-            className="rounded-xl border border-[#1a1828] bg-[#0e0c16] px-8 py-3 text-sm font-medium text-[#9890a8] hover:border-[#a78bfa] hover:text-white transition-all hover:shadow-[0_0_20px_rgba(167,139,250,0.08)] disabled:opacity-50"
+            className="rounded-lg border border-[var(--color-border)] bg-[var(--color-raised)] px-8 py-3 text-sm font-medium text-[var(--color-text-2)] hover:border-[#D4FF00] hover:text-white transition-all hover:shadow-[0_0_20px_rgba(212,255,0,0.08)] disabled:opacity-50"
           >
             {loadingMore ? (
               <span className="flex items-center gap-2">

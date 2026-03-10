@@ -1,78 +1,23 @@
 ---
 import BaseLayout from '@layouts/BaseLayout.astro';
-import SearchBar from '@components/react/SearchBar';
 ---
 
 <BaseLayout title="404 — Page Not Found" noindex={true}>
-  <section class="flex flex-1 items-center justify-center py-20 sm:py-32 section-spotlight">
-    <div class="mx-auto max-w-2xl px-4 sm:px-6 lg:px-8 text-center">
-      <!-- Glowing accent -->
-      <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[300px] bg-[#a78bfa]/5 rounded-full blur-3xl pointer-events-none"></div>
-
-      <!-- 404 badge with glitch -->
-      <div class="relative hdb-404-wrap">
-        <p class="text-[8rem] sm:text-[10rem] font-extrabold leading-none tracking-tighter bg-gradient-to-b from-[#4a4560] to-[#1a1828] bg-clip-text text-transparent select-none hdb-404-text" aria-label="Error 404" data-text="404">
-          404
-        </p>
-      </div>
-
-      <!-- Message -->
-      <h1 class="mt-2 text-2xl sm:text-3xl font-bold text-white">
+  <section class="flex flex-1 items-center justify-center py-20 sm:py-32">
+    <div class="mx-auto max-w-lg px-6 text-center">
+      <p class="font-mono text-[8rem] sm:text-[10rem] font-bold leading-none tracking-tighter text-[#D4FF00] select-none">
+        404
+      </p>
+      <h1 class="mt-2 text-xl font-bold text-[var(--color-text)] uppercase font-[var(--font-heading)]">
         Page not found
       </h1>
-      <p class="mt-4 text-[#9890a8] text-lg leading-relaxed max-w-md mx-auto">
-        This game hasn't been added to our database yet — or you've wandered off the map. Either way, let's get you back on track.
+      <p class="mt-4 text-sm text-[var(--color-text-3)] leading-relaxed">
+        This page doesn't exist or has been moved.
       </p>
-
-      <!-- Search -->
-      <div class="mt-10 max-w-lg mx-auto">
-        <p class="text-sm text-[#4a4560] mb-3">Try searching for what you were looking for:</p>
-        <SearchBar client:load variant="hero" placeholder="Search for a game..." />
-      </div>
-
-      <!-- Navigation links -->
-      <div class="mt-12 flex flex-col sm:flex-row items-center justify-center gap-4">
-        <a
-          href="/"
-          class="inline-flex items-center gap-2 rounded-xl bg-[#a78bfa] px-6 py-3 text-sm font-semibold text-white hover:bg-[#c4b5fd] transition-colors shadow-lg"
-        >
-          <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0a1 1 0 01-1-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 01-1 1" />
-          </svg>
-          Back to Home
-        </a>
-        <a
-          href="/games"
-          class="inline-flex items-center gap-2 rounded-xl border border-white/10 px-6 py-3 text-sm font-semibold text-[#9890a8] hover:border-white/15 hover:text-white transition-colors"
-        >
-          <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-          Browse Games
-        </a>
-        <a
-          href="/devices"
-          class="inline-flex items-center gap-2 rounded-xl border border-white/10 px-6 py-3 text-sm font-semibold text-[#9890a8] hover:border-white/15 hover:text-white transition-colors"
-        >
-          <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-          </svg>
-          View Devices
-        </a>
+      <div class="mt-8 flex items-center justify-center gap-3">
+        <a href="/" class="btn-primary px-6 py-3 text-xs">GO HOME</a>
+        <a href="/games" class="btn-ghost px-6 py-3 text-xs">BROWSE GAMES</a>
       </div>
     </div>
   </section>
-
-  <style>
-    .hdb-404-text {
-      animation: hdb-glitch 6s ease-in-out infinite;
-    }
-    @keyframes hdb-glitch {
-      0%, 90%, 100% { transform: none; filter: none; }
-      92% { transform: translateX(-4px) skewX(-1deg); filter: hue-rotate(30deg); }
-      94% { transform: translateX(4px) skewX(1deg); filter: hue-rotate(-30deg); }
-      96% { transform: translateX(-2px); filter: none; }
-    }
-  </style>
 </BaseLayout>

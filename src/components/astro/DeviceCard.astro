@@ -24,95 +24,54 @@ const {
 } = Astro.props;
 ---
 
-<a href={`/devices/${slug}`} class="hdb-device-card hdb-glow group">
-  <div class="hdb-device-card-inner">
-    <!-- Device Image -->
-    <div class="hdb-device-card-img">
-      {image ? (
-        <img src={image} alt={name} class="h-full w-full object-contain" loading="lazy" />
-      ) : (
-        <svg class="h-10 w-10 text-[#2a2838]" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-          <rect x="5" y="3" width="14" height="18" rx="3" />
-          <line x1="9" y1="18" x2="15" y2="18" />
-        </svg>
-      )}
-    </div>
+<a href={`/devices/${slug}`} class="hdb-device-card">
+  <p class="hdb-device-card-mfr">{manufacturer}</p>
+  <h3 class="hdb-device-card-name">{name}</h3>
 
-    <!-- Device Info -->
-    <div class="hdb-device-card-info">
-      <p class="hdb-device-card-mfr">{manufacturer}</p>
-      <h3 class="hdb-device-card-name">
-        {name}
-      </h3>
-
-      <div class="hdb-device-card-specs">
-        {chip && <span class="hdb-device-card-spec">{chip}</span>}
-        {screenSize && <span class="hdb-device-card-spec">{screenSize}"</span>}
-        {batteryWh && <span class="hdb-device-card-spec">{batteryWh} Wh</span>}
-        {msrpUsd && <span class="hdb-device-card-spec">${msrpUsd}</span>}
-      </div>
-
-      {testedGames > 0 && (
-        <p class="hdb-device-card-tested">{testedGames} games tested</p>
-      )}
-    </div>
+  <div class="hdb-device-card-specs">
+    {chip && <span class="hdb-device-card-spec">{chip}</span>}
+    {batteryWh && <span class="hdb-device-card-spec">{batteryWh}Wh</span>}
+    {msrpUsd && <span class="hdb-device-card-spec">${msrpUsd}</span>}
   </div>
+
+  {testedGames > 0 && (
+    <p class="hdb-device-card-tested">{testedGames} games tested</p>
+  )}
 </a>
 
 <style>
   .hdb-device-card {
     display: block;
-    position: relative;
-    border-radius: 12px;
-    border: 1px solid rgba(255,255,255,0.06);
-    background: var(--color-raised, #0e0c16);
+    border-radius: 8px;
+    border: 1px solid var(--color-border);
+    background: var(--color-raised);
     padding: 16px;
     text-decoration: none;
-    transition: all 0.2s ease;
+    transition: border-color 0.15s;
   }
   .hdb-device-card:hover {
-    border-color: rgba(255,255,255,0.1);
-    box-shadow: 0 4px 20px rgba(0,0,0,0.25), 0 0 20px rgba(167,139,250,0.04);
-    transform: translateY(-2px);
-  }
-
-  .hdb-device-card-inner {
-    display: flex;
-    align-items: flex-start;
-    gap: 16px;
-  }
-
-  .hdb-device-card-img {
-    flex-shrink: 0;
-    width: 72px;
-    height: 72px;
-    border-radius: 10px;
-    background: var(--color-elevated, #12101a);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
-  }
-
-  .hdb-device-card-info {
-    flex: 1;
-    min-width: 0;
+    border-color: var(--color-border-strong);
   }
 
   .hdb-device-card-mfr {
-    font-size: 11px;
-    font-weight: 600;
-    color: #a78bfa;
-    letter-spacing: 0.02em;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 500;
+    color: #D4FF00;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 2px;
   }
   .hdb-device-card-name {
+    font-family: var(--font-heading);
     font-size: 16px;
-    font-weight: 600;
-    color: white;
+    font-weight: 700;
+    color: var(--color-text);
+    text-transform: uppercase;
     transition: color 0.15s;
   }
   .hdb-device-card:hover .hdb-device-card-name {
-    color: #a78bfa;
+    color: #D4FF00;
   }
 
   .hdb-device-card-specs {
@@ -122,14 +81,16 @@ const {
     gap: 8px 12px;
   }
   .hdb-device-card-spec {
+    font-family: var(--font-mono);
     font-size: 12px;
-    color: #6d6882;
+    color: var(--color-text-3);
   }
 
   .hdb-device-card-tested {
     margin-top: 8px;
-    font-size: 12px;
-    font-weight: 600;
-    color: #a78bfa;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--color-text-2);
   }
 </style>

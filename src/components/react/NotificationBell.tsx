@@ -18,7 +18,7 @@ function typeIcon(type: string): { path: string; color: string } {
     case 'new_report':
       return {
         path: 'M3.75 3v11.25A2.25 2.25 0 006 16.5h2.25M3.75 3h-1.5m1.5 0h16.5m0 0h1.5m-1.5 0v11.25A2.25 2.25 0 0118 16.5h-2.25m-7.5 0h7.5m-7.5 0l-1 3m8.5-3l1 3m0 0l.5 1.5m-.5-1.5h-9.5m0 0l-.5 1.5',
-        color: 'text-[#a78bfa]',
+        color: 'text-[#D4FF00]',
       };
     case 'vote_received':
       return {
@@ -38,7 +38,7 @@ function typeIcon(type: string): { path: string; color: string } {
     default:
       return {
         path: 'M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0',
-        color: 'text-[#9890a8]',
+        color: 'text-[var(--color-text-2)]',
       };
   }
 }
@@ -184,7 +184,7 @@ export default function NotificationBell() {
       {/* Bell button */}
       <button
         onClick={handleToggle}
-        className="relative inline-flex items-center justify-center rounded-lg border border-[#1a1828] p-2 text-[#9890a8] hover:border-[#2a2838] hover:text-white transition-colors"
+        className="relative inline-flex items-center justify-center rounded-lg border border-[var(--color-border)] p-2 text-[var(--color-text-2)] hover:border-[var(--color-text-dim)] hover:text-white transition-colors"
         aria-label={`Notifications${unreadCount > 0 ? ` (${unreadCount} unread)` : ''}`}
       >
         <svg
@@ -210,14 +210,14 @@ export default function NotificationBell() {
 
       {/* Dropdown */}
       {open && (
-        <div className="absolute right-0 mt-2 w-80 rounded-xl border border-[#1a1828] bg-[#0e0c16] shadow-2xl z-50 overflow-hidden">
+        <div className="absolute right-0 mt-2 w-80 rounded-lg border border-[var(--color-border)] bg-[var(--color-raised)] shadow-2xl z-50 overflow-hidden">
           {/* Header */}
-          <div className="flex items-center justify-between border-b border-[#12101a] px-4 py-3">
+          <div className="flex items-center justify-between border-b border-[var(--color-elevated)] px-4 py-3">
             <h3 className="text-sm font-semibold text-white">Notifications</h3>
             {unreadCount > 0 && (
               <button
                 onClick={handleMarkAllRead}
-                className="text-xs text-[#a78bfa] hover:text-[#c4b5fd] transition-colors"
+                className="text-xs text-[#D4FF00] hover:text-[#e8ff4d] transition-colors"
               >
                 Mark all read
               </button>
@@ -229,7 +229,7 @@ export default function NotificationBell() {
             {loading && notifications.length === 0 ? (
               <div className="flex items-center justify-center py-8">
                 <svg
-                  className="h-5 w-5 animate-spin text-[#4a4560]"
+                  className="h-5 w-5 animate-spin text-[var(--color-text-dim)]"
                   fill="none"
                   viewBox="0 0 24 24"
                 >
@@ -263,7 +263,7 @@ export default function NotificationBell() {
                     d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0"
                   />
                 </svg>
-                <p className="mt-2 text-sm text-[#4a4560]">No notifications yet</p>
+                <p className="mt-2 text-sm text-[var(--color-text-dim)]">No notifications yet</p>
               </div>
             ) : (
               notifications.map((n) => {
@@ -272,8 +272,8 @@ export default function NotificationBell() {
                   <button
                     key={n.id}
                     onClick={() => handleNotificationClick(n)}
-                    className={`flex w-full items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-[#12101a]/60 ${
-                      !n.is_read ? 'bg-[#12101a]/30' : ''
+                    className={`flex w-full items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-[var(--color-elevated)]/60 ${
+                      !n.is_read ? 'bg-[var(--color-elevated)]/30' : ''
                     }`}
                   >
                     {/* Icon */}
@@ -297,13 +297,13 @@ export default function NotificationBell() {
                     <div className="min-w-0 flex-1">
                       <p
                         className={`text-sm leading-snug ${
-                          n.is_read ? 'text-[#9890a8]' : 'text-white font-medium'
+                          n.is_read ? 'text-[var(--color-text-2)]' : 'text-white font-medium'
                         }`}
                       >
                         {n.title}
                       </p>
                       {n.body && (
-                        <p className="mt-0.5 text-xs text-[#4a4560] line-clamp-2">
+                        <p className="mt-0.5 text-xs text-[var(--color-text-dim)] line-clamp-2">
                           {n.body}
                         </p>
                       )}
@@ -315,7 +315,7 @@ export default function NotificationBell() {
                     {/* Unread dot */}
                     {!n.is_read && (
                       <div className="mt-2 flex-shrink-0">
-                        <span className="block h-2 w-2 rounded-full bg-[#a78bfa]" />
+                        <span className="block h-2 w-2 rounded-full bg-[#D4FF00]" />
                       </div>
                     )}
                   </button>
@@ -326,10 +326,10 @@ export default function NotificationBell() {
 
           {/* Footer */}
           {notifications.length > 0 && (
-            <div className="border-t border-[#12101a] px-4 py-2">
+            <div className="border-t border-[var(--color-elevated)] px-4 py-2">
               <button
                 onClick={handleMarkAllRead}
-                className="w-full rounded-lg py-1.5 text-center text-xs text-[#9890a8] hover:bg-[#12101a] hover:text-gray-200 transition-colors"
+                className="w-full rounded-lg py-1.5 text-center text-xs text-[var(--color-text-2)] hover:bg-[var(--color-elevated)] hover:text-gray-200 transition-colors"
               >
                 Mark all as read
               </button>

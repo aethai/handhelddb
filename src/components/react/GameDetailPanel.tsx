@@ -94,8 +94,7 @@ interface PageData {
 }
 
 /* ═══ HELPERS ═══ */
-const fc = (f: number) => f >= 55 ? "#4ade80" : f >= 45 ? "#a3e635" : f >= 35 ? "#facc15" : f >= 25 ? "#fb923c" : "#f87171";
-const fpsTierIcon = (f: number) => f >= 55 ? "★" : f >= 45 ? "◆" : f >= 35 ? "●" : f >= 25 ? "▼" : "✕";
+const fc = (f: number) => f >= 55 ? "#22c55e" : f >= 40 ? "#eab308" : f >= 30 ? "#f97316" : "#ef4444";
 
 const VERDICT_LABEL: Record<string, string> = {
   excellent: "Portable Perfect",
@@ -183,14 +182,11 @@ function GameDetailPanelInner({ dataId, initialData }: { dataId?: string; initia
   const cons = data.consensus?.[selectedDeviceId];
   const dev = data.devices?.find(d => d.id === selectedDeviceId);
   const fps = cons?.fps_avg ? Math.round(cons.fps_avg) : 0;
-  const tc = cons?.overall_verdict ? fc(fps) : "#6d6882";
+  const tc = cons?.overall_verdict ? fc(fps) : "var(--color-text-3)";
   const tier = cons?.overall_verdict ? VERDICT_LABEL[cons.overall_verdict] ?? cons.overall_verdict : "No Data";
 
   const [fpsVal, fpsRef] = useCount(fps);
 
-  const gaugeR = mob ? 72 : 90;
-  const gaugeC = 2 * Math.PI * gaugeR;
-  const gaugePct = Math.min(1, fps / 60);
 
   const switchDevice = useCallback(async (deviceId: string) => {
     setSelectedDeviceId(deviceId);
@@ -229,30 +225,26 @@ function GameDetailPanelInner({ dataId, initialData }: { dataId?: string; initia
     .filter(r => r.notes)
     .sort((a, b) => (b.upvotes - b.downvotes) - (a.upvotes - a.downvotes))[0];
 
-  const F = "'Outfit', sans-serif";
-  const M = "'SF Mono', 'Menlo', ui-monospace, monospace";
+  const F = "var(--font-heading)";
+  const M = "var(--font-mono)";
   const gi = data.gameInfo;
   const deckMap: Record<string, { label: string; color: string; bg: string }> = {
     verified: { label: "Verified", color: "#4ade80", bg: "rgba(74,222,128,0.12)" },
     playable: { label: "Playable", color: "#facc15", bg: "rgba(250,204,21,0.12)" },
     unsupported: { label: "Unsupported", color: "#f87171", bg: "rgba(248,113,113,0.12)" },
-    unknown: { label: "Unknown", color: "#6d6882", bg: "rgba(90,84,104,0.12)" },
+    unknown: { label: "Unknown", color: "var(--color-text-3)", bg: "rgba(90,84,104,0.12)" },
   };
   const deckInfo = deckMap[gi?.deckCompatibility ?? "unknown"] ?? deckMap.unknown;
 
   return (
     <div>
-      <style>{`@keyframes gaugeIn { from { stroke-dashoffset: ${gaugeC}; } to { stroke-dashoffset: ${gaugeC - gaugePct * gaugeC}; } } @keyframes pulse { 0%, 100% { opacity: 0.2; } 50% { opacity: 0.45; } }`}</style>
-
       {/* ████████ HERO — SPLIT LAYOUT ████████ */}
       <section ref={fpsRef} style={{
         paddingTop: mob ? 56 : 60,
-        minHeight: mob ? "auto" : "85vh",
+        minHeight: mob ? "auto" : "auto",
         display: "flex", flexDirection: mob ? "column" : "row",
-        position: "relative", overflow: "hidden",
+        position: "relative",
       }}>
-        <div style={{ position: "absolute", inset: 0, background: "radial-gradient(ellipse 60% 50% at 70% 40%, #1a150a15, transparent)", pointerEvents: "none" }} />
-        <div style={{ position: "absolute", top: "20%", right: "30%", width: 400, height: 400, background: `radial-gradient(circle, ${tc}06, transparent 55%)`, filter: "blur(80px)", animation: "pulse 7s ease-in-out infinite", pointerEvents: "none" }} />
 
         {/* LEFT — INSTRUMENT PANEL (on mobile: comes FIRST) */}
         <div style={{
@@ -265,59 +257,29 @@ function GameDetailPanelInner({ dataId, initialData }: { dataId?: string; initia
             {(data.devices ?? []).filter(d => data.consensus?.[d.id]).map(dv => {
               const a = selectedDeviceId === dv.id;
               const dFps = data.consensus[dv.id]?.fps_avg ? Math.round(data.consensus[dv.id].fps_avg!) : 0;
-              const cc = dFps > 0 ? fc(dFps) : "#6d6882";
+              const cc = dFps > 0 ? fc(dFps) : "var(--color-text-3)";
               return (
                 <button key={dv.id} onClick={() => switchDevice(dv.id)} style={{
                   fontFamily: M, fontSize: mob ? 9 : 10,
                   fontWeight: a ? 700 : 500, letterSpacing: "0.06em",
-                  color: a ? cc : "#2a2838",
+                  color: a ? cc : "var(--color-text-dim)",
                   background: a ? `${cc}0c` : "transparent",
                   border: `1px solid ${a ? cc + "25" : "transparent"}`,
                   padding: mob ? "6px 12px" : "7px 16px",
-                  borderRadius: 6, cursor: "pointer",
+                  borderRadius: 0, cursor: "pointer",
                   transition: "all 0.2s",
                 }}>{dv.shortName}</button>
               );
             })}
           </div>
 
-          <div style={{ position: "relative", width: mob ? 180 : 220, height: mob ? 180 : 220, marginBottom: mob ? 20 : 28 }}>
-            <svg width={mob ? 180 : 220} height={mob ? 180 : 220} style={{ position: "absolute", top: 0, left: 0, transform: "rotate(-90deg)" }}>
-              <circle cx={mob ? 90 : 110} cy={mob ? 90 : 110} r={gaugeR} fill="none" stroke="#ffffff06" strokeWidth="3" />
-              {Array.from({ length: 24 }, (_, i) => {
-                const angle = (i / 24) * Math.PI * 2;
-                const cx = mob ? 90 : 110;
-                const cy = mob ? 90 : 110;
-                const r1 = gaugeR - 8;
-                const r2 = gaugeR - (i % 4 === 0 ? 16 : 12);
-                return (
-                  <line key={i}
-                    x1={cx + r1 * Math.cos(angle)} y1={cy + r1 * Math.sin(angle)}
-                    x2={cx + r2 * Math.cos(angle)} y2={cy + r2 * Math.sin(angle)}
-                    stroke={i % 4 === 0 ? "#ffffff12" : "#ffffff06"} strokeWidth={i % 4 === 0 ? 1.5 : 0.75}
-                  />
-                );
-              })}
-              <circle cx={mob ? 90 : 110} cy={mob ? 90 : 110} r={gaugeR} fill="none"
-                stroke={tc} strokeWidth="3"
-                strokeDasharray={gaugeC}
-                strokeDashoffset={gaugeC - gaugePct * gaugeC}
-                strokeLinecap="round"
-                style={{
-                  transition: "stroke-dashoffset 1.6s cubic-bezier(0.16,1,0.3,1), stroke 0.5s",
-                  filter: `drop-shadow(0 0 12px ${tc}50)`,
-                }}
-              />
-            </svg>
-            <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
-              <div style={{
-                fontFamily: M, fontSize: mob ? 56 : 72, fontWeight: 800,
-                color: tc, lineHeight: 0.85, letterSpacing: "-0.06em",
-                textShadow: `0 0 40px ${tc}30, 0 0 80px ${tc}10`,
-                transition: "color 0.5s, text-shadow 0.5s",
-              }}>{fps > 0 ? fpsVal : "—"}</div>
-              <div style={{ fontFamily: M, fontSize: 9, color: "#ffffff20", letterSpacing: "0.3em", marginTop: 4 }}>FPS</div>
-            </div>
+          <div style={{ textAlign: "center", marginBottom: mob ? 20 : 28 }}>
+            <div style={{
+              fontFamily: M, fontSize: mob ? 64 : 96, fontWeight: 700,
+              color: tc, lineHeight: 1, letterSpacing: "-0.04em",
+              transition: "color 0.3s",
+            }}>{fps > 0 ? fpsVal : "—"}</div>
+            <div style={{ fontFamily: M, fontSize: 10, color: "var(--color-text-dim)", letterSpacing: "0.2em", marginTop: 4, textTransform: "uppercase" }}>FPS</div>
           </div>
 
           <div style={{
@@ -336,7 +298,7 @@ function GameDetailPanelInner({ dataId, initialData }: { dataId?: string; initia
             ].map(([v, l]) => (
               <div key={l} style={{ textAlign: "center" }}>
                 <div style={{ fontFamily: M, fontSize: mob ? 16 : 20, fontWeight: 700, color: "#e0dce0" }}>{v}</div>
-                <div style={{ fontFamily: M, fontSize: 7, color: "#2a2838", letterSpacing: "0.12em", marginTop: 3 }}>{l}</div>
+                <div style={{ fontFamily: M, fontSize: 7, color: "var(--color-text-dim)", letterSpacing: "0.12em", marginTop: 3 }}>{l}</div>
               </div>
             ))}
           </div>
@@ -357,7 +319,7 @@ function GameDetailPanelInner({ dataId, initialData }: { dataId?: string; initia
               position: "relative", overflow: "hidden",
             }}>
               <img src={gi.headerImage} alt={data.gameName} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-              <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, #08070c40, transparent)" }} />
+              <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, var(--color-base)40, transparent)" }} />
             </div>
           )}
 
@@ -399,7 +361,7 @@ function GameDetailPanelInner({ dataId, initialData }: { dataId?: string; initia
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
             <a href="/report/new" style={{
               fontFamily: M, fontSize: 10, fontWeight: 700,
-              color: "#08070c", background: tc,
+              color: "var(--color-base)", background: tc,
               padding: "10px 22px", borderRadius: 8, border: "none",
               textDecoration: "none", letterSpacing: "0.04em",
               boxShadow: `0 0 20px ${tc}25`,
@@ -423,8 +385,8 @@ function GameDetailPanelInner({ dataId, initialData }: { dataId?: string; initia
         {cons && (cons.recommended_preset || bal) && (
           <section style={{ marginBottom: mob ? 32 : 44 }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
-              <h2 style={{ fontFamily: F, fontSize: mob ? 18 : 22, fontWeight: 800, color: "#eae6f4", letterSpacing: "-0.02em" }}>
-                Settings <span style={{ fontFamily: M, fontSize: 11, fontWeight: 500, color: "#2a2838" }}>{dev?.name}</span>
+              <h2 style={{ fontFamily: F, fontSize: mob ? 18 : 22, fontWeight: 800, color: "var(--color-text)", letterSpacing: "-0.02em" }}>
+                Settings <span style={{ fontFamily: M, fontSize: 11, fontWeight: 500, color: "var(--color-text-dim)" }}>{dev?.name}</span>
               </h2>
             </div>
             <div style={{ display: "grid", gridTemplateColumns: mob ? "repeat(3, 1fr)" : "repeat(6, 1fr)", gap: 1, borderRadius: 14, overflow: "hidden", marginBottom: 12 }}>
@@ -438,7 +400,7 @@ function GameDetailPanelInner({ dataId, initialData }: { dataId?: string; initia
               ] as [string, string][]).map(([v, l], i) => (
                 <div key={l} style={{ padding: mob ? "16px 8px" : "18px 14px", background: i % 2 === 0 ? "#0c0b12" : "#0a0910", textAlign: "center" }}>
                   <div style={{ fontFamily: M, fontSize: mob ? 13 : 15, fontWeight: 700, color: "#d0cce0", marginBottom: 4 }}>{v}</div>
-                  <div style={{ fontFamily: M, fontSize: 7, color: "#2a2838", letterSpacing: "0.12em" }}>{l}</div>
+                  <div style={{ fontFamily: M, fontSize: 7, color: "var(--color-text-dim)", letterSpacing: "0.12em" }}>{l}</div>
                 </div>
               ))}
             </div>
@@ -459,7 +421,7 @@ function GameDetailPanelInner({ dataId, initialData }: { dataId?: string; initia
 
         {hasTDP && (
           <section style={{ marginBottom: mob ? 32 : 44 }}>
-            <h2 style={{ fontFamily: F, fontSize: mob ? 18 : 22, fontWeight: 800, color: "#eae6f4", letterSpacing: "-0.02em", marginBottom: 14 }}>Profiles</h2>
+            <h2 style={{ fontFamily: F, fontSize: mob ? 18 : 22, fontWeight: 800, color: "var(--color-text)", letterSpacing: "-0.02em", marginBottom: 14 }}>Profiles</h2>
             <div style={{ display: "flex", gap: 1, borderRadius: 14, overflow: "hidden" }}>
               {([
                 ["ECO", eco],
@@ -467,7 +429,7 @@ function GameDetailPanelInner({ dataId, initialData }: { dataId?: string; initia
                 ["MAX", perf],
               ] as [string, TDPProfile | null | undefined][]).map(([label, profile]) => {
                 const pFps = profile?.fpsAvg ? Math.round(profile.fpsAvg) : null;
-                const pc = pFps ? fc(pFps) : "#2a2838";
+                const pc = pFps ? fc(pFps) : "var(--color-text-dim)";
                 const isBal = label === "BAL";
                 return (
                   <div key={label} style={{
@@ -476,16 +438,16 @@ function GameDetailPanelInner({ dataId, initialData }: { dataId?: string; initia
                     textAlign: "center", position: "relative",
                   }}>
                     {isBal && <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 2, background: `linear-gradient(90deg, transparent, ${tc}40, transparent)` }} />}
-                    <div style={{ fontFamily: M, fontSize: 7, color: isBal ? tc : "#2a2838", letterSpacing: "0.15em", marginBottom: 10, fontWeight: isBal ? 700 : 500 }}>{label}</div>
+                    <div style={{ fontFamily: M, fontSize: 7, color: isBal ? tc : "var(--color-text-dim)", letterSpacing: "0.15em", marginBottom: 10, fontWeight: isBal ? 700 : 500 }}>{label}</div>
                     <div style={{
                       fontFamily: M, fontSize: mob ? 32 : 44, fontWeight: 800,
                       color: pc, letterSpacing: "-0.05em", lineHeight: 0.9,
                       textShadow: pFps ? `0 0 20px ${pc}20` : "none",
                     }}>{pFps ?? "—"}</div>
-                    <div style={{ fontFamily: M, fontSize: 9, color: "#6d6882", marginTop: 8 }}>
+                    <div style={{ fontFamily: M, fontSize: 9, color: "var(--color-text-3)", marginTop: 8 }}>
                       {profile?.estimatedBatteryHours ? `${profile.estimatedBatteryHours.toFixed(1)}h` : "—"}
                     </div>
-                    <div style={{ fontFamily: M, fontSize: 8, color: "#2a2838", marginTop: 2 }}>
+                    <div style={{ fontFamily: M, fontSize: 8, color: "var(--color-text-dim)", marginTop: 2 }}>
                       {profile?.tdpWatts ? `${profile.tdpWatts}W` : ""}
                     </div>
                   </div>
@@ -497,7 +459,7 @@ function GameDetailPanelInner({ dataId, initialData }: { dataId?: string; initia
 
         {devicesWithData.length > 1 && (
           <section style={{ marginBottom: mob ? 32 : 44 }}>
-            <h2 style={{ fontFamily: F, fontSize: mob ? 18 : 22, fontWeight: 800, color: "#eae6f4", letterSpacing: "-0.02em", marginBottom: 14 }}>All devices</h2>
+            <h2 style={{ fontFamily: F, fontSize: mob ? 18 : 22, fontWeight: 800, color: "var(--color-text)", letterSpacing: "-0.02em", marginBottom: 14 }}>All devices</h2>
             <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
               {devicesWithData.map(dv => {
                 const dCons = data.consensus[dv.id];
@@ -531,12 +493,12 @@ function GameDetailPanelInner({ dataId, initialData }: { dataId?: string; initia
                     </div>
                     <span style={{
                       fontFamily: M, fontSize: mob ? 20 : 26, fontWeight: 800,
-                      color: a ? cc : "#1a1828",
+                      color: a ? cc : "var(--color-border)",
                       textShadow: a ? `0 0 12px ${cc}20` : "none",
                       minWidth: 40, textAlign: "right",
                       transition: "all 0.25s",
-                    }}>{dFps}<span style={{ fontSize: 10, marginLeft: 2, opacity: 0.5 }}>{fpsTierIcon(dFps)}</span></span>
-                    {!mob && <span style={{ fontFamily: M, fontSize: 10, color: a ? "#6d6882" : "#1a1828", width: 50 }}>
+                    }}>{dFps}</span>
+                    {!mob && <span style={{ fontFamily: M, fontSize: 10, color: a ? "var(--color-text-3)" : "var(--color-border)", width: 50 }}>
                       {dCons.estimated_battery ? `${dCons.estimated_battery.toFixed(1)}h` : ""}
                     </span>}
                   </div>
@@ -548,8 +510,8 @@ function GameDetailPanelInner({ dataId, initialData }: { dataId?: string; initia
 
         <section style={{ marginBottom: mob ? 32 : 44 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16, flexWrap: "wrap", gap: 10 }}>
-            <h2 style={{ fontFamily: F, fontSize: mob ? 18 : 22, fontWeight: 800, color: "#eae6f4", letterSpacing: "-0.02em" }}>
-              Reports <span style={{ fontFamily: M, fontSize: 12, color: "#2a2838", fontWeight: 500 }}>{cons?.report_count ?? 0}</span>
+            <h2 style={{ fontFamily: F, fontSize: mob ? 18 : 22, fontWeight: 800, color: "var(--color-text)", letterSpacing: "-0.02em" }}>
+              Reports <span style={{ fontFamily: M, fontSize: 12, color: "var(--color-text-dim)", fontWeight: 500 }}>{cons?.report_count ?? 0}</span>
             </h2>
             <div style={{ display: "flex", gap: 2 }}>
               {([["helpful", "Top"], ["best", "Best"], ["recent", "New"]] as [typeof sort, string][]).map(([id, l]) => (
@@ -557,7 +519,7 @@ function GameDetailPanelInner({ dataId, initialData }: { dataId?: string; initia
                   fontFamily: M, fontSize: 9, fontWeight: 600,
                   padding: "5px 12px", borderRadius: 6, border: "none", cursor: "pointer",
                   background: sort === id ? "#ffffff08" : "transparent",
-                  color: sort === id ? "#a09ab0" : "#2a2838",
+                  color: sort === id ? "#a09ab0" : "var(--color-text-dim)",
                 }}>{l}</button>
               ))}
             </div>
@@ -565,7 +527,7 @@ function GameDetailPanelInner({ dataId, initialData }: { dataId?: string; initia
 
           {reportsLoading ? (
             <div style={{ padding: "48px 0", textAlign: "center" }}>
-              <div style={{ fontFamily: M, fontSize: 10, color: "#2a2838" }}>Loading reports…</div>
+              <div style={{ fontFamily: M, fontSize: 10, color: "var(--color-text-dim)" }}>Loading reports…</div>
             </div>
           ) : sortedReports.length > 0 ? (
             <div style={{ display: "grid", gridTemplateColumns: mob ? "1fr" : "1fr 1fr", gap: mob ? 8 : 10 }}>
@@ -599,7 +561,7 @@ function GameDetailPanelInner({ dataId, initialData }: { dataId?: string; initia
                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
                         <div>
                           <div style={{ fontFamily: F, fontSize: 13, fontWeight: 700, color: "#b0acc0" }}>{displayName}</div>
-                          <div style={{ fontFamily: M, fontSize: 9, color: "#2a2838", marginTop: 2 }}>
+                          <div style={{ fontFamily: M, fontSize: 9, color: "var(--color-text-dim)", marginTop: 2 }}>
                             {settings}{batStr ? ` · ${batStr}` : ""}
                           </div>
                         </div>
@@ -607,12 +569,12 @@ function GameDetailPanelInner({ dataId, initialData }: { dataId?: string; initia
                           fontFamily: M, fontSize: 28, fontWeight: 800,
                           color: rc, letterSpacing: "-0.04em", lineHeight: 0.85,
                           textShadow: `0 0 12px ${rc}20`,
-                        }}>{Math.round(r.fps_avg)}<span style={{ fontSize: 10, marginLeft: 2, opacity: 0.5 }}>{fpsTierIcon(r.fps_avg)}</span></div>
+                        }}>{Math.round(r.fps_avg)}</div>
                       </div>
 
                       {r.notes && (
                         <div style={{
-                          fontFamily: F, fontSize: 12, color: "#6d6882",
+                          fontFamily: F, fontSize: 12, color: "var(--color-text-3)",
                           lineHeight: 1.6, paddingLeft: 12,
                           borderLeft: `2px solid ${rc}12`,
                           marginBottom: 10,
@@ -620,7 +582,7 @@ function GameDetailPanelInner({ dataId, initialData }: { dataId?: string; initia
                       )}
 
                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                        <span style={{ fontFamily: M, fontSize: 8, color: "#1a1828" }}>{timeAgo(r.created_at)}</span>
+                        <span style={{ fontFamily: M, fontSize: 8, color: "var(--color-border)" }}>{timeAgo(r.created_at)}</span>
                         <VoteButtons
                           reportId={r.id}
                           initialUpvotes={r.upvotes}
@@ -639,8 +601,8 @@ function GameDetailPanelInner({ dataId, initialData }: { dataId?: string; initia
               padding: "40px 20px", borderRadius: 16, background: "#0a0910",
               border: "1px solid #ffffff04", textAlign: "center",
             }}>
-              <div style={{ fontFamily: F, fontSize: 14, fontWeight: 700, color: "#eae6f4", marginBottom: 4 }}>No reports yet</div>
-              <div style={{ fontFamily: M, fontSize: 10, color: "#2a2838" }}>Be the first to submit data for this device</div>
+              <div style={{ fontFamily: F, fontSize: 14, fontWeight: 700, color: "var(--color-text)", marginBottom: 4 }}>No reports yet</div>
+              <div style={{ fontFamily: M, fontSize: 10, color: "var(--color-text-dim)" }}>Be the first to submit data for this device</div>
             </div>
           )}
 

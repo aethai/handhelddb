@@ -25,10 +25,7 @@ const navLinks = [
     <div class="hdb-header-left">
       <!-- Logo -->
       <a href="/" class="hdb-logo">
-        <div class="hdb-logo-mark">
-          <div class="hdb-logo-dot"></div>
-        </div>
-        <span class="hdb-logo-text">HandheldDB</span>
+        <span class="hdb-logo-text">HDB</span>
       </a>
 
       <!-- Navigation (desktop) -->
@@ -57,6 +54,12 @@ const navLinks = [
       {user && (
         <NotificationBell client:load />
       )}
+
+      <!-- Theme toggle -->
+      <button id="theme-toggle" class="hdb-theme-toggle" aria-label="Toggle theme">
+        <svg class="hdb-theme-icon-sun" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+        <svg class="hdb-theme-icon-moon" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+      </button>
 
       <!-- Submit button -->
       <a href="/report/new" class="hidden sm:inline-flex hdb-submit-btn">
@@ -106,23 +109,22 @@ const navLinks = [
 <!-- Mobile menu backdrop -->
 <div
   id="mobile-menu-backdrop"
-  class="fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm opacity-0 invisible transition-all duration-300"
+  class="fixed inset-0 z-[60] bg-black/60 opacity-0 invisible transition-all duration-300"
 ></div>
 
 <!-- Mobile menu drawer -->
 <nav
   id="mobile-menu-drawer"
-  class="fixed top-0 right-0 z-[70] h-full w-72 translate-x-full transition-transform duration-300 ease-in-out"
-  style="background:#08070c;border-left:1px solid rgba(255,255,255,0.06);box-shadow:0 0 40px rgba(0,0,0,0.5);"
+  class="fixed top-0 right-0 z-[70] h-full w-72 translate-x-full transition-transform duration-300 ease-in-out bg-[var(--color-base)] border-l border-[var(--color-border)]"
 >
   <div class="flex h-full flex-col">
     <!-- Drawer header -->
-    <div style="display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,0.06);padding:16px 20px;">
-      <span style="font-family:var(--font-display);font-size:14px;font-weight:700;color:#eae6f4;">Menu</span>
+    <div class="flex items-center justify-between border-b border-[var(--color-border)] px-5 py-4">
+      <span class="font-[var(--font-heading)] text-sm font-bold text-[var(--color-text)] uppercase tracking-tight">Menu</span>
       <button
         id="mobile-menu-close"
         type="button"
-        style="padding:6px;color:#6d6882;background:none;border:none;cursor:pointer;"
+        class="p-1.5 text-[var(--color-text-3)] bg-transparent border-none cursor-pointer"
         aria-label="Close menu"
       >
         <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -132,20 +134,22 @@ const navLinks = [
     </div>
 
     <!-- Mobile Search -->
-    <div style="padding:12px 12px 0;">
+    <div class="px-3 pt-3">
       <SearchBar client:load variant="header" placeholder="Search games..." />
     </div>
 
     <!-- Nav links -->
-    <div style="flex:1;overflow-y:auto;padding:16px 12px;">
-      <div style="display:flex;flex-direction:column;gap:4px;">
+    <div class="flex-1 overflow-y-auto p-3">
+      <div class="flex flex-col gap-1">
         {navLinks.map(({ href, label }) => {
           const isActive = currentPath.startsWith(href);
           return (
             <a
               href={href}
-              class="mobile-menu-link"
-              style={`display:block;border-radius:8px;padding:12px 16px;font-size:14px;font-weight:500;text-decoration:none;transition:all 0.15s;color:${isActive ? '#eae6f4' : '#9890a8'};background:${isActive ? '#0e0c16' : 'transparent'};`}
+              class:list={[
+                'mobile-menu-link block px-4 py-3 text-sm font-medium no-underline transition-colors uppercase tracking-wide',
+                isActive ? 'text-[var(--color-text)] bg-[var(--color-elevated)]' : 'text-[var(--color-text-2)]'
+              ]}
             >
               {label}
             </a>
@@ -153,14 +157,13 @@ const navLinks = [
         })}
       </div>
 
-      <div style="margin:16px 0;border-top:1px solid rgba(255,255,255,0.06);"></div>
+      <div class="my-4 border-t border-[var(--color-border)]"></div>
 
       <a
         href="/report/new"
-        class="mobile-menu-link"
-        style="display:flex;align-items:center;gap:8px;border-radius:8px;background:rgba(167,139,250,0.1);border:1px solid rgba(167,139,250,0.2);padding:12px 16px;font-size:14px;font-weight:600;color:#a78bfa;text-decoration:none;transition:background 0.15s;"
+        class="mobile-menu-link flex items-center gap-2 bg-[#D4FF00] px-4 py-3 text-sm font-bold text-[#0a0a0a] no-underline font-mono uppercase tracking-wider"
       >
-        <svg style="width:16px;height:16px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
         </svg>
         Submit Report
@@ -168,30 +171,29 @@ const navLinks = [
     </div>
 
     <!-- Auth at bottom -->
-    <div style="border-top:1px solid rgba(255,255,255,0.06);padding:16px 12px;">
+    <div class="border-t border-[var(--color-border)] p-3">
       {user ? (
-        <div style="display:flex;flex-direction:column;gap:8px;">
-          <div style="display:flex;align-items:center;gap:12px;padding:8px 16px;">
+        <div class="flex flex-col gap-2">
+          <div class="flex items-center gap-3 px-4 py-2">
             {avatarUrl ? (
-              <img src={avatarUrl} alt="" style="height:32px;width:32px;border-radius:50%;" />
+              <img src={avatarUrl} alt="" class="h-8 w-8" />
             ) : (
-              <div style="height:32px;width:32px;border-radius:50%;background:#a78bfa;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#08070c;">
+              <div class="h-8 w-8 bg-[#D4FF00] flex items-center justify-center text-sm font-bold text-[#0a0a0a]">
                 {displayName.charAt(0).toUpperCase()}
               </div>
             )}
-            <div style="min-width:0;">
-              <p style="font-size:14px;font-weight:500;color:#eae6f4;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{displayName}</p>
-              <p style="font-size:11px;color:#6d6882;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{user.email}</p>
+            <div class="min-w-0">
+              <p class="text-sm font-medium text-[var(--color-text)] truncate">{displayName}</p>
+              <p class="text-[11px] text-[var(--color-text-3)] truncate">{user.email}</p>
             </div>
           </div>
-          <a href="/profile" class="mobile-menu-link" style="display:block;border-radius:8px;padding:10px 16px;font-size:13px;color:#9890a8;text-decoration:none;">Profile</a>
-          <a href="/auth/logout" class="mobile-menu-link" style="display:block;border-radius:8px;padding:10px 16px;font-size:13px;color:#f87171;text-decoration:none;">Sign out</a>
+          <a href="/profile" class="mobile-menu-link block px-4 py-2.5 text-[13px] text-[var(--color-text-2)] no-underline">Profile</a>
+          <a href="/auth/logout" class="mobile-menu-link block px-4 py-2.5 text-[13px] text-[var(--color-fps-red)] no-underline">Sign out</a>
         </div>
       ) : (
         <a
           href="/auth/login"
-          class="mobile-menu-link"
-          style="display:flex;align-items:center;justify-content:center;gap:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.09);padding:12px 16px;font-size:14px;font-weight:500;color:#9890a8;text-decoration:none;transition:all 0.15s;"
+          class="mobile-menu-link flex items-center justify-center gap-2 border border-[var(--color-border)] px-4 py-3 text-sm font-medium text-[var(--color-text-2)] no-underline transition-colors"
         >
           Sign in
         </a>
@@ -205,20 +207,14 @@ const navLinks = [
     position: sticky;
     top: 0;
     z-index: 50;
-    background: rgba(8, 7, 12, 0.92);
-    backdrop-filter: blur(24px);
-    border-bottom: 1px solid rgba(255,255,255,0.06);
-    transition: background 0.3s, border-color 0.3s;
-  }
-  .hdb-header.scrolled {
-    background: rgba(8, 7, 12, 0.98);
-    border-bottom-color: rgba(255,255,255,0.08);
+    background: var(--color-base);
+    border-bottom: 1px solid var(--color-border);
   }
   .hdb-header-inner {
-    max-width: 1080px;
+    max-width: 1120px;
     margin: 0 auto;
     padding: 0 24px;
-    height: 56px;
+    height: 52px;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -238,75 +234,74 @@ const navLinks = [
   .hdb-logo {
     display: flex;
     align-items: center;
-    gap: 8px;
     text-decoration: none;
   }
-  .hdb-logo-mark {
-    width: 24px;
-    height: 24px;
-    border-radius: 7px;
-    background: rgba(167,139,250,0.12);
-    border: 1px solid rgba(167,139,250,0.25);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s;
-  }
-  .hdb-logo:hover .hdb-logo-mark {
-    background: rgba(167,139,250,0.18);
-    border-color: rgba(167,139,250,0.35);
-    box-shadow: 0 0 12px rgba(167,139,250,0.15);
-  }
-  .hdb-logo-dot {
-    width: 7px;
-    height: 7px;
-    border-radius: 2px;
-    background: #a78bfa;
-  }
   .hdb-logo-text {
-    font-family: var(--font-display);
-    font-weight: 800;
-    font-size: 16px;
-    color: #eae6f4;
+    font-family: var(--font-heading);
+    font-weight: 700;
+    font-size: 18px;
+    color: var(--color-text);
     letter-spacing: -0.02em;
+    text-transform: uppercase;
+    transition: color 0.15s;
+  }
+  .hdb-logo:hover .hdb-logo-text {
+    color: #D4FF00;
   }
 
   /* Navigation */
   .hdb-nav {
-    gap: 6px;
+    gap: 4px;
   }
   .hdb-nav-link {
+    position: relative;
     font-family: var(--font-sans);
     font-size: 13px;
     font-weight: 500;
-    color: #6d6882;
+    color: var(--color-text-3);
     text-decoration: none;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
     padding: 6px 10px;
-    border-radius: 6px;
-    transition: all 0.15s;
+    transition: color 0.15s;
   }
   .hdb-nav-link:hover {
-    color: #9890a8;
-    background: rgba(255,255,255,0.03);
+    color: var(--color-text);
   }
   .hdb-nav-link.is-active {
-    color: #eae6f4;
-    background: rgba(255,255,255,0.04);
+    color: var(--color-text);
   }
   .hdb-nav-link.is-active::after {
     content: '';
     position: absolute;
-    bottom: -1px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 16px;
+    bottom: -14px;
+    left: 10px;
+    right: 10px;
     height: 2px;
-    background: #a78bfa;
-    border-radius: 1px;
+    background: #D4FF00;
   }
-  .hdb-nav-link {
-    position: relative;
+
+  /* Theme toggle */
+  .hdb-theme-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    background: none;
+    border: 1px solid var(--color-border);
+    border-radius: 0;
+    color: var(--color-text-3);
+    cursor: pointer;
+    transition: border-color 0.15s, color 0.15s;
   }
+  .hdb-theme-toggle:hover {
+    border-color: #D4FF00;
+    color: #D4FF00;
+  }
+  .hdb-theme-icon-moon { display: none; }
+  html.light .hdb-theme-icon-sun { display: none; }
+  html.light .hdb-theme-icon-moon { display: block; }
 
   /* Submit button */
   .hdb-submit-btn {
@@ -314,67 +309,65 @@ const navLinks = [
     font-size: 10px;
     font-weight: 700;
     letter-spacing: 0.06em;
-    color: #08070c;
-    background: #a78bfa;
+    color: #0a0a0a;
+    background: #D4FF00;
     padding: 7px 16px;
-    border-radius: 8px;
+    border-radius: 0;
     text-decoration: none;
-    transition: all 0.2s;
-    box-shadow: 0 0 16px rgba(167,139,250,0.2);
+    transition: background-color 0.15s;
   }
   .hdb-submit-btn:hover {
-    background: #c4b5fd;
-    box-shadow: 0 0 24px rgba(167,139,250,0.3);
-    transform: translateY(-1px);
+    background: #e8ff4d;
   }
 
   /* Sign in */
   .hdb-signin-link {
-    font-family: var(--font-sans);
-    font-size: 13px;
+    font-family: var(--font-mono);
+    font-size: 12px;
     font-weight: 500;
-    color: #6d6882;
+    color: var(--color-text-3);
     text-decoration: none;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
     transition: color 0.15s;
   }
-  .hdb-signin-link:hover { color: #9890a8; }
+  .hdb-signin-link:hover { color: #D4FF00; }
 
   /* Avatar */
   .hdb-avatar-btn {
     display: flex;
     align-items: center;
     gap: 8px;
-    border-radius: 8px;
-    border: 1px solid rgba(255,255,255,0.06);
+    border: 1px solid var(--color-border);
+    border-radius: 0;
     padding: 4px 10px 4px 4px;
     background: none;
     cursor: pointer;
-    transition: all 0.15s;
+    transition: border-color 0.15s;
   }
   .hdb-avatar-btn:hover {
-    border-color: rgba(255,255,255,0.1);
-    background: rgba(255,255,255,0.02);
+    border-color: var(--color-border-strong);
   }
   .hdb-avatar-img {
     height: 26px;
     width: 26px;
-    border-radius: 50%;
+    border-radius: 0;
   }
   .hdb-avatar-fallback {
     height: 26px;
     width: 26px;
-    border-radius: 50%;
-    background: #a78bfa;
+    border-radius: 0;
+    background: #D4FF00;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 12px;
     font-weight: 700;
-    color: #08070c;
+    color: #0a0a0a;
   }
   .hdb-avatar-name {
     font-size: 13px;
-    color: #9890a8;
+    color: var(--color-text-2);
   }
 
   /* Dropdown */
@@ -383,10 +376,11 @@ const navLinks = [
     right: 0;
     margin-top: 8px;
     width: 192px;
-    border-radius: 12px;
-    background: #0e0c16;
-    border: 1px solid rgba(255,255,255,0.08);
-    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    border-radius: 0;
+    background: var(--color-raised);
+    border: 1px solid var(--color-border);
+    border-top: 2px solid #D4FF00;
+    box-shadow: var(--shadow-elevated);
     opacity: 0;
     visibility: hidden;
     transform: translateY(-4px);
@@ -402,18 +396,18 @@ const navLinks = [
   }
   .hdb-dropdown-link {
     display: block;
-    border-radius: 8px;
     padding: 8px 12px;
     font-size: 13px;
-    color: #9890a8;
+    color: var(--color-text-2);
     text-decoration: none;
-    transition: background 0.1s;
+    transition: background-color 0.1s, color 0.1s;
   }
   .hdb-dropdown-link:hover {
-    background: rgba(255,255,255,0.04);
+    background: var(--color-elevated);
+    color: var(--color-text);
   }
   .hdb-dropdown-danger {
-    color: #f87171;
+    color: var(--color-fps-red);
   }
 
   /* Hamburger */
@@ -429,12 +423,11 @@ const navLinks = [
   }
   .hdb-hamburger-line {
     height: 1.5px;
-    background: #6d6882;
-    border-radius: 1px;
+    background: var(--color-text-3);
     transition: background 0.15s;
   }
   .hdb-hamburger:hover .hdb-hamburger-line {
-    background: #9890a8;
+    background: var(--color-text-2);
   }
 </style>
 
@@ -488,23 +481,15 @@ const navLinks = [
   initMobileMenu();
   document.addEventListener('astro:after-swap', initMobileMenu);
 
-  // Header scroll state
-  function initHeaderScroll() {
-    const header = document.querySelector('.hdb-header');
-    if (!header) return;
-    let ticking = false;
-    window.addEventListener('scroll', () => {
-      if (!ticking) {
-        requestAnimationFrame(() => {
-          header.classList.toggle('scrolled', window.scrollY > 20);
-          ticking = false;
-        });
-        ticking = true;
-      }
-    }, { passive: true });
-    // Set initial state
-    header.classList.toggle('scrolled', window.scrollY > 20);
+  // Theme toggle
+  function initThemeToggle() {
+    const toggle = document.getElementById('theme-toggle');
+    if (!toggle) return;
+    toggle.addEventListener('click', () => {
+      const isLight = document.documentElement.classList.toggle('light');
+      localStorage.setItem('hdb-theme', isLight ? 'light' : 'dark');
+    });
   }
-  initHeaderScroll();
-  document.addEventListener('astro:after-swap', initHeaderScroll);
+  initThemeToggle();
+  document.addEventListener('astro:after-swap', initThemeToggle);
 </script>

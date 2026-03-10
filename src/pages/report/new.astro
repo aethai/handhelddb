@@ -23,11 +23,11 @@ const deviceId = Astro.url.searchParams.get('device') ?? undefined;
   <div class="section-spotlight">
   <div class="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 py-8">
     <h1 class="text-3xl font-bold text-white">Submit Performance Report</h1>
-    <p class="mt-2 text-[#9890a8]">
+    <p class="mt-2 text-[var(--color-text-2)]">
       Share your game performance data to help the community find optimal settings.
     </p>
 
-    <div class="mt-8 rounded-xl border border-white/6 bg-[#0e0c16] p-6">
+    <div class="mt-8 rounded-lg border border-white/6 bg-[var(--color-raised)] p-6">
       <ReportForm
         client:load
         devices={devices}

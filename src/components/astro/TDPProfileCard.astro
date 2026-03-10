@@ -25,17 +25,17 @@ const tierConfig = {
     label: 'Battery Saver',
     icon: '🔋',
     color: 'copper',
-    border: 'border-[#a78bfa]/30',
-    bg: 'bg-[#a78bfa]/5',
-    accent: 'text-[#a78bfa]',
+    border: 'border-[#D4FF00]/30',
+    bg: 'bg-[#D4FF00]/5',
+    accent: 'text-[#D4FF00]',
   },
   balanced: {
     label: 'Balanced',
     icon: '⚖️',
     color: 'copper',
-    border: 'border-[#a78bfa]/30',
-    bg: 'bg-[#a78bfa]/5',
-    accent: 'text-[#a78bfa]',
+    border: 'border-[#D4FF00]/30',
+    bg: 'bg-[#D4FF00]/5',
+    accent: 'text-[#D4FF00]',
   },
   performance: {
     label: 'Performance',
@@ -60,13 +60,13 @@ const thermalLabels: Record<string, string> = { cool: 'Cool', warm: 'Warm', hot:
 const fanLabels: Record<string, string> = { silent: 'Silent', quiet: 'Quiet', audible: 'Audible', loud: 'Loud' };
 ---
 
-<div class={`rounded-xl border ${config.border} ${config.bg} p-5`}>
+<div class={`border ${config.border} ${config.bg} p-5`} style="border-radius:8px;">
   <div class="flex items-center justify-between mb-4">
     <div class="flex items-center gap-2">
       <span class="text-lg">{config.icon}</span>
       <h4 class={`text-sm font-semibold ${config.accent}`}>{config.label}</h4>
     </div>
-    <span class="rounded-full bg-[#12101a] px-2 py-0.5 text-[10px] text-[#9890a8]">
+    <span class="rounded-full bg-[var(--color-elevated)] px-2 py-0.5 text-[10px] text-[var(--color-text-2)]">
       {profile.reportCount} report{profile.reportCount !== 1 ? 's' : ''}
     </span>
   </div>
@@ -74,41 +74,41 @@ const fanLabels: Record<string, string> = { silent: 'Silent', quiet: 'Quiet', au
   <!-- Big FPS number -->
   <div class="text-center mb-4">
     <p class={`text-4xl font-bold font-mono ${fpsColor(profile.fpsAvg)}`}>{Math.round(profile.fpsAvg)}</p>
-    <p class="text-xs text-[#4a4560] mt-1">avg FPS</p>
+    <p class="text-xs text-[var(--color-text-dim)] mt-1">avg FPS</p>
   </div>
 
   <!-- Settings grid -->
   <div class="space-y-2 text-sm">
     <div class="flex justify-between">
-      <span class="text-[#4a4560]">TDP</span>
+      <span class="text-[var(--color-text-dim)]">TDP</span>
       <span class="text-white font-medium font-mono">{profile.tdpWatts}W</span>
     </div>
     <div class="flex justify-between">
-      <span class="text-[#4a4560]">Resolution</span>
-      <span class="text-[#9890a8]">{profile.resolution}</span>
+      <span class="text-[var(--color-text-dim)]">Resolution</span>
+      <span class="text-[var(--color-text-2)]">{profile.resolution}</span>
     </div>
     <div class="flex justify-between">
-      <span class="text-[#4a4560]">Preset</span>
-      <span class="text-[#9890a8] capitalize">{profile.preset.replace('_', ' ')}</span>
+      <span class="text-[var(--color-text-dim)]">Preset</span>
+      <span class="text-[var(--color-text-2)] capitalize">{profile.preset.replace('_', ' ')}</span>
     </div>
     {profile.fsrEnabled && (
       <div class="flex justify-between">
-        <span class="text-[#4a4560]">FSR/DLSS</span>
-        <span class="text-[#9890a8] capitalize">{profile.fsrMode ?? 'On'}</span>
+        <span class="text-[var(--color-text-dim)]">FSR/DLSS</span>
+        <span class="text-[var(--color-text-2)] capitalize">{profile.fsrMode ?? 'On'}</span>
       </div>
     )}
-    <div class="border-t border-[#12101a] my-2"></div>
+    <div class="border-t border-[var(--color-elevated)] my-2"></div>
     <div class="flex justify-between">
-      <span class="text-[#4a4560]">Battery</span>
-      <span class="text-[#9890a8] font-mono">{profile.estimatedBatteryHours.toFixed(1)}h</span>
+      <span class="text-[var(--color-text-dim)]">Battery</span>
+      <span class="text-[var(--color-text-2)] font-mono">{profile.estimatedBatteryHours.toFixed(1)}h</span>
     </div>
     <div class="flex justify-between">
-      <span class="text-[#4a4560]">Thermal</span>
-      <span class="text-[#9890a8]">{thermalLabels[profile.thermal] ?? profile.thermal}</span>
+      <span class="text-[var(--color-text-dim)]">Thermal</span>
+      <span class="text-[var(--color-text-2)]">{thermalLabels[profile.thermal] ?? profile.thermal}</span>
     </div>
     <div class="flex justify-between">
-      <span class="text-[#4a4560]">Fan</span>
-      <span class="text-[#9890a8]">{fanLabels[profile.fanNoise] ?? profile.fanNoise}</span>
+      <span class="text-[var(--color-text-dim)]">Fan</span>
+      <span class="text-[var(--color-text-2)]">{fanLabels[profile.fanNoise] ?? profile.fanNoise}</span>
     </div>
   </div>
 </div>

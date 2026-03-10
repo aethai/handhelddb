@@ -91,7 +91,7 @@ function formatDate(dateStr: string): string {
 
 function ratingBadgeColor(rating: string): string {
   switch (rating) {
-    case 'excellent': return 'bg-[#7c6cf0]/20 text-[#7c6cf0]';
+    case 'excellent': return 'bg-[#D4FF00]/20 text-[#D4FF00]';
     case 'good': return 'bg-green-500/20 text-green-400';
     case 'fair': return 'bg-yellow-500/20 text-yellow-400';
     case 'poor': return 'bg-orange-500/20 text-orange-400';
@@ -116,15 +116,15 @@ function ratingBadgeColor(rating: string): string {
         <!-- Stats Grid -->
         <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-8">
           {stats.map(stat => (
-            <div class="rounded-xl border border-[#1a1a22] bg-[#0f0f12] p-4">
+            <div class="rounded-lg border border-[#1a1a22] bg-[#0f0f12] p-4">
               <p class="text-xs font-medium text-[#55555e]">{stat.label}</p>
               <p class:list={[
                 'mt-2 text-2xl font-bold',
-                stat.color === 'copper' && 'text-[#7c6cf0]',
+                stat.color === 'copper' && 'text-[#D4FF00]',
                 stat.color === 'blue' && 'text-blue-400',
                 stat.color === 'purple' && 'text-purple-400',
                 stat.color === 'amber' && 'text-amber-400',
-                stat.color === 'copper' && 'text-[#7c6cf0]',
+                stat.color === 'copper' && 'text-[#D4FF00]',
                 stat.color === 'rose' && 'text-rose-400',
               ]}>
                 {stat.value.toLocaleString()}
@@ -136,10 +136,10 @@ function ratingBadgeColor(rating: string): string {
         <!-- Recent Content -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <!-- Recent Users -->
-          <div class="rounded-xl border border-[#1a1a22] bg-[#0f0f12] p-5">
+          <div class="rounded-lg border border-[#1a1a22] bg-[#0f0f12] p-5">
             <div class="flex items-center justify-between mb-4">
               <h2 class="text-sm font-semibold text-white">Recent Registrations</h2>
-              <a href="/admin/users" class="text-xs text-[#7c6cf0] hover:text-[#9b8fff]">View all</a>
+              <a href="/admin/users" class="text-xs text-[#D4FF00] hover:text-[#9b8fff]">View all</a>
             </div>
             {(!recentUsers || recentUsers.length === 0) ? (
               <p class="text-sm text-[#55555e]">No users yet.</p>
@@ -166,7 +166,7 @@ function ratingBadgeColor(rating: string): string {
           </div>
 
           <!-- Recent Reports -->
-          <div class="rounded-xl border border-[#1a1a22] bg-[#0f0f12] p-5">
+          <div class="rounded-lg border border-[#1a1a22] bg-[#0f0f12] p-5">
             <div class="flex items-center justify-between mb-4">
               <h2 class="text-sm font-semibold text-white">Recent Reports</h2>
               <span class="text-xs text-[#55555e]">{totalReports ?? 0} total</span>
@@ -195,13 +195,13 @@ function ratingBadgeColor(rating: string): string {
         </div>
 
         <!-- System Status -->
-        <div class="mt-6 rounded-xl border border-[#1a1a22] bg-[#0f0f12] p-5">
+        <div class="mt-6 rounded-lg border border-[#1a1a22] bg-[#0f0f12] p-5">
           <h2 class="text-sm font-semibold text-white mb-3">System Status</h2>
           <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
             <div>
               <span class="text-[#55555e]">Database</span>
-              <span class="ml-2 inline-flex items-center gap-1 text-[#7c6cf0]">
-                <span class="h-1.5 w-1.5 rounded-full bg-[#7c6cf0]"></span>
+              <span class="ml-2 inline-flex items-center gap-1 text-[#D4FF00]">
+                <span class="h-1.5 w-1.5 rounded-full bg-[#D4FF00]"></span>
                 Connected
               </span>
             </div>

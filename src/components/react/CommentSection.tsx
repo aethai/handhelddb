@@ -148,7 +148,7 @@ function CommentSectionInner({ gameId, currentUserId }: Props) {
       <h3 className="text-lg font-semibold text-white">
         Comments{' '}
         {total > 0 && (
-          <span className="text-sm font-normal text-[#4a4560]">({total})</span>
+          <span className="text-sm font-normal text-[var(--color-text-dim)]">({total})</span>
         )}
       </h3>
 
@@ -169,7 +169,7 @@ function CommentSectionInner({ gameId, currentUserId }: Props) {
       {/* Loading */}
       {loading ? (
         <div className="flex items-center justify-center py-12">
-          <svg className="h-6 w-6 animate-spin text-[#4a4560]" viewBox="0 0 24 24" fill="none">
+          <svg className="h-6 w-6 animate-spin text-[var(--color-text-dim)]" viewBox="0 0 24 24" fill="none">
             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
             <path
               className="opacity-75"
@@ -180,7 +180,7 @@ function CommentSectionInner({ gameId, currentUserId }: Props) {
         </div>
       ) : comments.length === 0 ? (
         <div className="text-center py-8">
-          <p className="text-sm text-[#4a4560]">No comments yet. Be the first to share your thoughts!</p>
+          <p className="text-sm text-[var(--color-text-dim)]">No comments yet. Be the first to share your thoughts!</p>
         </div>
       ) : (
         <>
@@ -205,7 +205,7 @@ function CommentSectionInner({ gameId, currentUserId }: Props) {
               <button
                 onClick={() => fetchComments(offset, true)}
                 disabled={loadingMore}
-                className="rounded-lg border border-[#1a1828] px-5 py-2 text-sm text-gray-300 hover:border-[#2a2838] hover:text-white transition-colors disabled:opacity-50"
+                className="rounded-lg border border-[var(--color-border)] px-5 py-2 text-sm text-gray-300 hover:border-[var(--color-text-dim)] hover:text-white transition-colors disabled:opacity-50"
               >
                 {loadingMore ? (
                   <span className="flex items-center gap-2">
@@ -416,7 +416,7 @@ function CommentThread({ node, gameId, currentUserId, onReply, onVote, onDelete 
   if (comment.is_deleted) {
     return (
       <div style={{ paddingLeft: indentLevel > 0 ? `${indentLevel * 24}px` : undefined }}>
-        <div className="rounded-lg border border-[#12101a]/50 bg-[#0e0c16]/30 px-4 py-3 my-1">
+        <div className="rounded-lg border border-[var(--color-elevated)]/50 bg-[var(--color-raised)]/30 px-4 py-3 my-1">
           <p className="text-sm text-gray-600 italic">[deleted]</p>
         </div>
         {node.children.length > 0 && (
@@ -442,7 +442,7 @@ function CommentThread({ node, gameId, currentUserId, onReply, onVote, onDelete 
 
   return (
     <div style={{ paddingLeft: indentLevel > 0 ? `${indentLevel * 24}px` : undefined }}>
-      <div className="rounded-lg border border-[#12101a] bg-[#0e0c16]/50 px-4 py-3 my-1">
+      <div className="rounded-lg border border-[var(--color-elevated)] bg-[var(--color-raised)]/50 px-4 py-3 my-1">
         {/* Header: avatar + name + time */}
         <div className="flex items-center gap-2.5 mb-2">
           {comment.user.avatar_url ? (
@@ -453,7 +453,7 @@ function CommentThread({ node, gameId, currentUserId, onReply, onVote, onDelete 
             />
           ) : (
             <div className="flex h-7 w-7 items-center justify-center rounded-full bg-gray-700 flex-shrink-0">
-              <span className="text-[10px] font-bold text-[#9890a8]">
+              <span className="text-[10px] font-bold text-[var(--color-text-2)]">
                 {getInitials(comment.user.display_name)}
               </span>
             </div>
@@ -477,14 +477,14 @@ function CommentThread({ node, gameId, currentUserId, onReply, onVote, onDelete 
               onChange={e => setEditBody(e.target.value)}
               maxLength={5000}
               rows={3}
-              className="w-full rounded-lg border border-[#1a1828] bg-[#12101a] py-2.5 px-4 text-sm text-white placeholder-[#4a4560] focus:border-[#a78bfa] focus:outline-none focus:ring-1 focus:ring-[#a78bfa] resize-none"
+              className="w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-elevated)] py-2.5 px-4 text-sm text-white placeholder-[var(--color-text-dim)] focus:border-[#D4FF00] focus:outline-none focus:ring-1 focus:ring-[#D4FF00] resize-none"
               onKeyDown={e => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); handleEdit(); } }}
               autoFocus
             />
             {editError && <p className="text-xs text-red-400">{editError}</p>}
             <div className="flex items-center gap-2 justify-end">
-              <button onClick={() => { setEditing(false); setEditBody(comment.body ?? ''); setEditError(null); }} className="rounded-lg px-3 py-1.5 text-xs text-[#9890a8] hover:text-white transition-colors">Cancel</button>
-              <button onClick={handleEdit} disabled={!editBody.trim() || editLoading} className="rounded-lg bg-[#a78bfa] px-4 py-1.5 text-xs font-medium text-white hover:bg-[#c4b5fd] transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+              <button onClick={() => { setEditing(false); setEditBody(comment.body ?? ''); setEditError(null); }} className="rounded-lg px-3 py-1.5 text-xs text-[var(--color-text-2)] hover:text-white transition-colors">Cancel</button>
+              <button onClick={handleEdit} disabled={!editBody.trim() || editLoading} className="rounded-lg bg-[#D4FF00] px-4 py-1.5 text-xs font-medium text-[#0a0a0a] hover:bg-[#e8ff4d] transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
                 {editLoading ? 'Saving...' : 'Save'}
               </button>
             </div>
@@ -505,8 +505,8 @@ function CommentThread({ node, gameId, currentUserId, onReply, onVote, onDelete 
               disabled={voteLoading}
               className={`p-1 rounded transition-colors ${
                 userVote === true
-                  ? 'text-[#a78bfa] hover:text-[#c4b5fd]'
-                  : 'text-gray-600 hover:text-[#9890a8]'
+                  ? 'text-[#D4FF00] hover:text-[#e8ff4d]'
+                  : 'text-gray-600 hover:text-[var(--color-text-2)]'
               }`}
               title="Upvote"
             >
@@ -516,7 +516,7 @@ function CommentThread({ node, gameId, currentUserId, onReply, onVote, onDelete 
             </button>
             <span
               className={`text-xs font-medium min-w-[1.25rem] text-center ${
-                score > 0 ? 'text-[#a78bfa]' : score < 0 ? 'text-red-400' : 'text-gray-600'
+                score > 0 ? 'text-[#D4FF00]' : score < 0 ? 'text-red-400' : 'text-gray-600'
               }`}
             >
               {score}
@@ -527,7 +527,7 @@ function CommentThread({ node, gameId, currentUserId, onReply, onVote, onDelete 
               className={`p-1 rounded transition-colors ${
                 userVote === false
                   ? 'text-red-400 hover:text-red-300'
-                  : 'text-gray-600 hover:text-[#9890a8]'
+                  : 'text-gray-600 hover:text-[var(--color-text-2)]'
               }`}
               title="Downvote"
             >
@@ -547,7 +547,7 @@ function CommentThread({ node, gameId, currentUserId, onReply, onVote, onDelete 
                 }
                 setShowReplyForm(s => !s);
               }}
-              className="text-xs text-gray-600 hover:text-[#9890a8] transition-colors"
+              className="text-xs text-gray-600 hover:text-[var(--color-text-2)] transition-colors"
             >
               Reply
             </button>
@@ -557,7 +557,7 @@ function CommentThread({ node, gameId, currentUserId, onReply, onVote, onDelete 
           {canEdit && !editing && (
             <button
               onClick={() => setEditing(true)}
-              className="text-xs text-gray-600 hover:text-[#9890a8] transition-colors"
+              className="text-xs text-gray-600 hover:text-[var(--color-text-2)] transition-colors"
             >
               Edit
             </button>
@@ -592,7 +592,7 @@ function CommentThread({ node, gameId, currentUserId, onReply, onVote, onDelete 
 
         {/* Inline reply form */}
         {showReplyForm && (
-          <div className="mt-3 pt-3 border-t border-[#12101a]">
+          <div className="mt-3 pt-3 border-t border-[var(--color-elevated)]">
             <CommentForm
               gameId={gameId}
               currentUserId={currentUserId}
@@ -652,11 +652,11 @@ function CommentForm({ gameId, currentUserId, parentId, parentDepth, onSubmit, o
 
   if (!currentUserId) {
     return (
-      <div className="rounded-lg border border-[#12101a] bg-[#0e0c16]/50 px-4 py-4 text-center">
-        <p className="text-sm text-[#4a4560] mb-2">Sign in to join the conversation</p>
+      <div className="rounded-lg border border-[var(--color-elevated)] bg-[var(--color-raised)]/50 px-4 py-4 text-center">
+        <p className="text-sm text-[var(--color-text-dim)] mb-2">Sign in to join the conversation</p>
         <a
           href={'/auth/login?redirect=' + encodeURIComponent(typeof window !== 'undefined' ? window.location.pathname : '/')}
-          className="inline-flex items-center gap-2 rounded-lg bg-[#a78bfa] px-4 py-2 text-sm font-medium text-white hover:bg-[#a78bfa] transition-colors"
+          className="inline-flex items-center gap-2 rounded-lg bg-[#D4FF00] px-4 py-2 text-sm font-medium text-[#0a0a0a] hover:bg-[#D4FF00] transition-colors"
         >
           Sign in
         </a>
@@ -708,7 +708,7 @@ function CommentForm({ gameId, currentUserId, parentId, parentDepth, onSubmit, o
         maxLength={5000}
         rows={compact ? 2 : 3}
         placeholder={parentId ? 'Write a reply...' : 'Share your thoughts on this game...'}
-        className="w-full rounded-lg border border-[#1a1828] bg-[#12101a] py-2.5 px-4 text-sm text-white placeholder-[#4a4560] focus:border-[#a78bfa] focus:outline-none focus:ring-1 focus:ring-[#a78bfa] resize-none"
+        className="w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-elevated)] py-2.5 px-4 text-sm text-white placeholder-[var(--color-text-dim)] focus:border-[#D4FF00] focus:outline-none focus:ring-1 focus:ring-[#D4FF00] resize-none"
       />
       {error && (
         <p className="text-xs text-red-400">{error}</p>
@@ -722,7 +722,7 @@ function CommentForm({ gameId, currentUserId, parentId, parentDepth, onSubmit, o
           {onCancel && (
             <button
               onClick={onCancel}
-              className="rounded-lg px-3 py-1.5 text-xs text-[#9890a8] hover:text-white transition-colors"
+              className="rounded-lg px-3 py-1.5 text-xs text-[var(--color-text-2)] hover:text-white transition-colors"
             >
               Cancel
             </button>
@@ -730,7 +730,7 @@ function CommentForm({ gameId, currentUserId, parentId, parentDepth, onSubmit, o
           <button
             onClick={handleSubmit}
             disabled={!body.trim() || submitting}
-            className="rounded-lg bg-[#a78bfa] px-4 py-1.5 text-xs font-medium text-white hover:bg-[#a78bfa] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5"
+            className="rounded-lg bg-[#D4FF00] px-4 py-1.5 text-xs font-medium text-[#0a0a0a] hover:bg-[#D4FF00] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5"
           >
             {submitting && (
               <svg className="h-3 w-3 animate-spin" viewBox="0 0 24 24" fill="none">

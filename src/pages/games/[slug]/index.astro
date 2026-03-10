@@ -214,7 +214,7 @@ const panelData = {
   <!-- Embedded JSON data for React island -->
   <script type="application/json" id="game-page-data" set:html={JSON.stringify(panelData)} />
 
-<div style="background:#08070c;min-height:100vh;overflow-x:hidden;">
+<div style="background:var(--color-base);min-height:100vh;overflow-x:hidden;">
 
   <!-- Visible breadcrumbs -->
   <nav aria-label="Breadcrumb" style="max-width:1080px;margin:0 auto;padding:12px 28px 0;">
@@ -233,15 +233,15 @@ const panelData = {
   <!-- ████████ CTA ████████ -->
   <div style="max-width:1080px;margin:0 auto;padding:0 28px;">
     <section style="margin-bottom:44px;">
-      <div style="border-radius:20px;padding:48px 36px;background:#0a0910;border:1px solid rgba(167,139,250,0.05);display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:20px;position:relative;overflow:hidden;">
-        <div style="position:absolute;top:50%;right:20%;transform:translate(50%,-50%);width:200px;height:200px;background:radial-gradient(circle,rgba(167,139,250,0.04),transparent 55%);pointer-events:none;"></div>
+      <div style="border-radius:8px;padding:48px 36px;background:var(--color-base);border:1px solid rgba(212,255,0,0.08);display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:20px;position:relative;overflow:hidden;">
+        <div style="position:absolute;top:50%;right:20%;transform:translate(50%,-50%);width:200px;height:200px;background:none,transparent 55%);pointer-events:none;"></div>
         <div>
-          <div style="font-family:var(--font-display);font-size:clamp(18px,3vw,28px);font-weight:900;color:#eae6f4;letter-spacing:-0.03em;margin-bottom:6px;">Played {game.name} on a handheld?</div>
-          <div style="font-family:var(--font-sans);font-size:13px;color:#6d6882;">Share your FPS and settings. Takes about 5 minutes.</div>
+          <div style="font-family:var(--font-heading);font-size:clamp(18px,3vw,28px);font-weight:900;color:var(--color-text);letter-spacing:-0.03em;margin-bottom:6px;">Played {game.name} on a handheld?</div>
+          <div style="font-family:var(--font-sans);font-size:13px;color:var(--color-text-3);">Share your FPS and settings. Takes about 5 minutes.</div>
         </div>
         <div style="display:flex;align-items:center;gap:12px;flex-shrink:0;">
           <FollowButton client:load gameId={game.id} initialFollowing={!!followData} followerCount={followerCount ?? 0} />
-          <a href="/report/new" style="font-family:var(--font-mono);font-size:11px;font-weight:700;letter-spacing:0.06em;color:#08070c;background:#a78bfa;border:none;padding:14px 32px;border-radius:12px;text-decoration:none;box-shadow:0 0 30px rgba(167,139,250,0.25);transition:all 0.2s;">
+          <a href="/report/new" style="font-family:var(--font-mono);font-size:11px;font-weight:700;letter-spacing:0.06em;color:var(--color-base);background:#D4FF00;border:none;padding:14px 32px;border-radius:8px;text-decoration:none;box-shadow:none;transition:all 0.2s;">
             SUBMIT REPORT
           </a>
         </div>
@@ -251,14 +251,14 @@ const panelData = {
     <!-- ████████ SIMILAR ON DECK ████████ -->
     {similarGames.length >= 2 && (
       <section style="margin-bottom:44px;">
-        <h2 style="font-family:var(--font-display);font-size:clamp(18px,3vw,22px);font-weight:800;color:#eae6f4;letter-spacing:-0.02em;margin-bottom:14px;">Similar on Deck</h2>
+        <h2 style="font-family:var(--font-heading);font-size:clamp(18px,3vw,22px);font-weight:800;color:var(--color-text);letter-spacing:-0.02em;margin-bottom:14px;">Similar on Deck</h2>
         <div class="stagger" style="display:flex;gap:1px;border-radius:14px;overflow:hidden;">
           {similarGames.map((sg, i) => {
             const sc = fpsColor(sg.fps);
             return (
-              <a href={`/games/${sg.slug}`} style={`flex:1;padding:24px 14px;background:${i % 2 === 0 ? '#0a0910' : '#08070d'};text-align:center;text-decoration:none;transition:background 0.12s;`}>
+              <a href={`/games/${sg.slug}`} style={`flex:1;padding:24px 14px;background:${i % 2 === 0 ? 'var(--color-base)' : '#08070d'};text-align:center;text-decoration:none;transition:background 0.12s;`}>
                 <div style={`font-family:var(--font-mono);font-size:clamp(24px,4vw,34px);font-weight:800;color:${sc};letter-spacing:-0.04em;line-height:1;text-shadow:0 0 14px ${sc}15;margin-bottom:6px;`}>{sg.fps}</div>
-                <div style="font-family:var(--font-display);font-size:clamp(10px,1.5vw,12px);font-weight:700;color:#9890a8;line-height:1.2;">{sg.name}</div>
+                <div style="font-family:var(--font-heading);font-size:clamp(10px,1.5vw,12px);font-weight:700;color:var(--color-text-2);line-height:1.2;">{sg.name}</div>
               </a>
             );
           })}
@@ -268,7 +268,7 @@ const panelData = {
 
     <!-- ████████ DISCUSSION ████████ -->
     <section style="margin-bottom:44px;">
-      <h2 style="font-family:var(--font-display);font-size:clamp(18px,3vw,22px);font-weight:800;color:#eae6f4;letter-spacing:-0.02em;margin-bottom:14px;">Discussion</h2>
+      <h2 style="font-family:var(--font-heading);font-size:clamp(18px,3vw,22px);font-weight:800;color:var(--color-text);letter-spacing:-0.02em;margin-bottom:14px;">Discussion</h2>
       <CommentSection
         client:visible
         gameId={game.id}

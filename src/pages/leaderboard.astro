@@ -26,9 +26,9 @@ if (userIds.length > 0) {
 
 // ─── Level display mapping ───
 const levelMap: Record<string, { label: string; color: string }> = {
-  new_tester: { label: 'New Tester', color: '#6d6882' },
+  new_tester: { label: 'New Tester', color: 'var(--color-text-3)' },
   tester: { label: 'Tester', color: '#60a5fa' },
-  contributor: { label: 'Contributor', color: '#a78bfa' },
+  contributor: { label: 'Contributor', color: '#D4FF00' },
   expert: { label: 'Expert', color: '#4ade80' },
 };
 
@@ -53,9 +53,9 @@ const users = (topUsers ?? []).map((u, i) => {
     reports: reportCounts[u.id] ?? 0,
     isTop3,
     rankDisplay: isTop3 ? rankIcons[rank - 1] : `#${rank}`,
-    rankColor: isTop3 ? rankColors[rank - 1] : '#4a4560',
+    rankColor: isTop3 ? rankColors[rank - 1] : 'var(--color-text-dim)',
     rankFontSize: isTop3 ? '18px' : '13px',
-    bgColor: i % 2 === 0 ? '#0e0c16' : '#08070c',
+    bgColor: i % 2 === 0 ? 'var(--color-raised)' : 'var(--color-base)',
     profileUrl: u.username ? `/profile/${u.username}` : '#',
   };
 });
@@ -67,15 +67,15 @@ const totalReports = users.reduce((s, u) => s + u.reports, 0);
 
 <BaseLayout title="Leaderboard — HandheldDB" description="Top contributors to the HandheldDB community. See who's submitted the most performance reports and earned the most points.">
 
-<div style="background:#08070c;min-height:100vh;">
+<div style="background:var(--color-base);min-height:100vh;">
   <div style="max-width:800px;margin:0 auto;padding:40px 24px;">
 
     <!-- Header -->
     <div style="margin-bottom:32px;">
-      <h1 style="font-family:var(--font-display);font-size:clamp(24px,4vw,36px);font-weight:900;color:#eae6f4;letter-spacing:-0.03em;margin-bottom:6px;">
+      <h1 style="font-family:var(--font-heading);font-size:clamp(24px,4vw,36px);font-weight:900;color:var(--color-text);letter-spacing:-0.03em;margin-bottom:6px;">
         Leaderboard
       </h1>
-      <p style="font-family:var(--font-display);font-size:13px;color:#6d6882;">
+      <p style="font-family:var(--font-heading);font-size:13px;color:var(--color-text-3);">
         Top contributors ranked by points earned from performance reports, votes, and community activity.
       </p>
     </div>
@@ -83,24 +83,24 @@ const totalReports = users.reduce((s, u) => s + u.reports, 0);
     <!-- Stats bar -->
     <div class="stagger" style="display:flex;gap:28px;margin-bottom:28px;flex-wrap:wrap;">
       <div>
-        <div style="font-family:var(--font-mono);font-size:20px;font-weight:800;color:#a78bfa;">{totalUsers}</div>
-        <div style="font-family:var(--font-mono);font-size:10px;color:#4a4560;letter-spacing:0.06em;">CONTRIBUTORS</div>
+        <div style="font-family:var(--font-mono);font-size:20px;font-weight:800;color:#D4FF00;">{totalUsers}</div>
+        <div style="font-family:var(--font-mono);font-size:10px;color:var(--color-text-dim);letter-spacing:0.06em;">CONTRIBUTORS</div>
       </div>
       <div>
         <div style="font-family:var(--font-mono);font-size:20px;font-weight:800;color:#4ade80;">{totalReports.toLocaleString()}</div>
-        <div style="font-family:var(--font-mono);font-size:10px;color:#4a4560;letter-spacing:0.06em;">REPORTS</div>
+        <div style="font-family:var(--font-mono);font-size:10px;color:var(--color-text-dim);letter-spacing:0.06em;">REPORTS</div>
       </div>
       <div>
         <div style="font-family:var(--font-mono);font-size:20px;font-weight:800;color:#facc15;">{totalPoints.toLocaleString()}</div>
-        <div style="font-family:var(--font-mono);font-size:10px;color:#4a4560;letter-spacing:0.06em;">TOTAL POINTS</div>
+        <div style="font-family:var(--font-mono);font-size:10px;color:var(--color-text-dim);letter-spacing:0.06em;">TOTAL POINTS</div>
       </div>
     </div>
 
     <!-- Table -->
     {users.length === 0 ? (
       <div style="text-align:center;padding:60px 20px;">
-        <div style="font-family:var(--font-display);font-size:18px;color:#6d6882;margin-bottom:8px;">No contributors yet</div>
-        <p style="font-family:var(--font-display);font-size:13px;color:#4a4560;">Be the first to <a href="/report/new" style="color:#a78bfa;text-decoration:underline;">submit a report</a>!</p>
+        <div style="font-family:var(--font-heading);font-size:18px;color:var(--color-text-3);margin-bottom:8px;">No contributors yet</div>
+        <p style="font-family:var(--font-heading);font-size:13px;color:var(--color-text-dim);">Be the first to <a href="/report/new" style="color:#D4FF00;text-decoration:underline;">submit a report</a>!</p>
       </div>
     ) : (
       <div style="border-radius:14px;overflow:hidden;border:1px solid rgba(255,255,255,0.06);">
@@ -110,11 +110,11 @@ const totalReports = users.reduce((s, u) => s + u.reports, 0);
               {u.rankDisplay}
             </div>
 
-            <div style="width:32px;height:32px;border-radius:50%;overflow:hidden;flex-shrink:0;background:#12101a;">
+            <div style="width:32px;height:32px;border-radius:50%;overflow:hidden;flex-shrink:0;background:var(--color-elevated);">
               {u.avatar ? (
                 <img src={u.avatar} alt="" style="width:100%;height:100%;object-fit:cover;" loading="lazy" />
               ) : (
-                <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-size:14px;font-weight:700;color:#6d6882;">
+                <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-family:var(--font-heading);font-size:14px;font-weight:700;color:var(--color-text-3);">
                   {u.displayName.charAt(0).toUpperCase()}
                 </div>
               )}
@@ -122,7 +122,7 @@ const totalReports = users.reduce((s, u) => s + u.reports, 0);
 
             <div style="flex:1;min-width:0;">
               <div style="display:flex;align-items:center;gap:6px;">
-                <span style="font-family:var(--font-display);font-size:13px;font-weight:700;color:#eae6f4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                <span style="font-family:var(--font-heading);font-size:13px;font-weight:700;color:var(--color-text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
                   {u.displayName}
                 </span>
                 {u.isVerified && (
@@ -131,13 +131,13 @@ const totalReports = users.reduce((s, u) => s + u.reports, 0);
               </div>
               <div style="display:flex;align-items:center;gap:8px;">
                 <span style={`font-family:var(--font-mono);font-size:10px;font-weight:600;color:${u.levelColor};`}>{u.levelLabel}</span>
-                <span style="font-family:var(--font-mono);font-size:10px;color:#4a4560;">{u.reports} reports</span>
+                <span style="font-family:var(--font-mono);font-size:10px;color:var(--color-text-dim);">{u.reports} reports</span>
               </div>
             </div>
 
             <div style="text-align:right;flex-shrink:0;">
-              <div style="font-family:var(--font-mono);font-size:16px;font-weight:800;color:#a78bfa;">{u.points.toLocaleString()}</div>
-              <div style="font-family:var(--font-mono);font-size:10px;color:#4a4560;letter-spacing:0.06em;">PTS</div>
+              <div style="font-family:var(--font-mono);font-size:16px;font-weight:800;color:#D4FF00;">{u.points.toLocaleString()}</div>
+              <div style="font-family:var(--font-mono);font-size:10px;color:var(--color-text-dim);letter-spacing:0.06em;">PTS</div>
             </div>
           </a>
         ))}
@@ -146,10 +146,10 @@ const totalReports = users.reduce((s, u) => s + u.reports, 0);
 
     <!-- CTA -->
     <div style="margin-top:32px;text-align:center;">
-      <p style="font-family:var(--font-display);font-size:13px;color:#6d6882;margin-bottom:12px;">
+      <p style="font-family:var(--font-heading);font-size:13px;color:var(--color-text-3);margin-bottom:12px;">
         Earn points by submitting performance reports and helping the community.
       </p>
-      <a href="/report/new" style="display:inline-block;font-family:var(--font-mono);font-size:11px;font-weight:700;letter-spacing:0.06em;color:#08070c;background:#a78bfa;padding:12px 28px;border-radius:10px;text-decoration:none;box-shadow:0 0 20px rgba(167,139,250,0.2);transition:all 0.2s;">
+      <a href="/report/new" style="display:inline-block;font-family:var(--font-mono);font-size:11px;font-weight:700;letter-spacing:0.06em;color:var(--color-base);background:#D4FF00;padding:12px 28px;border-radius:10px;text-decoration:none;box-shadow:none;transition:all 0.2s;">
         SUBMIT REPORT
       </a>
     </div>
@@ -159,7 +159,7 @@ const totalReports = users.reduce((s, u) => s + u.reports, 0);
 
 <style>
   .hdb-leaderboard-row:hover {
-    background: #12101a !important;
+    background: var(--color-elevated) !important;
     transform: translateX(2px);
   }
 </style>

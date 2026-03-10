@@ -22,8 +22,7 @@ interface ConsensusEntry {
 }
 
 const fc = (f: number) =>
-  f >= 55 ? '#4ade80' : f >= 45 ? '#a3e635' : f >= 35 ? '#facc15' : f >= 25 ? '#fb923c' : '#f87171';
-const fpsTierIcon = (f: number) => f >= 55 ? '★' : f >= 45 ? '◆' : f >= 35 ? '●' : f >= 25 ? '▼' : '✕';
+  f >= 55 ? '#22c55e' : f >= 40 ? '#eab308' : f >= 30 ? '#f97316' : '#ef4444';
 
 const tierMap: Record<string, string> = {
   excellent: 'Portable Perfect',
@@ -129,18 +128,18 @@ export default function GameGrid({ games }: { games: Game[] }) {
                   ) : (
                     <div style={{
                       width: '100%', height: '100%',
-                      background: 'linear-gradient(135deg, #0e0c16, #1a1828)',
+                      background: 'linear-gradient(135deg, var(--color-raised), var(--color-border))',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                       position: 'relative', overflow: 'hidden',
                     }}>
                       <span style={{
-                        fontFamily: 'var(--font-display)', fontSize: 13, fontWeight: 800,
+                        fontFamily: 'var(--font-heading)', fontSize: 13, fontWeight: 800,
                         color: '#ffffff12', letterSpacing: '0.06em', textTransform: 'uppercase',
                         userSelect: 'none',
                       }}>{g.name}</span>
                     </div>
                   )}
-                  <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(transparent 10%, #0e0c16)' }} />
+                  <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(transparent 10%, var(--color-raised))' }} />
                   {g.metacritic && (
                     <div style={{
                       position: 'absolute', top: 8, right: 8,
@@ -153,7 +152,7 @@ export default function GameGrid({ games }: { games: Game[] }) {
                         color: fc(g.metacritic), textShadow: `0 0 12px ${fc(g.metacritic)}40`,
                         letterSpacing: '-0.03em',
                       }}>{g.metacritic}</span>
-                      <span style={{ fontFamily: 'var(--font-mono)', fontSize: 8, color: '#9890a8' }}>mc</span>
+                      <span style={{ fontFamily: 'var(--font-mono)', fontSize: 8, color: 'var(--color-text-2)' }}>mc</span>
                     </div>
                   )}
                   <div style={{
@@ -164,13 +163,13 @@ export default function GameGrid({ games }: { games: Game[] }) {
                     padding: '2px 6px', borderRadius: 4,
                   }}>{tierInfo.label}</div>
                 </div>
-                <div style={{ padding: '8px 12px 12px', background: '#0e0c16' }}>
+                <div style={{ padding: '8px 12px 12px', background: 'var(--color-raised)' }}>
                   <div style={{
-                    fontFamily: 'var(--font-display)', fontSize: mob ? 15 : 14, fontWeight: 700,
+                    fontFamily: 'var(--font-heading)', fontSize: mob ? 15 : 14, fontWeight: 700,
                     color: '#e0dce8', marginBottom: 2,
                     overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                   }}>{g.name}</div>
-                  <div style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: '#6d6882' }}>
+                  <div style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--color-text-3)' }}>
                     {g.genres.join(' · ')}
                   </div>
                 </div>
@@ -182,7 +181,7 @@ export default function GameGrid({ games }: { games: Game[] }) {
               <div style={{
                 display: 'flex',
                 flexDirection: mob ? 'column' : 'row',
-                background: '#0e0c16',
+                background: 'var(--color-raised)',
               }}>
                 {/* Left: Game art */}
                 <div style={{
@@ -201,11 +200,11 @@ export default function GameGrid({ games }: { games: Game[] }) {
                   ) : (
                     <div style={{
                       width: '100%', height: '100%',
-                      background: 'linear-gradient(135deg, #0e0c16, #1a1828)',
+                      background: 'linear-gradient(135deg, var(--color-raised), var(--color-border))',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                     }}>
                       <span style={{
-                        fontFamily: 'var(--font-display)', fontSize: 18, fontWeight: 800,
+                        fontFamily: 'var(--font-heading)', fontSize: 18, fontWeight: 800,
                         color: '#ffffff12', letterSpacing: '0.06em', textTransform: 'uppercase',
                         userSelect: 'none',
                       }}>{g.name}</span>
@@ -214,12 +213,12 @@ export default function GameGrid({ games }: { games: Game[] }) {
                   <div style={{
                     position: 'absolute', inset: 0,
                     background: mob
-                      ? 'linear-gradient(transparent 30%, #0e0c16)'
-                      : 'linear-gradient(90deg, transparent 40%, #0e0c16)',
+                      ? 'linear-gradient(transparent 30%, var(--color-raised))'
+                      : 'linear-gradient(90deg, transparent 40%, var(--color-raised))',
                   }} />
                   <div style={{ position: 'absolute', bottom: mob ? 12 : 16, left: mob ? 12 : 16 }}>
                     <div style={{
-                      fontFamily: 'var(--font-display)', fontSize: mob ? 18 : 20, fontWeight: 800,
+                      fontFamily: 'var(--font-heading)', fontSize: mob ? 18 : 20, fontWeight: 800,
                       color: '#fff', textShadow: '0 2px 8px #00000080', marginBottom: 2,
                     }}>{g.name}</div>
                     <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: '#ffffffaa' }}>
@@ -237,11 +236,11 @@ export default function GameGrid({ games }: { games: Game[] }) {
                   {loading ? (
                     <div style={{
                       display: 'flex', alignItems: 'center', gap: 8,
-                      fontFamily: 'var(--font-mono)', fontSize: 11, color: '#6d6882',
+                      fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--color-text-3)',
                     }}>
                       <div style={{
                         width: 16, height: 16, borderRadius: '50%',
-                        border: '2px solid #4a4560', borderTopColor: '#a78bfa',
+                        border: '2px solid var(--color-text-dim)', borderTopColor: '#D4FF00',
                         animation: 'spin 0.8s linear infinite',
                       }} />
                       Loading performance data...
@@ -255,7 +254,7 @@ export default function GameGrid({ games }: { games: Game[] }) {
                           color: gc, textShadow: `0 0 30px ${gc}30`,
                           letterSpacing: '-0.05em', lineHeight: 1,
                         }}><Ct v={primary.fps_avg} /></span>
-                        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 13, color: '#6d6882' }}>fps</span>
+                        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 13, color: 'var(--color-text-3)' }}>fps</span>
                         <span style={{
                           fontFamily: 'var(--font-mono)', fontSize: 10, fontWeight: 700,
                           letterSpacing: '0.08em', color: gc,
@@ -285,7 +284,7 @@ export default function GameGrid({ games }: { games: Game[] }) {
                               color: '#c8c4d4',
                             }}>{v}</div>
                             <div style={{
-                              fontFamily: 'var(--font-mono)', fontSize: 8, color: '#4a4560',
+                              fontFamily: 'var(--font-mono)', fontSize: 8, color: 'var(--color-text-dim)',
                               letterSpacing: '0.06em', marginTop: 1,
                             }}>{l}</div>
                           </div>
@@ -296,18 +295,18 @@ export default function GameGrid({ games }: { games: Game[] }) {
                       {others.length > 0 && (
                         <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
                           <span style={{
-                            fontFamily: 'var(--font-mono)', fontSize: 8, color: '#4a4560',
+                            fontFamily: 'var(--font-mono)', fontSize: 8, color: 'var(--color-text-dim)',
                             letterSpacing: '0.06em',
                           }}>ALSO ON</span>
                           {others.map(o => {
                             const shortName = o.devices?.name?.replace('Steam Deck ', '').replace('ASUS ', '') ?? '';
                             return (
                               <span key={o.devices?.slug} style={{
-                                fontFamily: 'var(--font-mono)', fontSize: 11, color: '#6d6882',
+                                fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--color-text-3)',
                               }}>
                                 {shortName}{' '}
-                                <span style={{ color: fc(o.fps_avg), fontWeight: 700 }}>{o.fps_avg}<span style={{ fontSize: 8, marginLeft: 1, opacity: 0.6 }}>{fpsTierIcon(o.fps_avg)}</span></span>
-                                <span style={{ color: '#4a4560' }}> fps</span>
+                                <span style={{ color: fc(o.fps_avg), fontWeight: 700 }}>{o.fps_avg}</span>
+                                <span style={{ color: 'var(--color-text-dim)' }}> fps</span>
                               </span>
                             );
                           })}
@@ -322,7 +321,7 @@ export default function GameGrid({ games }: { games: Game[] }) {
                           style={{
                             padding: '10px 20px', borderRadius: 8, border: 'none',
                             fontFamily: 'var(--font-mono)', fontSize: 10, fontWeight: 700,
-                            letterSpacing: '0.06em', color: '#08070c', background: gc,
+                            letterSpacing: '0.06em', color: 'var(--color-base)', background: gc,
                             cursor: 'pointer', boxShadow: `0 0 20px ${gc}25`,
                             textDecoration: 'none', display: 'inline-block',
                           }}
@@ -333,12 +332,12 @@ export default function GameGrid({ games }: { games: Game[] }) {
                       </div>
                     </>
                   ) : (
-                    <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: '#6d6882' }}>
+                    <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--color-text-3)' }}>
                       No performance data yet.{' '}
                       <a
                         href={`/report/new`}
                         onClick={e => e.stopPropagation()}
-                        style={{ color: '#a78bfa', textDecoration: 'none' }}
+                        style={{ color: '#D4FF00', textDecoration: 'none' }}
                       >Be the first to report →</a>
                     </div>
                   )}

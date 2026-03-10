@@ -4,7 +4,7 @@ interface Props {
   reportId: string;
   initialUpvotes: number;
   initialDownvotes: number;
-  userVote: boolean | null; // true = upvoted, false = downvoted, null = no vote
+  userVote: boolean | null;
   isLoggedIn: boolean;
 }
 
@@ -31,12 +31,10 @@ export default function VoteButtons({ reportId, initialUpvotes, initialDownvotes
       const result = await res.json();
 
       if (result.action === 'removed') {
-        // Toggle off
         if (isUpvote) setUpvotes(v => Math.max(0, v - 1));
         else setDownvotes(v => Math.max(0, v - 1));
         setVote(null);
       } else if (result.action === 'changed') {
-        // Switched direction
         if (isUpvote) {
           setUpvotes(v => v + 1);
           setDownvotes(v => Math.max(0, v - 1));
@@ -64,10 +62,10 @@ export default function VoteButtons({ reportId, initialUpvotes, initialDownvotes
       <button
         onClick={() => handleVote(true)}
         disabled={loading}
-        className={`p-1 rounded transition-colors ${
+        className={`p-1 transition-colors ${
           vote === true
-            ? 'text-[#a78bfa] hover:text-[#c4b5fd]'
-            : 'text-[#4a4560] hover:text-gray-300'
+            ? 'text-[#D4FF00] hover:text-[#e8ff4d]'
+            : 'text-[var(--color-text-dim)] hover:text-[var(--color-text-2)]'
         }`}
         title="Helpful"
       >
@@ -75,18 +73,18 @@ export default function VoteButtons({ reportId, initialUpvotes, initialDownvotes
           <path strokeLinecap="round" strokeLinejoin="round" d="M6.633 10.25c.806 0 1.533-.446 2.031-1.08a9.041 9.041 0 012.861-2.4c.723-.384 1.35-.956 1.653-1.715a4.498 4.498 0 00.322-1.672V3a.75.75 0 01.75-.75 2.25 2.25 0 012.25 2.25c0 1.152-.26 2.243-.723 3.218-.266.558.107 1.282.725 1.282m0 0h3.126c1.026 0 1.945.694 2.054 1.715.045.422.068.85.068 1.285a11.95 11.95 0 01-2.649 7.521c-.388.482-.987.729-1.605.729H13.48c-.483 0-.964-.078-1.423-.23l-3.114-1.04a4.501 4.501 0 00-1.423-.23H3.75" />
         </svg>
       </button>
-      <span className={`text-xs font-medium min-w-[1.5rem] text-center ${
-        score > 0 ? 'text-[#a78bfa]' : score < 0 ? 'text-red-400' : 'text-[#4a4560]'
+      <span className={`text-xs font-mono font-bold min-w-[1.5rem] text-center ${
+        score > 0 ? 'text-[#D4FF00]' : score < 0 ? 'text-[#ef4444]' : 'text-[var(--color-text-dim)]'
       }`}>
         {score > 0 ? `+${score}` : score}
       </span>
       <button
         onClick={() => handleVote(false)}
         disabled={loading}
-        className={`p-1 rounded transition-colors ${
+        className={`p-1 transition-colors ${
           vote === false
-            ? 'text-red-400 hover:text-red-300'
-            : 'text-[#4a4560] hover:text-gray-300'
+            ? 'text-[#ef4444] hover:text-[#f87171]'
+            : 'text-[var(--color-text-dim)] hover:text-[var(--color-text-2)]'
         }`}
         title="Not helpful"
       >

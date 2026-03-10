@@ -244,7 +244,7 @@ export default function FpsChecker({ devices, suggestedGames = [] }: FpsCheckerP
                   top: 'calc(100% + 8px)',
                   left: 0,
                   right: 0,
-                  background: '#0e0c16',
+                  background: 'var(--color-raised)',
                   border: '1px solid rgba(255,255,255,0.06)',
                   borderRadius: 12,
                   boxShadow: '0 20px 40px rgba(0,0,0,0.5)',
@@ -292,7 +292,7 @@ export default function FpsChecker({ devices, suggestedGames = [] }: FpsCheckerP
                         {hit.name}
                       </div>
                       {hit.genres && hit.genres.length > 0 && (
-                        <div style={{ fontSize: 11, color: '#4a4560', marginTop: 1 }}>
+                        <div style={{ fontSize: 11, color: 'var(--color-text-dim)', marginTop: 1 }}>
                           {hit.genres.slice(0, 2).join(', ')}
                         </div>
                       )}
@@ -388,7 +388,7 @@ export default function FpsChecker({ devices, suggestedGames = [] }: FpsCheckerP
                 <div className="checker-fps-ring">
                   <div>
                     <svg
-                      style={{ width: 24, height: 24, animation: 'spin 1s linear infinite', color: '#4a4560' }}
+                      style={{ width: 24, height: 24, animation: 'spin 1s linear infinite', color: 'var(--color-text-dim)' }}
                       viewBox="0 0 24 24"
                       fill="none"
                     >
@@ -415,7 +415,7 @@ export default function FpsChecker({ devices, suggestedGames = [] }: FpsCheckerP
                     {verdict ? (verdictInfo[verdict]?.label ?? verdict) : (fpsAvg >= 55 ? 'Great' : fpsAvg >= 30 ? 'Playable' : 'Rough')}
                   </div>
                   {consensus?.report_count && (
-                    <div style={{ fontSize: 11, color: '#4a4560', marginTop: 4 }}>
+                    <div style={{ fontSize: 11, color: 'var(--color-text-dim)', marginTop: 4 }}>
                       Based on {consensus.report_count} report{consensus.report_count > 1 ? 's' : ''}
                     </div>
                   )}
@@ -424,16 +424,16 @@ export default function FpsChecker({ devices, suggestedGames = [] }: FpsCheckerP
                 <>
                   <div className="checker-fps-ring">
                     <div>
-                      <div className="checker-fps-big" style={{ color: '#4a4560' }}>?</div>
+                      <div className="checker-fps-big" style={{ color: 'var(--color-text-dim)' }}>?</div>
                       <div className="checker-fps-unit">FPS</div>
                     </div>
                   </div>
-                  <div className="checker-verdict" style={{ color: '#4a4560' }}>
+                  <div className="checker-verdict" style={{ color: 'var(--color-text-dim)' }}>
                     No data yet
                   </div>
                   <a
                     href="/report/new"
-                    style={{ fontSize: 12, color: '#c4b5fd', marginTop: 6, textDecoration: 'none' }}
+                    style={{ fontSize: 12, color: '#e8ff4d', marginTop: 6, textDecoration: 'none' }}
                   >
                     Be the first to report →
                   </a>
@@ -448,7 +448,7 @@ export default function FpsChecker({ devices, suggestedGames = [] }: FpsCheckerP
               alignItems: 'center',
               justifyContent: 'center',
               padding: '48px 24px',
-              color: '#4a4560',
+              color: 'var(--color-text-dim)',
               fontSize: 14,
               gap: 8,
             }}

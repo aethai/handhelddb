@@ -27,12 +27,7 @@ const aboutLinks = [
     <div class="hdb-footer-grid">
       <!-- Brand -->
       <div class="hdb-footer-brand">
-        <div class="hdb-footer-logo">
-          <div class="hdb-footer-logo-mark">
-            <div class="hdb-footer-logo-dot"></div>
-          </div>
-          <span class="hdb-footer-logo-text">HandheldDB</span>
-        </div>
+        <a href="/" class="hdb-footer-logo">HDB</a>
         <p class="hdb-footer-tagline">Community-powered performance database for handheld gaming devices.</p>
       </div>
 
@@ -69,21 +64,11 @@ const aboutLinks = [
 
 <style>
   .hdb-footer {
-    border-top: 1px solid rgba(255,255,255,0.04);
+    border-top: 1px solid var(--color-border);
     margin-top: 64px;
-    position: relative;
-  }
-  .hdb-footer::before {
-    content: '';
-    position: absolute;
-    top: -1px;
-    left: 20%;
-    right: 20%;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(167,139,250,0.15), transparent);
   }
   .hdb-footer-inner {
-    max-width: 1080px;
+    max-width: 1120px;
     margin: 0 auto;
     padding: 40px 24px 24px;
   }
@@ -94,43 +79,30 @@ const aboutLinks = [
     flex-wrap: wrap;
   }
 
-  /* Brand section */
+  /* Brand */
   .hdb-footer-brand {
     flex: 1;
     min-width: 200px;
   }
   .hdb-footer-logo {
-    display: flex;
-    align-items: center;
-    gap: 8px;
+    font-family: var(--font-heading);
+    font-weight: 700;
+    font-size: 18px;
+    color: var(--color-text);
+    text-decoration: none;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    display: inline-block;
     margin-bottom: 8px;
+    transition: color 0.15s;
   }
-  .hdb-footer-logo-mark {
-    width: 20px;
-    height: 20px;
-    border-radius: 5px;
-    background: rgba(167,139,250,0.1);
-    border: 1px solid rgba(167,139,250,0.2);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  .hdb-footer-logo-dot {
-    width: 5px;
-    height: 5px;
-    border-radius: 2px;
-    background: #a78bfa;
-  }
-  .hdb-footer-logo-text {
-    font-family: var(--font-display);
-    font-weight: 800;
-    font-size: 14px;
-    color: #eae6f4;
+  .hdb-footer-logo:hover {
+    color: #D4FF00;
   }
   .hdb-footer-tagline {
     font-size: 13px;
     line-height: 1.6;
-    color: #6d6882;
+    color: var(--color-text-3);
   }
 
   /* Link columns */
@@ -147,40 +119,44 @@ const aboutLinks = [
   .hdb-footer-col-label {
     font-family: var(--font-mono);
     font-size: 10px;
-    font-weight: 600;
-    color: #6d6882;
-    letter-spacing: 0.08em;
+    font-weight: 500;
+    color: var(--color-text-3);
+    letter-spacing: 0.1em;
     text-transform: uppercase;
     margin-bottom: 4px;
   }
   .hdb-footer-link {
     font-size: 13px;
-    color: #6d6882;
+    color: var(--color-text-3);
     text-decoration: none;
     transition: color 0.15s;
   }
   .hdb-footer-link:hover {
-    color: #a78bfa;
+    color: #D4FF00;
   }
 
   /* Bottom bar */
   .hdb-footer-bottom {
     font-family: var(--font-mono);
     font-size: 11px;
-    color: #3e3a4c;
+    color: var(--color-text-dim);
     text-align: center;
     padding-top: 16px;
-    border-top: 1px solid rgba(255,255,255,0.04);
+    border-top: 1px solid var(--color-border-subtle);
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 8px;
   }
-  .hdb-footer-sep { color: #2a2838; }
+  .hdb-footer-sep {
+    color: var(--color-border);
+  }
   .hdb-footer-link-inline {
-    color: #3e3a4c;
+    color: var(--color-text-dim);
     text-decoration: none;
     transition: color 0.15s;
   }
-  .hdb-footer-link-inline:hover { color: #6d6882; }
+  .hdb-footer-link-inline:hover {
+    color: #D4FF00;
+  }
 </style>

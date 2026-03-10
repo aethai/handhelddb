@@ -30,7 +30,7 @@ export default class ErrorBoundary extends Component<Props, State> {
         <div style={{
           padding: '24px',
           borderRadius: 14,
-          background: '#0e0c16',
+          background: 'var(--color-raised)',
           border: '1px solid rgba(248,113,113,0.15)',
           textAlign: 'center',
         }}>
@@ -44,7 +44,7 @@ export default class ErrorBoundary extends Component<Props, State> {
           <div style={{
             fontFamily: "'SF Mono', monospace",
             fontSize: 11,
-            color: '#6d6882',
+            color: 'var(--color-text-3)',
             marginBottom: 12,
           }}>
             {this.state.error?.message ?? 'An unexpected error occurred'}
@@ -55,8 +55,8 @@ export default class ErrorBoundary extends Component<Props, State> {
               fontFamily: "'SF Mono', monospace",
               fontSize: 10,
               fontWeight: 700,
-              color: '#08070c',
-              background: '#a78bfa',
+              color: 'var(--color-base)',
+              background: '#D4FF00',
               border: 'none',
               padding: '8px 20px',
               borderRadius: 8,

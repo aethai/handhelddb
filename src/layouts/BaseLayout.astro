@@ -32,7 +32,7 @@ const resolvedCanonical = canonicalUrl ?? new URL(Astro.url.pathname, siteUrl).h
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="generator" content={Astro.generator} />
-    <meta name="theme-color" content="#08070c" />
+    <meta name="theme-color" content="#0a0a0a" />
 
     <!-- SEO -->
     <title>{fullTitle}</title>
@@ -65,7 +65,7 @@ const resolvedCanonical = canonicalUrl ?? new URL(Astro.url.pathname, siteUrl).h
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap"
       rel="stylesheet"
     />
 
@@ -81,11 +81,10 @@ const resolvedCanonical = canonicalUrl ?? new URL(Astro.url.pathname, siteUrl).h
       />
     )}
   </head>
-  <body class="min-h-screen bg-[#08070c] text-[#d0cce0] flex flex-col font-[Outfit,system-ui,sans-serif]">
-    <div class="hdb-reading-progress" id="reading-progress"></div>
-    <a href="#main-content" class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] focus:bg-[#a78bfa] focus:text-[#08070c] focus:px-4 focus:py-2 focus:rounded-lg focus:font-bold focus:text-sm">Skip to content</a>
+  <body class="min-h-screen bg-[var(--color-base)] text-[var(--color-text-2)] flex flex-col font-[Inter,system-ui,sans-serif]">
+    <a href="#main-content" class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] focus:bg-[#D4FF00] focus:text-[#0a0a0a] focus:px-4 focus:py-2 focus:font-bold focus:text-sm">Skip to content</a>
     <Header user={Astro.locals.user} />
-    <main id="main-content" class="flex-1" style="animation:rise 0.3s ease both;">
+    <main id="main-content" class="flex-1">
       <slot />
     </main>
     <Footer />
@@ -143,35 +142,10 @@ const resolvedCanonical = canonicalUrl ?? new URL(Astro.url.pathname, siteUrl).h
         mo.observe(document.body, { childList: true, subtree: true });
       });
 
-      // ── Mouse glow tracking ──
-      document.querySelectorAll('.hdb-glow').forEach(el => {
-        el.addEventListener('mousemove', (e: Event) => {
-          const me = e as MouseEvent;
-          const rect = (el as HTMLElement).getBoundingClientRect();
-          (el as HTMLElement).style.setProperty('--mouse-x', me.clientX - rect.left + 'px');
-          (el as HTMLElement).style.setProperty('--mouse-y', me.clientY - rect.top + 'px');
-        });
-      });
-
-      // ── Reading progress bar ──
-      const progressBar = document.getElementById('reading-progress');
-      if (progressBar) {
-        const docHeight = document.documentElement.scrollHeight - window.innerHeight;
-        // Only show on pages taller than 2x viewport
-        if (docHeight > window.innerHeight * 1.5) {
-          progressBar.classList.add('active');
-          let rpTicking = false;
-          window.addEventListener('scroll', () => {
-            if (!rpTicking) {
-              requestAnimationFrame(() => {
-                const pct = Math.min((window.scrollY / docHeight) * 100, 100);
-                progressBar.style.width = pct + '%';
-                rpTicking = false;
-              });
-              rpTicking = true;
-            }
-          }, { passive: true });
-        }
+      // ── Theme toggle ──
+      const savedTheme = localStorage.getItem('hdb-theme');
+      if (savedTheme === 'light') {
+        document.documentElement.classList.add('light');
       }
 
       // ── Keyboard shortcut: / to focus search ──

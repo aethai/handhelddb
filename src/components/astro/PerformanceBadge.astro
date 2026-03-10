@@ -7,22 +7,37 @@ interface Props {
 const { fps, size = 'md' } = Astro.props;
 
 function getVerdict(fps: number) {
-  if (fps >= 60) return { label: '60fps', icon: '✅', color: 'bg-green-500/20 text-green-400 border-green-500/30', glow: 'fps-excellent' };
-  if (fps >= 40) return { label: '40fps', icon: '⚡', color: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30', glow: 'fps-good' };
-  if (fps >= 30) return { label: '30fps', icon: '⚠️', color: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30', glow: 'fps-fair' };
-  return { label: '<30fps', icon: '❌', color: 'bg-red-500/20 text-red-400 border-red-500/30', glow: 'fps-poor' };
+  if (fps >= 60) return { label: '60fps', class: 'perf-green' };
+  if (fps >= 40) return { label: '40fps', class: 'perf-yellow' };
+  if (fps >= 30) return { label: '30fps', class: 'perf-orange' };
+  return { label: '<30fps', class: 'perf-red' };
 }
 
 const verdict = getVerdict(fps);
 
 const sizeClasses = {
-  sm: 'px-1.5 py-0.5 text-xs',
-  md: 'px-2 py-1 text-sm',
-  lg: 'px-3 py-1.5 text-base',
+  sm: 'perf-sm',
+  md: 'perf-md',
+  lg: 'perf-lg',
 };
 ---
 
-<span class={`inline-flex items-center gap-1 rounded-md border font-medium ${verdict.color} ${verdict.glow} ${sizeClasses[size]}`}>
-  <span>{verdict.icon}</span>
-  <span class="font-mono font-bold">{verdict.label}</span>
+<span class={`perf-badge ${verdict.class} ${sizeClasses[size]}`}>
+  {verdict.label}
 </span>
+
+<style>
+  .perf-badge {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+  }
+  .perf-sm { font-size: 11px; }
+  .perf-md { font-size: 13px; }
+  .perf-lg { font-size: 16px; }
+  .perf-green { color: #22c55e; }
+  .perf-yellow { color: #eab308; }
+  .perf-orange { color: #f97316; }
+  .perf-red { color: #ef4444; }
+</style>

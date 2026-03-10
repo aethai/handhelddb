@@ -1,6 +1,7 @@
 ---
 import BaseLayout from '@layouts/BaseLayout.astro';
 import SearchBar from '@components/react/SearchBar';
+import SectionHeader from '@components/astro/SectionHeader.astro';
 import { supabaseAdmin } from '@lib/db/client';
 import { getCached, setCache } from '@lib/cache';
 
@@ -11,17 +12,16 @@ let _cached = getCached<any>(CACHE_KEY);
 if (!_cached) {
 const [
   devicesRes, topGamesRes, gameCountRes, deviceCountRes,
-  reportCountRes, articlesRes, bestOnDeckRes, trendingRes,
-  mostTestedRes, userCountRes, featuredGameRes,
+  reportCountRes, articlesRes, trendingRes, userCountRes,
 ] = await Promise.all([
   supabaseAdmin
     .from('devices')
-    .select('id, slug, name, manufacturer, chip, battery_wh, msrp_usd, tdp_min, tdp_max')
+    .select('id, slug, name, manufacturer, chip, battery_wh, msrp_usd')
     .eq('is_active', true)
     .order('name'),
   supabaseAdmin
     .from('games')
-    .select('slug, name, header_image, genres, deck_compatibility, metacritic_score, developers, steam_review_score')
+    .select('slug, name, header_image, genres, metacritic_score')
     .not('header_image', 'is', null)
     .not('metacritic_score', 'is', null)
     .order('metacritic_score', { ascending: false, nullsFirst: false })
@@ -31,181 +31,101 @@ const [
   supabaseAdmin.from('performance_reports').select('*', { count: 'exact', head: true }),
   supabaseAdmin
     .from('articles')
-    .select('slug, title, lead, category, tags, devices, published_at, cover_image')
+    .select('slug, title, lead, category, published_at, cover_image')
     .eq('status', 'published')
     .not('published_at', 'is', null)
     .order('published_at', { ascending: false })
-    .limit(3),
-  supabaseAdmin
-    .from('consensus_ratings')
-    .select('fps_avg, estimated_battery, overall_verdict, confidence_level, report_count, games(name, slug, header_image, genres), devices(slug, name)')
-    .gte('fps_avg', 55)
-    .order('report_count', { ascending: false })
-    .limit(8),
+    .limit(4),
   supabaseAdmin
     .from('performance_reports')
-    .select('fps_avg, overall_rating, created_at, games(name, slug, genres), devices(name)')
+    .select('fps_avg, graphics_preset, resolution, overall_rating, created_at, estimated_battery, games(name, slug), devices(name)')
     .eq('moderation_status', 'approved')
     .order('created_at', { ascending: false })
-    .limit(20),
-  supabaseAdmin
-    .from('consensus_ratings')
-    .select('fps_avg, report_count, overall_verdict, games(name, slug, header_image), devices(slug)')
-    .order('report_count', { ascending: false })
-    .limit(10),
+    .limit(12),
   supabaseAdmin.from('users').select('*', { count: 'exact', head: true }),
-  supabaseAdmin
-    .from('consensus_ratings')
-    .select('fps_avg, overall_verdict, report_count, games(name, slug, header_image, genres, developers, metacritic_score), devices(name, slug)')
-    .order('report_count', { ascending: false })
-    .limit(5),
 ]);
 
-// ─── Process data ───
 const gameCount = gameCountRes.count ?? 0;
 const deviceCount = deviceCountRes.count ?? 0;
 const reportCount = reportCountRes.count ?? 0;
 const userCount = userCountRes.count ?? 0;
 
 const devices = (devicesRes.data ?? []).map(d => ({
-  id: d.id, slug: d.slug, name: d.name, manufacturer: d.manufacturer,
+  slug: d.slug, name: d.name, manufacturer: d.manufacturer,
   chip: d.chip, batteryWh: d.battery_wh, msrpUsd: d.msrp_usd,
-  tdpMin: d.tdp_min, tdpMax: d.tdp_max,
 }));
 
-const gameGrid = (topGamesRes.data ?? []).slice(0, 8).map(g => ({
+const topGames = (topGamesRes.data ?? []).slice(0, 8).map(g => ({
   slug: g.slug, name: g.name, headerImage: g.header_image,
   genres: ((g.genres as string[]) ?? []).slice(0, 2),
-  developers: ((g.developers as string[]) ?? [])[0] ?? '',
-  metacritic: g.metacritic_score, deckCompat: g.deck_compatibility,
+  metacritic: g.metacritic_score,
 }));
-
-// Featured game for hero — pick one with header_image on Deck
-const featuredRaw = (featuredGameRes.data ?? []).find(r =>
-  (r.games as any)?.header_image && (r.devices as any)?.slug?.includes('deck')
-);
-const featured = featuredRaw ? {
-  name: (featuredRaw.games as any).name,
-  slug: (featuredRaw.games as any).slug,
-  headerImage: (featuredRaw.games as any).header_image,
-  fps: Math.round(featuredRaw.fps_avg ?? 0),
-  verdict: featuredRaw.overall_verdict,
-  device: (featuredRaw.devices as any)?.name ?? '',
-  reports: featuredRaw.report_count ?? 0,
-} : null;
 
 const articles = (articlesRes.data ?? []).map(a => ({
   slug: a.slug, title: a.title, lead: a.lead, category: a.category,
-  tags: (a.tags as string[]) ?? [], devices: (a.devices as string[]) ?? [],
   publishedAt: a.published_at ? new Date(a.published_at) : null,
   coverImage: a.cover_image,
 }));
 
-// Best on Deck — need >= 2 to show section
-const bestOnDeck = (bestOnDeckRes.data ?? [])
-  .filter(r => (r.games as any)?.name && (r.devices as any)?.slug?.includes('deck'))
-  .slice(0, 4)
-  .map(r => ({
-    name: (r.games as any).name, slug: (r.games as any).slug,
-    headerImage: (r.games as any).header_image,
-    fps: Math.round(r.fps_avg ?? 0),
-    battery: r.estimated_battery ? `~${r.estimated_battery.toFixed(0)}h` : '?',
-    reportCount: r.report_count ?? 0,
-  }));
-
-// Cross-dedup: collect slugs already shown in featured + best-on-deck
-const shownSlugs = new Set<string>();
-if (featured) shownSlugs.add(featured.slug);
-for (const b of bestOnDeck) shownSlugs.add(b.slug);
-
-// Trending — deduplicate, exclude already-shown games
+// Live feed — recent reports
 const seenGames = new Set<string>();
-const trending = (trendingRes.data ?? [])
+const liveFeed = (trendingRes.data ?? [])
   .filter(r => {
     const name = (r.games as any)?.name;
-    const slug = (r.games as any)?.slug;
-    if (!name || seenGames.has(name) || shownSlugs.has(slug)) return false;
+    if (!name || seenGames.has(name)) return false;
     seenGames.add(name);
     return true;
   })
-  .slice(0, 6)
+  .slice(0, 8)
   .map(r => {
     const fps = Math.round(r.fps_avg ?? 0);
-    const diffH = Math.round((Date.now() - new Date(r.created_at).getTime()) / 3600000);
-    const timeAgo = diffH < 1 ? 'now' : diffH < 24 ? `${diffH}h ago` : `${Math.round(diffH / 24)}d ago`;
+    const diffMin = Math.round((Date.now() - new Date(r.created_at).getTime()) / 60000);
+    let timeAgo: string;
+    if (diffMin < 1) timeAgo = 'now';
+    else if (diffMin < 60) timeAgo = `${diffMin}m`;
+    else if (diffMin < 1440) timeAgo = `${Math.round(diffMin / 60)}h`;
+    else timeAgo = `${Math.round(diffMin / 1440)}d`;
     return {
-      name: (r.games as any).name, slug: (r.games as any).slug,
-      genres: (((r.games as any).genres as string[]) ?? []).slice(0, 1),
-      device: (r.devices as any)?.name?.replace('ASUS ', '').replace('Lenovo ', '').replace(' OLED', '') ?? '',
-      fps, rating: r.overall_rating, timeAgo,
+      name: (r.games as any).name,
+      slug: (r.games as any).slug,
+      device: (r.devices as any)?.name?.replace('ASUS ', '').replace('Lenovo ', '') ?? '',
+      fps,
+      preset: r.graphics_preset ?? '—',
+      battery: r.estimated_battery ? `~${r.estimated_battery.toFixed(1)}h` : '—',
+      timeAgo,
     };
   });
 
-// Most tested — aggregate by game, exclude already-shown
-const gameMap = new Map<string, { name: string; slug: string; rpts: number; devs: number; headerImage: string | null }>();
-for (const r of (mostTestedRes.data ?? [])) {
-  const name = (r.games as any)?.name;
-  const slug = (r.games as any)?.slug;
-  const headerImage = (r.games as any)?.header_image ?? null;
-  if (!name || shownSlugs.has(slug)) continue;
-  const existing = gameMap.get(slug);
-  if (existing) { existing.rpts += r.report_count ?? 0; existing.devs += 1; }
-  else { gameMap.set(slug, { name, slug, rpts: r.report_count ?? 0, devs: 1, headerImage }); }
-}
-const mostTested = Array.from(gameMap.values())
-  .sort((a, b) => b.rpts - a.rpts).slice(0, 6)
-  .map((g, i) => ({ ...g, rank: i + 1 }));
-
-  _cached = { gameCount, deviceCount, reportCount, userCount, devices, gameGrid, featured, articles, bestOnDeck, trending, mostTested };
-  setCache(CACHE_KEY, _cached, 120); // 2 minutes
+  _cached = { gameCount, deviceCount, reportCount, userCount, devices, topGames, articles, liveFeed };
+  setCache(CACHE_KEY, _cached, 120);
 }
 
-const { gameCount, deviceCount, reportCount, userCount, devices, gameGrid, featured, articles, bestOnDeck, trending, mostTested } = _cached;
+const { gameCount, deviceCount, reportCount, userCount, devices, topGames, articles, liveFeed } = _cached;
 
-// ─── Helpers ───
+// Helpers
 const fmtDate = (d: Date | null) => d ? d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '';
-const fpsColor = (fps: number) => fps >= 55 ? '#4ade80' : fps >= 45 ? '#a3e635' : fps >= 35 ? '#facc15' : fps >= 25 ? '#fb923c' : '#f87171';
-const fpsTierIcon = (fps: number) => fps >= 55 ? '★' : fps >= 45 ? '◆' : fps >= 35 ? '●' : fps >= 25 ? '▼' : '✕';
-const tierLabel = (rating: string | null) => {
-  if (!rating) return { label: 'Unknown', color: '#6d6882' };
-  const map: Record<string, { label: string; color: string }> = {
-    excellent: { label: 'Portable Perfect', color: '#4ade80' },
-    good: { label: 'Commute Ready', color: '#a3e635' },
-    fair: { label: 'Playable', color: '#facc15' },
-    poor: { label: 'Rough Ride', color: '#fb923c' },
-    unplayable: { label: 'Unplayable', color: '#f87171' },
-  };
-  return map[rating] ?? { label: rating, color: '#6d6882' };
-};
-const categoryTag: Record<string, { label: string; color: string }> = {
-  'game_launch': { label: 'EDITORIAL', color: '#a78bfa' },
-  'game_patch': { label: 'UPDATE', color: '#60a5fa' },
-  'os_update': { label: 'UPDATE', color: '#60a5fa' },
-  'performance_analysis': { label: 'EDITORIAL', color: '#a78bfa' },
-  'device_launch': { label: 'UPDATE', color: '#60a5fa' },
-  'editorial': { label: 'EDITORIAL', color: '#a78bfa' },
-  'sale_event': { label: 'GUIDE', color: '#4ade80' },
+const fpsColor = (fps: number) => fps >= 55 ? '#22c55e' : fps >= 40 ? '#eab308' : fps >= 30 ? '#f97316' : '#ef4444';
+
+const categoryTag: Record<string, string> = {
+  game_launch: 'EDITORIAL', game_patch: 'UPDATE', os_update: 'UPDATE',
+  performance_analysis: 'EDITORIAL', device_launch: 'UPDATE',
+  editorial: 'EDITORIAL', sale_event: 'GUIDE',
 };
 
 const featuredDevices = [
-  { name: 'Steam Deck', slug: 'steam-deck-oled', short: 'Deck', color: '#4ea8f0' },
-  { name: 'ROG Ally', slug: 'rog-ally', short: 'Ally', color: '#ff4060' },
-  { name: 'ROG Ally X', slug: 'rog-ally-x', short: 'Ally X', color: '#ff4060' },
-  { name: 'Legion Go', slug: 'legion-go', short: 'Legion', color: '#e04040' },
-  { name: 'Legion Go S', slug: 'legion-go-s', short: 'Go S', color: '#e06040' },
-  { name: 'MSI Claw 8', slug: 'msi-claw-8-ai-plus', short: 'Claw 8', color: '#ff2020' },
+  { name: 'Deck', slug: 'steam-deck-oled' },
+  { name: 'Ally', slug: 'rog-ally' },
+  { name: 'Ally X', slug: 'rog-ally-x' },
+  { name: 'Legion Go', slug: 'legion-go' },
+  { name: 'Claw 8', slug: 'msi-claw-8-ai-plus' },
 ].filter(fd => devices.some(d => d.slug === fd.slug));
+const extraDeviceCount = Math.max(0, (devices.length) - featuredDevices.length);
 
-const heroFpsColor = featured ? fpsColor(featured.fps) : '#4ade80';
-const heroTier = featured ? tierLabel(featured.verdict) : { label: 'Unknown', color: '#6d6882' };
-
-// Minimum thresholds — graceful degradation
-const showTicker = trending.length >= 3;
-const showBestOnDeck = bestOnDeck.length >= 2;
-const showTrending = trending.length >= 2;
-const showMostTested = mostTested.length >= 2;
-const showCommunityActivity = showTrending || showMostTested;
-const showContributors = userCount >= 10;
+// Milestone for CTA
+const milestones = [50, 100, 250, 500, 1000, 2000, 5000, 10000, 25000, 50000];
+const nextMilestone = milestones.find(m => m > reportCount) ?? milestones[milestones.length - 1];
+const prevMilestone = milestones[milestones.indexOf(nextMilestone) - 1] ?? 0;
+const ctaPct = Math.min(((reportCount - prevMilestone) / (nextMilestone - prevMilestone)) * 100, 100);
 
 // Schema.org
 const siteUrl = import.meta.env.PUBLIC_SITE_URL ?? 'https://handheldgamedb.com';
@@ -215,433 +135,605 @@ const schemaWebSite = {
   description: `Performance database for handheld gaming. ${gameCount.toLocaleString()} games, ${deviceCount} devices, ${reportCount.toLocaleString()} community reports.`,
   potentialAction: { '@type': 'SearchAction', target: `${siteUrl}/games?q={search_term_string}`, 'query-input': 'required name=search_term_string' },
 };
-const schemaItemList = {
-  '@context': 'https://schema.org', '@type': 'ItemList',
-  name: 'Best Games on Steam Deck', numberOfItems: bestOnDeck.length,
-  itemListElement: bestOnDeck.map((g, i) => ({ '@type': 'ListItem', position: i + 1, url: `${siteUrl}/games/${g.slug}`, name: g.name })),
-};
 ---
 
-<BaseLayout title="HandheldDB — Does it run on your handheld?" description={`The handheld gaming performance database. ${gameCount.toLocaleString()} games tested across ${deviceCount} devices with ${reportCount.toLocaleString()} community reports. Find optimal settings for Steam Deck, ROG Ally, Legion Go and more.`}>
+<BaseLayout title="HandheldDB — Does it run on your handheld?" description={`The handheld gaming performance database. ${gameCount.toLocaleString()} games tested across ${deviceCount} devices with ${reportCount.toLocaleString()} community reports.`}>
 
 <script type="application/ld+json" set:html={JSON.stringify(schemaWebSite)} />
-<script type="application/ld+json" set:html={JSON.stringify(schemaItemList)} />
 
-<div class="page-wrap">
+<div class="hp-wrap">
 
-  <!-- ══════ 1. HERO — Split Data Hero ══════ -->
+  <!-- ══════ 1. COMMAND CENTER (Hero) ══════ -->
   <section class="hp-hero">
-    <div class="hp-hero-bg">
-      {featured?.headerImage && <img src={featured.headerImage} alt="" class="hp-hero-bg-img" fetchpriority="high" />}
-    </div>
-    <div class="hp-hero-overlay"></div>
-    <div class="hp-hero-grain"></div>
+    <div class="hp-hero-inner">
+      <h1 class="hp-hero-title">
+        DOES IT RUN<br/>ON YOUR<br/><span class="hp-hero-accent">HANDHELD?</span>
+      </h1>
 
-    <div class="hw" style="position:relative;z-index:2;">
-      <div class="hp-hero-split">
-        <!-- Left: Editorial hero content -->
-        <div>
-          <span class="editorial-label" style="margin-bottom:12px;">PERFORMANCE DATABASE</span>
-          <h1 class="hp-hero-title" style="line-height:1.05;">
-            Real FPS.<br/>Real hardware.<br/><span style="color:#4ade80;">Every handheld.</span>
-          </h1>
-          <p class="hp-hero-sub" style="margin-top:14px;">
-            Community-tested performance data from <strong style="color:#9890a8;font-weight:600;">{reportCount.toLocaleString()}</strong> reports across <strong style="color:#9890a8;font-weight:600;">{deviceCount}</strong> devices. Find the settings that actually work.
-          </p>
+      <div class="hp-hero-search">
+        <SearchBar client:load variant="hero" placeholder={`Search ${gameCount.toLocaleString()} games...`} />
+      </div>
 
-          <div class="hp-hero-search" style="margin-top:20px;">
-            <SearchBar client:load variant="hero" placeholder={`Search ${gameCount.toLocaleString()} games...`} />
-          </div>
-
-          <div class="hp-device-pills" style="margin-top:14px;">
-            {featuredDevices.map(d => (
-              <a href={`/devices/${d.slug}`} class="hp-device-pill" style={`--pill-color:${d.color};`}>{d.short}</a>
-            ))}
-            <a href="/devices" class="hp-device-pill hp-device-pill-all">All {deviceCount} →</a>
-          </div>
+      <div class="hp-hero-stats">
+        <div class="hp-hero-stat">
+          <span class="hp-hero-stat-val">{gameCount.toLocaleString()}</span>
+          <span class="hp-hero-stat-lbl">GAMES</span>
         </div>
+        <div class="hp-hero-stat-sep"></div>
+        <div class="hp-hero-stat">
+          <span class="hp-hero-stat-val">{reportCount.toLocaleString()}</span>
+          <span class="hp-hero-stat-lbl">REPORTS</span>
+        </div>
+        <div class="hp-hero-stat-sep"></div>
+        <div class="hp-hero-stat">
+          <span class="hp-hero-stat-val">{deviceCount}</span>
+          <span class="hp-hero-stat-lbl">DEVICES</span>
+        </div>
+        {userCount > 0 && (
+          <>
+            <div class="hp-hero-stat-sep"></div>
+            <div class="hp-hero-stat">
+              <span class="hp-hero-stat-val">{userCount.toLocaleString()}</span>
+              <span class="hp-hero-stat-lbl">USERS</span>
+            </div>
+          </>
+        )}
+      </div>
 
-        <!-- Right: FPS Showcase Card -->
-        {featured && (
-          <div class="hp-showcase">
-            <a href={`/games/${featured.slug}`} style="text-decoration:none;display:block;">
-              <div class="hp-showcase-main">
-                <div class="hp-showcase-img">
-                  {featured.headerImage && <img src={featured.headerImage} alt={featured.name} />}
-                </div>
-                <div class="hp-showcase-data">
-                  <div>
-                    <span class="hp-showcase-fps" style={`color:${heroFpsColor};text-shadow:0 0 30px ${heroFpsColor}30;`}>{featured.fps}</span>
-                    <span class="hp-showcase-fps-unit">FPS</span>
-                  </div>
-                  <div class="hp-showcase-game">{featured.name}</div>
-                  <div class="hp-showcase-device">{featured.device} · {featured.reports} reports</div>
-                </div>
-              </div>
-
-              <div class="hp-showcase-meta">
-                <div class="hp-showcase-meta-item">
-                  <span class="hp-showcase-meta-val" style={`color:${heroTier.color};`}>{heroTier.label}</span>
-                  <span class="hp-showcase-meta-lbl">Verdict</span>
-                </div>
-                <div class="hp-showcase-meta-item">
-                  <span class="hp-showcase-meta-val">{featured.reports}</span>
-                  <span class="hp-showcase-meta-lbl">Reports</span>
-                </div>
-              </div>
-            </a>
-
-            {bestOnDeck.length > 0 && (
-              <div class="hp-showcase-also">
-                <div class="hp-showcase-also-label">Also tested on Deck</div>
-                {bestOnDeck.slice(0, 3).map(g => (
-                  <a href={`/games/${g.slug}`} class="hp-showcase-also-row">
-                    <span class="hp-showcase-also-name">{g.name}</span>
-                    <span class="hp-showcase-also-fps" style={`color:${fpsColor(g.fps)};`}>{g.fps} fps</span>
-                  </a>
-                ))}
-              </div>
-            )}
-          </div>
+      <div class="hp-hero-devices">
+        {featuredDevices.map(d => (
+          <a href={`/devices/${d.slug}`} class="hp-hero-device">{d.name}</a>
+        ))}
+        {extraDeviceCount > 0 && (
+          <a href="/devices" class="hp-hero-device hp-hero-device-more">+{extraDeviceCount} more</a>
         )}
       </div>
     </div>
   </section>
 
-  <div class="hw">
+  <div class="hp-main">
 
-    <!-- ══════ 2. DATA PROOF BAR — Enhanced Stats ══════ -->
-    <section class="hp-stats stagger" aria-label="Site statistics">
-      <div class="hp-stat" data-tooltip="Games in our database">
-        <div class="hp-stat-value" data-count={gameCount} aria-live="polite">{gameCount.toLocaleString()}</div>
-        <div class="hp-stat-label">Games</div>
-      </div>
-      <div class="hp-stat-divider" aria-hidden="true"></div>
-      <div class="hp-stat" data-tooltip="Community performance reports">
-        <div class="hp-stat-value" data-count={reportCount} aria-live="polite">{reportCount.toLocaleString()}</div>
-        <div class="hp-stat-label">Reports</div>
-      </div>
-      <div class="hp-stat-divider" aria-hidden="true"></div>
-      <div class="hp-stat" data-tooltip="Supported handheld devices">
-        <div class="hp-stat-value" data-count={deviceCount} aria-live="polite">{deviceCount}</div>
-        <div class="hp-stat-label">Devices</div>
-      </div>
-      {showContributors && (
-        <>
-          <div class="hp-stat-divider"></div>
-          <div class="hp-stat" data-tooltip="Community members">
-            <div class="hp-stat-value" data-count={userCount}>{userCount.toLocaleString()}</div>
-            <div class="hp-stat-label">Contributors</div>
+    <!-- ══════ 2. LIVE FEED ══════ -->
+    {liveFeed.length > 0 && (
+      <section class="hp-section">
+        <SectionHeader title="Latest Reports" href="/games" linkText="View all" />
+        <div class="hp-feed">
+          <div class="hp-feed-header">
+            <span class="hp-feed-col-game">Game</span>
+            <span class="hp-feed-col-device">Device</span>
+            <span class="hp-feed-col-fps">FPS</span>
+            <span class="hp-feed-col-preset">Preset</span>
+            <span class="hp-feed-col-battery">Battery</span>
+            <span class="hp-feed-col-time">When</span>
           </div>
-        </>
-      )}
-      <div class="hp-stats-live">
-        <span class="hp-stats-live-dot"></span>
-        LIVE
-      </div>
-    </section>
-
-    <!-- ══════ 3. FPS TICKER — Enhanced Marquee ══════ -->
-    {showTicker && (
-      <div class="hp-ticker" style="margin-bottom:40px;">
-        <div class="hp-ticker-inner">
-          {[...trending, ...trending, ...trending].map((t) => (
-            <a href={`/games/${t.slug}`} class="hp-ticker-item" style="text-decoration:none;">
-              <span style={`display:inline-block;width:6px;height:6px;border-radius:50%;background:${fpsColor(t.fps)};vertical-align:middle;margin-right:4px;`}></span>
-              <span style="color:#9890a8;">{t.name}</span>{' on '}{t.device}
-              {' '}<span style={`color:${fpsColor(t.fps)};font-weight:600;`}>{t.fps} fps</span>
-              {' · '}<span style="color:#4a4560;">{t.timeAgo}</span>
+          {liveFeed.map(r => (
+            <a href={`/games/${r.slug}`} class="hp-feed-row">
+              <span class="hp-feed-col-game hp-feed-name">{r.name}</span>
+              <span class="hp-feed-col-device">{r.device}</span>
+              <span class="hp-feed-col-fps" style={`color:${fpsColor(r.fps)};`}>{r.fps}</span>
+              <span class="hp-feed-col-preset">{r.preset}</span>
+              <span class="hp-feed-col-battery">{r.battery}</span>
+              <span class="hp-feed-col-time">{r.timeAgo}</span>
             </a>
           ))}
-        </div>
-      </div>
-    )}
-
-    <!-- ══════ 4. TOP GAMES — Static Bento Grid ══════ -->
-    <section style="margin-bottom:48px;">
-      <div class="hp-section-head">
-        <h2>Top Rated</h2>
-        <a href="/games">View all →</a>
-      </div>
-      <div class="hp-bento-grid stagger">
-        {gameGrid.map((g, i) => {
-          const mcColor = g.metacritic >= 80 ? '#4ade80' : g.metacritic >= 60 ? '#facc15' : '#f87171';
-          if (i === 0) {
-            return (
-              <a href={`/games/${g.slug}`} class="hp-bento-card hp-bento-feature">
-                <div class="hp-bento-card-img-wrap">
-                  {g.headerImage && <img src={g.headerImage} alt={g.name} class="hp-bento-card-img" />}
-                </div>
-                <div class="hp-bento-overlay"></div>
-                {g.metacritic && <span class="hp-bento-mc" style={`color:${mcColor};`}>{g.metacritic}</span>}
-                <div class="hp-bento-content">
-                  <div class="hp-bento-title">{g.name}</div>
-                  <div class="hp-bento-sub">{g.genres.join(' · ')}{g.developers ? ` · ${g.developers}` : ''}</div>
-                </div>
-              </a>
-            );
-          }
-          return (
-            <a href={`/games/${g.slug}`} class="hp-bento-card">
-              <div class="hp-bento-small-wrap">
-                {g.headerImage ? (
-                  <img src={g.headerImage} alt={g.name} class="hp-bento-card-img" loading="lazy" />
-                ) : (
-                  <div style="width:100%;height:100%;background:#12101a;"></div>
-                )}
-              </div>
-              {g.metacritic && <span class="hp-bento-mc" style={`color:${mcColor};`}>{g.metacritic}</span>}
-              <div class="hp-bento-small-body">
-                <div class="hp-bento-small-title">{g.name}</div>
-                <div class="hp-bento-small-genre">{g.genres.join(' · ')}</div>
-              </div>
-            </a>
-          );
-        })}
-      </div>
-    </section>
-
-    <!-- ══════ 5. BEST ON DECK — Performance Data Table ══════ -->
-    {showBestOnDeck && (
-      <section style="margin-bottom:48px;">
-        <div class="hp-section-head">
-          <h2>Best on <span style="color:#4ade80;">Deck</span></h2>
-          <a href="/games">View all →</a>
-        </div>
-        <div class="hp-perf-table">
-          <div class="hp-perf-header">
-            <span class="hp-perf-col-game">Game</span>
-            <span class="hp-perf-col-fps">FPS</span>
-            <span class="hp-perf-col-verdict">Verdict</span>
-            <span class="hp-perf-col-battery">Battery</span>
-            <span class="hp-perf-col-reports">Reports</span>
-          </div>
-          {bestOnDeck.map((g) => {
-            const gc = fpsColor(g.fps);
-            const tier = tierLabel(g.fps >= 55 ? 'excellent' : g.fps >= 45 ? 'good' : g.fps >= 35 ? 'fair' : 'poor');
-            return (
-              <a href={`/games/${g.slug}`} class="hp-perf-row">
-                <div class="hp-perf-col-game">
-                  <div class="hp-perf-thumb">
-                    {g.headerImage && <img src={g.headerImage} alt="" loading="lazy" />}
-                  </div>
-                  <span class="hp-perf-name">{g.name}</span>
-                </div>
-                <div class="hp-perf-col-fps">
-                  <span class="hp-perf-fps" style={`color:${gc};text-shadow:0 0 12px ${gc}25;`}>{g.fps}</span>
-                </div>
-                <div class="hp-perf-col-verdict">
-                  <span class="hp-perf-verdict" style={`color:${tier.color};background:${tier.color}12;`}>{tier.label}</span>
-                </div>
-                <div class="hp-perf-col-battery">
-                  <span class="hp-perf-battery">{g.battery}</span>
-                </div>
-                <div class="hp-perf-col-reports">
-                  <span class="hp-perf-reports">{g.reportCount} rpts</span>
-                </div>
-              </a>
-            );
-          })}
         </div>
       </section>
     )}
 
-    <!-- ══════ 6. LATEST NEWS — Editorial Layout ══════ -->
-    {articles.length >= 2 && (
-      <section style="margin-bottom:48px;">
-        <div class="hp-section-head">
-          <h2>Latest News</h2>
-          <a href="/news">All articles →</a>
+    <!-- ══════ 3. TOP GAMES + DEVICES ══════ -->
+    <section class="hp-section hp-split">
+      <div class="hp-split-left">
+        <SectionHeader title="Top Rated" href="/games" linkText="All" />
+        <div class="hp-top-games">
+          {topGames.map(g => (
+            <a href={`/games/${g.slug}`} class="hp-top-game-row">
+              <div class="hp-top-game-thumb">
+                {g.headerImage && <img src={g.headerImage} alt="" loading="lazy" />}
+              </div>
+              <span class="hp-top-game-name">{g.name}</span>
+              {g.metacritic && <span class="hp-top-game-score">{g.metacritic}</span>}
+            </a>
+          ))}
         </div>
-        <div class="hp-news-editorial">
-          {articles.map((n, i) => {
-            const tag = categoryTag[n.category] ?? { label: 'NEWS', color: '#60a5fa' };
-            const gradients = [
-              'linear-gradient(135deg,#1a0e2e 0%,#0e0c16 60%,rgba(167,139,250,0.08) 100%)',
-              'linear-gradient(135deg,#0e0c16 0%,#0c1a1a 50%,rgba(74,222,128,0.06) 100%)',
-              'linear-gradient(135deg,#0e0c16 0%,#1a140e 50%,rgba(251,146,60,0.06) 100%)',
-            ];
+      </div>
+      <div class="hp-split-right">
+        <SectionHeader title="Devices" href="/devices" linkText="All" />
+        <div class="hp-device-list">
+          {devices.slice(0, 6).map(d => (
+            <a href={`/devices/${d.slug}`} class="hp-device-row">
+              <div>
+                <span class="hp-device-row-name">{d.name}</span>
+                <span class="hp-device-row-specs">
+                  {[d.chip, d.batteryWh ? `${d.batteryWh}Wh` : null, d.msrpUsd ? `$${d.msrpUsd}` : null].filter(Boolean).join(' · ')}
+                </span>
+              </div>
+            </a>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════ 4. NEWS ══════ -->
+    {articles.length > 0 && (
+      <section class="hp-section">
+        <SectionHeader title="Latest News" href="/news" linkText="All news" />
+        <div class="hp-news">
+          {articles.map((a, i) => {
+            const tag = categoryTag[a.category] ?? 'NEWS';
             if (i === 0) {
               return (
-                <a href={`/news/${n.slug}`} class="hp-bento-card hp-news-feature" style="text-decoration:none;">
-                  {n.coverImage ? (
-                    <img src={n.coverImage} alt={n.title} loading="lazy" />
-                  ) : (
-                    <div style={`position:absolute;inset:0;background:${gradients[0]};`}></div>
-                  )}
-                  <div class="hp-news-feature-overlay"></div>
-                  <div class="hp-news-feature-content">
-                    <span style={`font-family:var(--font-mono);font-size:9px;font-weight:700;letter-spacing:0.08em;color:${tag.color};background:${tag.color}12;padding:3px 8px;border-radius:4px;display:inline-block;margin-bottom:8px;`}>{tag.label}</span>
-                    <h3 style="font-family:var(--font-display);font-size:20px;font-weight:800;color:#eae6f4;line-height:1.25;margin-bottom:6px;">{n.title}</h3>
-                    {n.lead && <p style="font-family:var(--font-display);font-size:13px;color:#9890a8;line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">{n.lead}</p>}
-                    <div style="font-family:var(--font-mono);font-size:9px;color:#4a4560;margin-top:8px;">HandheldDB · {fmtDate(n.publishedAt)}</div>
+                <a href={`/news/${a.slug}`} class="hp-news-featured">
+                  <div class="hp-news-featured-img">
+                    {a.coverImage ? (
+                      <img src={a.coverImage} alt={a.title} loading="lazy" />
+                    ) : (
+                      <div class="hp-news-featured-placeholder"></div>
+                    )}
+                  </div>
+                  <div class="hp-news-featured-body">
+                    <span class="hp-news-tag">{tag}</span>
+                    <h3 class="hp-news-featured-title">{a.title}</h3>
+                    {a.lead && <p class="hp-news-featured-lead">{a.lead}</p>}
+                    <span class="hp-news-date">{fmtDate(a.publishedAt)}</span>
                   </div>
                 </a>
               );
             }
             return (
-              <a href={`/news/${n.slug}`} class="hp-bento-card hp-news-side" style="text-decoration:none;display:flex;gap:12px;padding:14px;">
-                <div style="width:80px;height:52px;border-radius:8px;overflow:hidden;flex-shrink:0;background:#12101a;">
-                  {n.coverImage ? (
-                    <img src={n.coverImage} alt="" style="width:100%;height:100%;object-fit:cover;" loading="lazy" />
-                  ) : (
-                    <div style={`width:100%;height:100%;background:${gradients[i % gradients.length]};`}></div>
-                  )}
-                </div>
-                <div style="flex:1;min-width:0;">
-                  <span style={`font-family:var(--font-mono);font-size:8px;font-weight:700;letter-spacing:0.08em;color:${tag.color};`}>{tag.label}</span>
-                  <h3 style="font-family:var(--font-display);font-size:13px;font-weight:700;color:#eae6f4;line-height:1.3;margin-top:2px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">{n.title}</h3>
-                  <div style="font-family:var(--font-mono);font-size:9px;color:#4a4560;margin-top:4px;">{fmtDate(n.publishedAt)}</div>
-                </div>
+              <a href={`/news/${a.slug}`} class="hp-news-row">
+                <span class="hp-news-row-title">{a.title}</span>
+                <span class="hp-news-row-meta">
+                  <span class="hp-news-tag">{tag}</span>
+                  <span class="hp-news-date">{fmtDate(a.publishedAt)}</span>
+                </span>
               </a>
             );
           })}
         </div>
+        {articles.length === 0 && (
+          <p class="hp-empty">No news yet. Check back soon.</p>
+        )}
       </section>
     )}
 
-    <!-- ══════ 7. COMMUNITY ACTIVITY — Side-by-Side ══════ -->
-    {showCommunityActivity && (
-      <section style="margin-bottom:48px;">
-        <div class="hp-section-head">
-          <h2>Community Activity</h2>
-          <a href="/games">Browse all →</a>
-        </div>
-        <div class="hp-community-grid">
-          {showTrending && (
-            <div class="hp-community-panel">
-              <div class="hp-community-panel-head">Recent Reports</div>
-              {trending.map((g, i) => {
-                const gc = fpsColor(g.fps);
-                const tier = tierLabel(g.rating);
-                return (
-                  <a href={`/games/${g.slug}`} class="hp-trending-row" style={`border-bottom:${i < trending.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none'};`}>
-                    <div style={`font-family:var(--font-mono);font-size:24px;font-weight:800;color:${gc};text-shadow:0 0 12px ${gc}20;width:44px;text-align:center;letter-spacing:-0.04em;flex-shrink:0;`}>{g.fps}</div>
-                    <div style="flex:1;min-width:0;">
-                      <div style="font-family:var(--font-display);font-size:13px;font-weight:700;color:#eae6f4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{g.name}</div>
-                      <div style="font-family:var(--font-mono);font-size:9px;color:#4a4560;">{g.device} · {g.genres.join(' · ')}</div>
-                    </div>
-                    <span style={`font-family:var(--font-mono);font-size:9px;font-weight:700;color:${tier.color};letter-spacing:0.04em;flex-shrink:0;`}>{tier.label.toUpperCase()}</span>
-                  </a>
-                );
-              })}
-            </div>
-          )}
-
-          {showMostTested && (
-            <div class="hp-community-panel">
-              <div class="hp-community-panel-head">Most Tested</div>
-              {mostTested.map((g) => (
-                <a href={`/games/${g.slug}`} class="hp-ranked-row">
-                  <span class="hp-ranked-num">#{g.rank}</span>
-                  <span class="hp-ranked-name">{g.name}</span>
-                  <span class="hp-ranked-stat">{g.rpts} rpts · {g.devs} dev</span>
-                </a>
-              ))}
-            </div>
-          )}
-        </div>
-      </section>
-    )}
-
-    <!-- ══════ 8. DEVICE SHOWCASE — Featured Device Cards ══════ -->
-    <section style="margin-bottom:48px;">
-      <div class="hp-section-head">
-        <h2>Devices</h2>
-        <a href="/devices">All {deviceCount} →</a>
-      </div>
-      <div class="hp-device-showcase">
-        {devices.slice(0, 6).map(d => {
-          const accentMap = { 'Valve': '#4ea8f0', 'ASUS': '#ff4060', 'Lenovo': '#e04040', 'MSI': '#ff2020', 'AYANEO': '#ff8040' };
-          const accent = accentMap[d.manufacturer] ?? '#a78bfa';
-          return (
-            <a href={`/devices/${d.slug}`} class="hp-device-showcase-card" style={`--accent-color:${accent};`}>
-              <div class="hp-device-showcase-mfr">{d.manufacturer}</div>
-              <div class="hp-device-showcase-name">{d.name.replace('ASUS ', '').replace('Lenovo ', '')}</div>
-              <div class="hp-device-showcase-specs">
-                {d.chip && <span>{d.chip}</span>}
-                {d.batteryWh && <span>{d.batteryWh} Wh</span>}
-                {d.msrpUsd && <span>${d.msrpUsd}</span>}
-              </div>
-              <div class="hp-device-showcase-link">View performance →</div>
-            </a>
-          );
-        })}
-      </div>
-    </section>
-
-    <!-- ══════ 9. CTA — With Progress Bar ══════ -->
-    <section style="margin-bottom:48px;">
+    <!-- ══════ 5. CTA ══════ -->
+    <section class="hp-section">
       <div class="hp-cta">
-        <div class="hp-cta-glow"></div>
-        <div style="position:relative;z-index:1;">
-          <h2 style="font-family:var(--font-display);font-size:clamp(20px,3vw,26px);font-weight:800;color:#eae6f4;margin-bottom:8px;letter-spacing:-0.02em;">Help us benchmark handheld gaming</h2>
-          <p style="font-family:var(--font-display);font-size:14px;color:#6d6882;margin-bottom:16px;line-height:1.5;">
-            Share your real-world performance data. Every report makes the database more accurate.
-          </p>
-
-          {(() => {
-            const milestones = [500, 1000, 2000, 5000, 10000, 25000, 50000, 100000];
-            const next = milestones.find(m => m > reportCount) ?? milestones[milestones.length - 1];
-            const prev = milestones[milestones.indexOf(next) - 1] ?? 0;
-            const pct = Math.min(((reportCount - prev) / (next - prev)) * 100, 100);
-            return (
-              <>
-                <div class="hp-cta-progress">
-                  <div class="hp-cta-progress-fill" style={`width:${pct}%;`}></div>
-                </div>
-                <div class="hp-cta-milestone">{reportCount.toLocaleString()} / {next.toLocaleString()} reports — {Math.round(pct)}% to next milestone</div>
-              </>
-            );
-          })()}
-
-          <div style="display:flex;gap:28px;flex-wrap:wrap;margin-top:20px;">
-            <div>
-              <div style="font-family:var(--font-mono);font-size:16px;font-weight:700;color:#eae6f4;">{reportCount.toLocaleString()}</div>
-              <div style="font-family:var(--font-mono);font-size:10px;color:#6d6882;letter-spacing:0.04em;">REPORTS</div>
+        <div class="hp-cta-text">
+          <h2 class="hp-cta-title">HELP US BENCHMARK<br/>HANDHELD GAMING.</h2>
+          <div class="hp-cta-progress-wrap">
+            <div class="hp-cta-progress">
+              <div class="hp-cta-progress-fill" style={`width:${ctaPct}%;`}></div>
             </div>
-            <div>
-              <div style="font-family:var(--font-mono);font-size:16px;font-weight:700;color:#eae6f4;">{gameCount.toLocaleString()}</div>
-              <div style="font-family:var(--font-mono);font-size:10px;color:#6d6882;letter-spacing:0.04em;">GAMES</div>
-            </div>
-            <div>
-              <div style="font-family:var(--font-mono);font-size:16px;font-weight:700;color:#eae6f4;">{deviceCount}</div>
-              <div style="font-family:var(--font-mono);font-size:10px;color:#6d6882;letter-spacing:0.04em;">DEVICES</div>
-            </div>
+            <span class="hp-cta-milestone">{reportCount.toLocaleString()} / {nextMilestone.toLocaleString()} reports — every one counts</span>
           </div>
         </div>
-        <a href="/report/new" class="hp-cta-btn">SUBMIT A REPORT</a>
+        <a href="/report/new" class="btn-primary hp-cta-btn">SUBMIT A REPORT</a>
       </div>
     </section>
 
   </div>
 </div>
 
-<script>
-  // Animated stat counters
-  const counters = document.querySelectorAll('.hp-stat-value[data-count]');
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        const el = entry.target as HTMLElement;
-        const target = parseInt(el.dataset.count ?? '0', 10);
-        if (target === 0) return;
-        const start = performance.now();
-        const duration = 1200;
-        const format = (n: number) => n.toLocaleString();
-        const animate = (now: number) => {
-          const progress = Math.min((now - start) / duration, 1);
-          const eased = 1 - Math.pow(1 - progress, 3);
-          el.textContent = format(Math.round(eased * target));
-          if (progress < 1) requestAnimationFrame(animate);
-        };
-        el.textContent = '0';
-        requestAnimationFrame(animate);
-        observer.unobserve(el);
-      }
-    });
-  }, { threshold: 0.3 });
-  counters.forEach(c => observer.observe(c));
-</script>
-
 </BaseLayout>
+
+<style>
+  /* ─── Page wrap ─── */
+  .hp-wrap { }
+  .hp-main {
+    max-width: 1120px;
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+  .hp-section {
+    margin-bottom: 48px;
+  }
+
+  /* ─── 1. HERO ─── */
+  .hp-hero {
+    padding: 64px 24px 48px;
+    max-width: 1120px;
+    margin: 0 auto;
+  }
+  .hp-hero-inner {
+    max-width: 720px;
+  }
+  .hp-hero-title {
+    font-family: var(--font-heading);
+    font-weight: 700;
+    font-size: clamp(36px, 6vw, 64px);
+    line-height: 0.95;
+    letter-spacing: -0.03em;
+    text-transform: uppercase;
+    color: var(--color-text);
+    margin-bottom: 24px;
+  }
+  .hp-hero-accent {
+    color: #D4FF00;
+  }
+  .hp-hero-search {
+    margin-bottom: 20px;
+    max-width: 600px;
+  }
+  .hp-hero-stats {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+  }
+  .hp-hero-stat {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+  }
+  .hp-hero-stat-val {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: 16px;
+    color: var(--color-text);
+  }
+  .hp-hero-stat-lbl {
+    font-family: var(--font-mono);
+    font-weight: 500;
+    font-size: 10px;
+    color: var(--color-text-3);
+    letter-spacing: 0.1em;
+  }
+  .hp-hero-stat-sep {
+    width: 1px;
+    height: 14px;
+    background: var(--color-border);
+  }
+  .hp-hero-devices {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .hp-hero-device {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--color-text-2);
+    text-decoration: none;
+    border: 1px solid var(--color-border);
+    padding: 6px 14px;
+    transition: border-color 0.15s, color 0.15s;
+  }
+  .hp-hero-device:hover {
+    border-color: #D4FF00;
+    color: #D4FF00;
+  }
+  .hp-hero-device-more {
+    color: var(--color-text-3);
+  }
+
+  /* ─── 2. LIVE FEED ─── */
+  .hp-feed {
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .hp-feed-header,
+  .hp-feed-row {
+    display: grid;
+    grid-template-columns: 2fr 1.2fr 0.6fr 0.8fr 0.7fr 0.5fr;
+    gap: 8px;
+    padding: 10px 16px;
+    align-items: center;
+    font-size: 13px;
+  }
+  .hp-feed-header {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 500;
+    color: var(--color-text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    background: var(--color-elevated);
+    border-bottom: 1px solid var(--color-border);
+  }
+  .hp-feed-row {
+    text-decoration: none;
+    color: var(--color-text-2);
+    border-bottom: 1px solid var(--color-border-subtle);
+    transition: background 0.1s;
+  }
+  .hp-feed-row:last-child {
+    border-bottom: none;
+  }
+  .hp-feed-row:hover {
+    background: var(--color-elevated);
+  }
+  .hp-feed-name {
+    color: var(--color-text);
+    font-weight: 500;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .hp-feed-col-fps {
+    font-family: var(--font-mono);
+    font-weight: 700;
+  }
+  .hp-feed-col-device,
+  .hp-feed-col-preset,
+  .hp-feed-col-battery,
+  .hp-feed-col-time {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--color-text-3);
+  }
+
+  /* ─── 3. TOP GAMES + DEVICES ─── */
+  .hp-split {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 32px;
+  }
+  .hp-top-games {
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .hp-top-game-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    text-decoration: none;
+    border-bottom: 1px solid var(--color-border-subtle);
+    transition: background 0.1s;
+  }
+  .hp-top-game-row:last-child { border-bottom: none; }
+  .hp-top-game-row:hover { background: var(--color-elevated); }
+  .hp-top-game-thumb {
+    width: 48px;
+    height: 22px;
+    border-radius: 2px;
+    overflow: hidden;
+    flex-shrink: 0;
+    background: var(--color-elevated);
+  }
+  .hp-top-game-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .hp-top-game-name {
+    flex: 1;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--color-text);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .hp-top-game-score {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: 13px;
+    color: #22c55e;
+    flex-shrink: 0;
+  }
+
+  .hp-device-list {
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .hp-device-row {
+    display: block;
+    padding: 12px 14px;
+    text-decoration: none;
+    border-bottom: 1px solid var(--color-border-subtle);
+    transition: background 0.1s;
+  }
+  .hp-device-row:last-child { border-bottom: none; }
+  .hp-device-row:hover { background: var(--color-elevated); }
+  .hp-device-row-name {
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--color-text);
+  }
+  .hp-device-row-specs {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--color-text-3);
+    margin-top: 2px;
+  }
+
+  /* ─── 4. NEWS ─── */
+  .hp-news {
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .hp-news-featured {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    text-decoration: none;
+    border-bottom: 1px solid var(--color-border);
+    transition: background 0.1s;
+  }
+  .hp-news-featured:hover { background: var(--color-elevated); }
+  .hp-news-featured-img {
+    aspect-ratio: 16/10;
+    overflow: hidden;
+    background: var(--color-elevated);
+  }
+  .hp-news-featured-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .hp-news-featured-placeholder {
+    width: 100%;
+    height: 100%;
+    background: var(--color-elevated);
+  }
+  .hp-news-featured-body {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  .hp-news-tag {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 500;
+    color: #D4FF00;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  .hp-news-featured-title {
+    font-family: var(--font-heading);
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--color-text);
+    line-height: 1.25;
+    margin-bottom: 6px;
+  }
+  .hp-news-featured-lead {
+    font-size: 13px;
+    color: var(--color-text-3);
+    line-height: 1.5;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    margin-bottom: 8px;
+  }
+  .hp-news-date {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--color-text-dim);
+    letter-spacing: 0.04em;
+  }
+  .hp-news-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 12px 16px;
+    text-decoration: none;
+    border-bottom: 1px solid var(--color-border-subtle);
+    transition: background 0.1s;
+  }
+  .hp-news-row:last-child { border-bottom: none; }
+  .hp-news-row:hover { background: var(--color-elevated); }
+  .hp-news-row-title {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--color-text);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .hp-news-row-meta {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+  }
+
+  .hp-empty {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--color-text-dim);
+    padding: 24px 0;
+  }
+
+  /* ─── 5. CTA ─── */
+  .hp-cta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 32px;
+    padding: 32px;
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    background: var(--color-raised);
+  }
+  .hp-cta-text { flex: 1; }
+  .hp-cta-title {
+    font-family: var(--font-heading);
+    font-weight: 700;
+    font-size: clamp(18px, 2.5vw, 24px);
+    color: var(--color-text);
+    text-transform: uppercase;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+    margin-bottom: 12px;
+  }
+  .hp-cta-progress-wrap {
+    max-width: 400px;
+  }
+  .hp-cta-progress {
+    height: 4px;
+    background: var(--color-border);
+    width: 100%;
+    margin-bottom: 6px;
+  }
+  .hp-cta-progress-fill {
+    height: 100%;
+    background: #D4FF00;
+    transition: width 0.5s;
+  }
+  .hp-cta-milestone {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--color-text-3);
+  }
+  .hp-cta-btn {
+    flex-shrink: 0;
+    padding: 14px 28px;
+    font-size: 13px;
+  }
+
+  /* ─── Responsive ─── */
+  @media (max-width: 768px) {
+    .hp-hero { padding: 40px 20px 32px; }
+    .hp-main { padding: 0 20px; }
+
+    .hp-feed-header,
+    .hp-feed-row {
+      grid-template-columns: 1.5fr 1fr 0.5fr;
+    }
+    .hp-feed-col-preset,
+    .hp-feed-col-battery,
+    .hp-feed-col-time {
+      display: none;
+    }
+
+    .hp-split {
+      grid-template-columns: 1fr;
+      gap: 24px;
+    }
+
+    .hp-news-featured {
+      grid-template-columns: 1fr;
+    }
+
+    .hp-cta {
+      flex-direction: column;
+      text-align: center;
+      padding: 24px;
+    }
+    .hp-cta-progress-wrap {
+      max-width: 100%;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .hp-hero-title {
+      font-size: 32px;
+    }
+    .hp-hero-stats {
+      gap: 10px;
+    }
+  }
+</style>

@@ -104,7 +104,7 @@ function formatDate(dateStr: string): string {
 
 function ratingBadgeColor(rating: string): string {
   switch (rating) {
-    case 'excellent': return 'bg-[#7c6cf0]/20 text-[#7c6cf0]';
+    case 'excellent': return 'bg-[#D4FF00]/20 text-[#D4FF00]';
     case 'good': return 'bg-green-500/20 text-green-400';
     case 'fair': return 'bg-yellow-500/20 text-yellow-400';
     case 'poor': return 'bg-orange-500/20 text-orange-400';
@@ -115,7 +115,7 @@ function ratingBadgeColor(rating: string): string {
 
 function statusBadgeColor(status: string): string {
   switch (status) {
-    case 'approved': return 'bg-[#7c6cf0]/20 text-[#7c6cf0]';
+    case 'approved': return 'bg-[#D4FF00]/20 text-[#D4FF00]';
     case 'pending': return 'bg-amber-500/20 text-amber-400';
     case 'rejected': return 'bg-red-500/20 text-red-400';
     default: return 'bg-[#55555e]/20 text-[#8a8a94]';
@@ -141,7 +141,7 @@ function statusBadgeColor(status: string): string {
             class:list={[
               'rounded-lg px-3 py-1.5 text-sm font-medium transition-colors',
               !filter
-                ? 'bg-[#7c6cf0]/20 text-[#7c6cf0] border border-[#7c6cf0]/30'
+                ? 'bg-[#D4FF00]/20 text-[#D4FF00] border border-[#D4FF00]/30'
                 : 'text-[#8a8a94] hover:text-white border border-[#25252e] hover:bg-[#1a1a22]',
             ]}
           >
@@ -163,7 +163,7 @@ function statusBadgeColor(status: string): string {
             class:list={[
               'rounded-lg px-3 py-1.5 text-sm font-medium transition-colors',
               filter === 'approved'
-                ? 'bg-[#7c6cf0]/20 text-[#7c6cf0] border border-[#7c6cf0]/30'
+                ? 'bg-[#D4FF00]/20 text-[#D4FF00] border border-[#D4FF00]/30'
                 : 'text-[#8a8a94] hover:text-white border border-[#25252e] hover:bg-[#1a1a22]',
             ]}
           >
@@ -185,14 +185,14 @@ function statusBadgeColor(status: string): string {
         <!-- Reports List -->
         <div class="space-y-3">
           {enrichedReports.length === 0 ? (
-            <div class="rounded-xl border border-[#1a1a22] bg-[#0f0f12] p-8 text-center text-[#55555e]">
+            <div class="rounded-lg border border-[#1a1a22] bg-[#0f0f12] p-8 text-center text-[#55555e]">
               No reports found.
             </div>
           ) : (
             enrichedReports.map(report => (
               <div
                 class:list={[
-                  'rounded-xl border bg-[#0f0f12] p-4 transition-colors',
+                  'rounded-lg border bg-[#0f0f12] p-4 transition-colors',
                   report.moderationStatus === 'pending' ? 'border-amber-700/50' : report.moderationStatus === 'rejected' ? 'border-red-700/50' : 'border-[#1a1a22]',
                 ]}
                 data-report-id={report.id}
@@ -212,7 +212,7 @@ function statusBadgeColor(status: string): string {
                   <div class="flex-1 min-w-0">
                     <!-- Header: Game + Device + Status -->
                     <div class="flex flex-wrap items-center gap-2 mb-1">
-                      <a href={`/games/${report.gameSlug}`} class="text-sm font-medium text-[#7c6cf0] hover:text-[#9b8fff] transition-colors truncate">
+                      <a href={`/games/${report.gameSlug}`} class="text-sm font-medium text-[#D4FF00] hover:text-[#9b8fff] transition-colors truncate">
                         {report.gameName}
                       </a>
                       <span class="text-xs text-[#35353e]">on</span>
@@ -269,7 +269,7 @@ function statusBadgeColor(status: string): string {
                     {report.moderationStatus === 'pending' && (
                       <>
                         <button
-                          class="admin-report-approve rounded-md border border-[#7c6cf0] px-2.5 py-1 text-xs font-medium text-[#7c6cf0] hover:bg-[#7c6cf0]/10 transition-colors"
+                          class="admin-report-approve rounded-md border border-[#D4FF00] px-2.5 py-1 text-xs font-medium text-[#D4FF00] hover:bg-[#D4FF00]/10 transition-colors"
                           data-report-id={report.id}
                         >
                           Approve

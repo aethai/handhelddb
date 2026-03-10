@@ -5,63 +5,24 @@ export const prerender = true;
 ---
 
 <BaseLayout title="500 — Something Went Wrong" noindex={true}>
-  <section class="flex flex-1 items-center justify-center py-20 sm:py-32 section-spotlight">
-    <div class="mx-auto max-w-2xl px-4 sm:px-6 lg:px-8 text-center">
-      <!-- Glowing accent -->
-      <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[300px] bg-red-500/5 rounded-full blur-3xl pointer-events-none"></div>
-
-      <!-- 500 badge -->
-      <div class="relative">
-        <p class="text-[8rem] sm:text-[10rem] font-extrabold leading-none tracking-tighter bg-gradient-to-b from-red-400 to-red-900 bg-clip-text text-transparent select-none animate-breathe">
-          500
-        </p>
-      </div>
-
-      <!-- Message -->
-      <h1 class="mt-2 text-2xl sm:text-3xl font-bold text-white">
+  <section class="flex flex-1 items-center justify-center py-20 sm:py-32">
+    <div class="mx-auto max-w-lg px-6 text-center">
+      <p class="font-mono text-[8rem] sm:text-[10rem] font-bold leading-none tracking-tighter text-[#D4FF00] select-none">
+        500
+      </p>
+      <h1 class="mt-2 text-xl font-bold text-[var(--color-text)] uppercase font-[var(--font-heading)]">
         Something went wrong
       </h1>
-      <p class="mt-4 text-[#9890a8] text-lg leading-relaxed max-w-md mx-auto">
-        Our server hit a critical error — like running a game with 0 TDP. We're looking into it. Please try again in a moment.
+      <p class="mt-4 text-sm text-[var(--color-text-3)] leading-relaxed">
+        Our server hit an error. Please try again in a moment.
       </p>
-
-      <!-- Status indicator -->
-      <div class="mt-8 inline-flex items-center gap-2 rounded-full border border-red-500/20 bg-red-500/10 px-4 py-1.5 text-sm text-red-400">
-        <span class="relative flex h-2 w-2">
-          <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400 opacity-75"></span>
-          <span class="relative inline-flex h-2 w-2 rounded-full bg-red-500"></span>
-        </span>
-        Server error detected
+      <div class="mt-8 flex items-center justify-center gap-3">
+        <a href="/" class="btn-primary px-6 py-3 text-xs">GO HOME</a>
+        <button onclick="window.location.reload()" class="btn-ghost px-6 py-3 text-xs cursor-pointer">TRY AGAIN</button>
       </div>
-
-      <!-- Actions -->
-      <div class="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
-        <a
-          href="/"
-          class="inline-flex items-center gap-2 rounded-xl bg-[#a78bfa] px-6 py-3 text-sm font-semibold text-white hover:bg-[#c4b5fd] transition-colors shadow-lg"
-        >
-          <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0a1 1 0 01-1-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 01-1 1" />
-          </svg>
-          Back to Home
-        </a>
-        <button
-          onclick="window.location.reload()"
-          class="inline-flex items-center gap-2 rounded-xl border border-white/10 px-6 py-3 text-sm font-semibold text-[#9890a8] hover:border-white/15 hover:text-white transition-colors cursor-pointer"
-        >
-          <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-          </svg>
-          Try Again
-        </button>
-      </div>
-
-      <!-- Help text -->
-      <p class="mt-10 text-sm text-[#2a2838]">
-        If this keeps happening, please open an issue on our
-        <a href="https://github.com" class="text-[#9890a8] hover:text-[#a78bfa] underline underline-offset-2 transition-colors">
-          GitHub
-        </a>.
+      <p class="mt-8 text-xs text-[var(--color-text-dim)] font-mono">
+        If this keeps happening, please report it on
+        <a href="https://github.com" class="text-[var(--color-text-3)] hover:text-[#D4FF00] transition-colors">GitHub</a>.
       </p>
     </div>
   </section>

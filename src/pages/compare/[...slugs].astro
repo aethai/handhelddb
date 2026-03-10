@@ -177,50 +177,50 @@ const { verdictA, verdictB } = buildVerdicts(deviceA, deviceB);
          ═══════════════════════════════════════════ -->
     <div class="relative grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8 mb-10">
       <!-- Device A -->
-      <div class="rounded-2xl border-2 border-[#a78bfa]/30 bg-gradient-to-br from-[#0e0c16] to-[#08070c] p-6 sm:p-8 text-center relative overflow-hidden">
-        <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-[#a78bfa]/50 to-transparent"></div>
-        <p class="text-xs text-[#a78bfa] font-semibold">{a.manufacturer}</p>
+      <div class="rounded-lg border-2 border-[#D4FF00]/30 bg-gradient-to-br from-[var(--color-raised)] to-[var(--color-base)] p-6 sm:p-8 text-center relative overflow-hidden">
+        <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-[#D4FF00]/50 to-transparent"></div>
+        <p class="text-xs text-[#D4FF00] font-semibold">{a.manufacturer}</p>
         <h2 class="text-2xl sm:text-3xl font-bold text-white mt-2">{a.name}</h2>
-        <div class="mt-4 flex justify-center gap-6 text-sm text-[#9890a8]">
+        <div class="mt-4 flex justify-center gap-6 text-sm text-[var(--color-text-2)]">
           <div class="text-center">
             <p class="text-xl font-bold text-white font-mono">{testedA}</p>
-            <p class="text-xs text-[#4a4560] mt-0.5">Games tested</p>
+            <p class="text-xs text-[var(--color-text-dim)] mt-0.5">Games tested</p>
           </div>
           <div class="w-px bg-white/6"></div>
           <div class="text-center">
             <p class="text-xl font-bold text-white font-mono">{a.price}</p>
-            <p class="text-xs text-[#4a4560] mt-0.5">MSRP</p>
+            <p class="text-xs text-[var(--color-text-dim)] mt-0.5">MSRP</p>
           </div>
         </div>
       </div>
 
       <!-- VS Divider -->
       <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10 hidden md:flex">
-        <div class="h-16 w-16 rounded-full bg-[#08070c] border-2 border-white/6 flex items-center justify-center shadow-lg shadow-black/50">
-          <span class="text-lg font-bold text-[#a78bfa]">VS</span>
+        <div class="h-16 w-16 rounded-full bg-[var(--color-base)] border-2 border-white/6 flex items-center justify-center shadow-lg shadow-black/50">
+          <span class="text-lg font-bold text-[#D4FF00]">VS</span>
         </div>
       </div>
       <!-- Mobile VS -->
       <div class="flex md:hidden items-center justify-center -my-2">
-        <div class="h-10 w-10 rounded-full bg-[#08070c] border-2 border-white/6 flex items-center justify-center">
-          <span class="text-xs font-bold text-[#a78bfa]">VS</span>
+        <div class="h-10 w-10 rounded-full bg-[var(--color-base)] border-2 border-white/6 flex items-center justify-center">
+          <span class="text-xs font-bold text-[#D4FF00]">VS</span>
         </div>
       </div>
 
       <!-- Device B -->
-      <div class="rounded-2xl border-2 border-blue-500/30 bg-gradient-to-br from-[#0e0c16] to-[#08070c] p-6 sm:p-8 text-center relative overflow-hidden">
+      <div class="rounded-lg border-2 border-blue-500/30 bg-gradient-to-br from-[var(--color-raised)] to-[var(--color-base)] p-6 sm:p-8 text-center relative overflow-hidden">
         <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-blue-500/50 to-transparent"></div>
         <p class="text-xs text-blue-400 font-semibold">{b.manufacturer}</p>
         <h2 class="text-2xl sm:text-3xl font-bold text-white mt-2">{b.name}</h2>
-        <div class="mt-4 flex justify-center gap-6 text-sm text-[#9890a8]">
+        <div class="mt-4 flex justify-center gap-6 text-sm text-[var(--color-text-2)]">
           <div class="text-center">
             <p class="text-xl font-bold text-white font-mono">{testedB}</p>
-            <p class="text-xs text-[#4a4560] mt-0.5">Games tested</p>
+            <p class="text-xs text-[var(--color-text-dim)] mt-0.5">Games tested</p>
           </div>
           <div class="w-px bg-white/6"></div>
           <div class="text-center">
             <p class="text-xl font-bold text-white font-mono">{b.price}</p>
-            <p class="text-xs text-[#4a4560] mt-0.5">MSRP</p>
+            <p class="text-xs text-[var(--color-text-dim)] mt-0.5">MSRP</p>
           </div>
         </div>
       </div>
@@ -229,29 +229,29 @@ const { verdictA, verdictB } = buildVerdicts(deviceA, deviceB);
     <!-- ═══════════════════════════════════════════
          SPEC COMPARISON TABLE with winner highlighting
          ═══════════════════════════════════════════ -->
-    <div class="rounded-2xl border border-white/6 bg-[#0e0c16] overflow-hidden mb-8">
+    <div class="rounded-lg border border-white/6 bg-[var(--color-raised)] overflow-hidden mb-8">
       <div class="px-6 py-4 border-b border-white/6 flex items-center gap-3">
-        <svg class="h-5 w-5 text-[#a78bfa]" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+        <svg class="h-5 w-5 text-[#D4FF00]" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25ZM6.75 12h.008v.008H6.75V12Zm0 3h.008v.008H6.75V15Zm0 3h.008v.008H6.75V18Z" />
         </svg>
         <h2 class="text-lg font-bold text-white">Specifications</h2>
       </div>
       <!-- Column headers -->
-      <div class="grid grid-cols-3 px-6 py-3 border-b border-white/6 bg-[#08070c]/50">
-        <div class="text-xs text-[#4a4560] font-medium">Spec</div>
-        <div class="text-center text-xs text-[#a78bfa] font-medium">{a.name.split(' ').slice(-1)}</div>
+      <div class="grid grid-cols-3 px-6 py-3 border-b border-white/6 bg-[var(--color-base)]/50">
+        <div class="text-xs text-[var(--color-text-dim)] font-medium">Spec</div>
+        <div class="text-center text-xs text-[#D4FF00] font-medium">{a.name.split(' ').slice(-1)}</div>
         <div class="text-center text-xs text-blue-400 font-medium">{b.name.split(' ').slice(-1)}</div>
       </div>
       <div class="divide-y divide-white/6">
         {specs.map((s) => {
           const winner = specWinner(s.label, s.a, s.b);
           return (
-            <div class="grid grid-cols-3 px-6 py-3.5 text-sm hover:bg-[#08070c]/30 transition-colors">
-              <div class="text-[#4a4560] font-medium">{s.label}</div>
-              <div class={`text-center ${winner === 'a' ? 'text-white font-semibold bg-[#a78bfa]/10 -mx-2 px-2 rounded-lg' : 'text-[#9890a8]'}`}>
+            <div class="grid grid-cols-3 px-6 py-3.5 text-sm hover:bg-[var(--color-base)]/30 transition-colors">
+              <div class="text-[var(--color-text-dim)] font-medium">{s.label}</div>
+              <div class={`text-center ${winner === 'a' ? 'text-white font-semibold bg-[#D4FF00]/10 -mx-2 px-2 rounded-lg' : 'text-[var(--color-text-2)]'}`}>
                 {s.a}
               </div>
-              <div class={`text-center ${winner === 'b' ? 'text-white font-semibold bg-blue-500/10 -mx-2 px-2 rounded-lg' : 'text-[#9890a8]'}`}>
+              <div class={`text-center ${winner === 'b' ? 'text-white font-semibold bg-blue-500/10 -mx-2 px-2 rounded-lg' : 'text-[var(--color-text-2)]'}`}>
                 {s.b}
               </div>
             </div>
@@ -264,42 +264,42 @@ const { verdictA, verdictB } = buildVerdicts(deviceA, deviceB);
          PERFORMANCE STATS SIDE-BY-SIDE
          ═══════════════════════════════════════════ -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-      <div class="rounded-2xl border border-[#a78bfa]/20 bg-[#0e0c16] p-6">
-        <h3 class="text-sm font-semibold text-[#a78bfa] mb-4">{a.name} Performance</h3>
+      <div class="rounded-lg border border-[#D4FF00]/20 bg-[var(--color-raised)] p-6">
+        <h3 class="text-sm font-semibold text-[#D4FF00] mb-4">{a.name} Performance</h3>
         <div class="grid grid-cols-2 gap-3">
-          <div class="rounded-xl bg-[#08070c] border border-white/6 p-4 text-center">
+          <div class="rounded-lg bg-[var(--color-base)] border border-white/6 p-4 text-center">
             <p class="text-2xl font-bold text-green-400 font-mono">{at60A}</p>
-            <p class="text-xs text-[#4a4560] mt-1">60+ FPS</p>
+            <p class="text-xs text-[var(--color-text-dim)] mt-1">60+ FPS</p>
           </div>
-          <div class="rounded-xl bg-[#08070c] border border-white/6 p-4 text-center">
-            <p class="text-2xl font-bold text-[#a78bfa] font-mono">{at40A}</p>
-            <p class="text-xs text-[#4a4560] mt-1">40+ FPS</p>
+          <div class="rounded-lg bg-[var(--color-base)] border border-white/6 p-4 text-center">
+            <p class="text-2xl font-bold text-[#D4FF00] font-mono">{at40A}</p>
+            <p class="text-xs text-[var(--color-text-dim)] mt-1">40+ FPS</p>
           </div>
         </div>
         <div class="mt-4 flex items-center justify-center gap-2 text-sm">
-          <svg class="h-4 w-4 text-[#4a4560]" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+          <svg class="h-4 w-4 text-[var(--color-text-dim)]" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" d="M21 10.5h.375c.621 0 1.125.504 1.125 1.125v2.25c0 .621-.504 1.125-1.125 1.125H21M3.75 18h15A2.25 2.25 0 0 0 21 15.75v-6a2.25 2.25 0 0 0-2.25-2.25h-15A2.25 2.25 0 0 0 1.5 9.75v6A2.25 2.25 0 0 0 3.75 18Z" />
           </svg>
-          <span class="text-[#9890a8]">Avg battery: <span class="text-white font-medium font-mono">{avgBatt(sharedGames, 'battA')}</span></span>
+          <span class="text-[var(--color-text-2)]">Avg battery: <span class="text-white font-medium font-mono">{avgBatt(sharedGames, 'battA')}</span></span>
         </div>
       </div>
-      <div class="rounded-2xl border border-blue-500/20 bg-[#0e0c16] p-6">
+      <div class="rounded-lg border border-blue-500/20 bg-[var(--color-raised)] p-6">
         <h3 class="text-sm font-semibold text-blue-400 mb-4">{b.name} Performance</h3>
         <div class="grid grid-cols-2 gap-3">
-          <div class="rounded-xl bg-[#08070c] border border-white/6 p-4 text-center">
+          <div class="rounded-lg bg-[var(--color-base)] border border-white/6 p-4 text-center">
             <p class="text-2xl font-bold text-green-400 font-mono">{at60B}</p>
-            <p class="text-xs text-[#4a4560] mt-1">60+ FPS</p>
+            <p class="text-xs text-[var(--color-text-dim)] mt-1">60+ FPS</p>
           </div>
-          <div class="rounded-xl bg-[#08070c] border border-white/6 p-4 text-center">
+          <div class="rounded-lg bg-[var(--color-base)] border border-white/6 p-4 text-center">
             <p class="text-2xl font-bold text-blue-400 font-mono">{at40B}</p>
-            <p class="text-xs text-[#4a4560] mt-1">40+ FPS</p>
+            <p class="text-xs text-[var(--color-text-dim)] mt-1">40+ FPS</p>
           </div>
         </div>
         <div class="mt-4 flex items-center justify-center gap-2 text-sm">
-          <svg class="h-4 w-4 text-[#4a4560]" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+          <svg class="h-4 w-4 text-[var(--color-text-dim)]" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" d="M21 10.5h.375c.621 0 1.125.504 1.125 1.125v2.25c0 .621-.504 1.125-1.125 1.125H21M3.75 18h15A2.25 2.25 0 0 0 21 15.75v-6a2.25 2.25 0 0 0-2.25-2.25h-15A2.25 2.25 0 0 0 1.5 9.75v6A2.25 2.25 0 0 0 3.75 18Z" />
           </svg>
-          <span class="text-[#9890a8]">Avg battery: <span class="text-white font-medium font-mono">{avgBatt(sharedGames, 'battB')}</span></span>
+          <span class="text-[var(--color-text-2)]">Avg battery: <span class="text-white font-medium font-mono">{avgBatt(sharedGames, 'battB')}</span></span>
         </div>
       </div>
     </div>
@@ -307,26 +307,26 @@ const { verdictA, verdictB } = buildVerdicts(deviceA, deviceB);
     <!-- ═══════════════════════════════════════════
          GAME-BY-GAME FPS BAR CHART COMPARISON
          ═══════════════════════════════════════════ -->
-    <div class="rounded-2xl border border-white/6 bg-[#0e0c16] overflow-hidden mb-8">
+    <div class="rounded-lg border border-white/6 bg-[var(--color-raised)] overflow-hidden mb-8">
       <div class="px-6 py-4 border-b border-white/6 flex items-center justify-between">
         <div class="flex items-center gap-3">
-          <svg class="h-5 w-5 text-[#a78bfa]" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+          <svg class="h-5 w-5 text-[#D4FF00]" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z" />
           </svg>
           <div>
             <h2 class="text-lg font-bold text-white">Game-by-Game Comparison</h2>
-            <p class="text-xs text-[#4a4560] mt-0.5">{sharedGames.length} games tested on both devices</p>
+            <p class="text-xs text-[var(--color-text-dim)] mt-0.5">{sharedGames.length} games tested on both devices</p>
           </div>
         </div>
         <!-- Legend -->
         <div class="hidden sm:flex items-center gap-4 text-xs">
           <div class="flex items-center gap-1.5">
-            <div class="h-2.5 w-6 rounded-full bg-[#a78bfa]"></div>
-            <span class="text-[#9890a8]">{a.name.split(' ').slice(-1)}</span>
+            <div class="h-2.5 w-6 rounded-full bg-[#D4FF00]"></div>
+            <span class="text-[var(--color-text-2)]">{a.name.split(' ').slice(-1)}</span>
           </div>
           <div class="flex items-center gap-1.5">
             <div class="h-2.5 w-6 rounded-full bg-blue-400"></div>
-            <span class="text-[#9890a8]">{b.name.split(' ').slice(-1)}</span>
+            <span class="text-[var(--color-text-2)]">{b.name.split(' ').slice(-1)}</span>
           </div>
         </div>
       </div>
@@ -334,8 +334,8 @@ const { verdictA, verdictB } = buildVerdicts(deviceA, deviceB);
       <div class="divide-y divide-white/6">
         {displayGames.length === 0 && (
           <div class="px-6 py-12 text-center">
-            <p class="text-[#4a4560] text-sm">No games have been tested on both devices yet.</p>
-            <p class="text-[#4a4560]/60 text-xs mt-1">Submit performance reports to see comparisons here.</p>
+            <p class="text-[var(--color-text-dim)] text-sm">No games have been tested on both devices yet.</p>
+            <p class="text-[var(--color-text-dim)]/60 text-xs mt-1">Submit performance reports to see comparisons here.</p>
           </div>
         )}
         {displayGames.map((g) => {
@@ -347,33 +347,33 @@ const { verdictA, verdictB } = buildVerdicts(deviceA, deviceB);
           const winnerB = g.fpsB > g.fpsA;
           const tie = g.fpsA === g.fpsB;
           return (
-            <div class="px-6 py-4 hover:bg-[#08070c]/30 transition-colors">
+            <div class="px-6 py-4 hover:bg-[var(--color-base)]/30 transition-colors">
               <div class="flex items-center justify-between mb-3">
                 <h4 class="font-medium text-white text-sm">{g.name}</h4>
                 <div class="flex items-center gap-3 text-xs">
-                  <span class="text-[#4a4560]">{g.battA} / {g.battB}</span>
+                  <span class="text-[var(--color-text-dim)]">{g.battA} / {g.battB}</span>
                   {!tie && (
-                    <span class={diff > 0 ? 'text-blue-400 font-medium' : 'text-[#a78bfa] font-medium'}>
+                    <span class={diff > 0 ? 'text-blue-400 font-medium' : 'text-[#D4FF00] font-medium'}>
                       {diff > 0 ? `+${diff} FPS` : `${diff} FPS`}
                     </span>
                   )}
-                  {tie && <span class="text-[#4a4560]">Tied</span>}
+                  {tie && <span class="text-[var(--color-text-dim)]">Tied</span>}
                 </div>
               </div>
               <!-- FPS Bar Chart -->
               <div class="space-y-1.5">
                 <div class="flex items-center gap-3">
-                  <span class="text-[10px] text-[#4a4560] w-8 text-right font-mono">{g.fpsA}</span>
-                  <div class="flex-1 h-3 rounded-full bg-[#08070c] overflow-hidden">
+                  <span class="text-[10px] text-[var(--color-text-dim)] w-8 text-right font-mono">{g.fpsA}</span>
+                  <div class="flex-1 h-3 rounded-full bg-[var(--color-base)] overflow-hidden">
                     <div
-                      class={`h-3 rounded-full transition-all ${winnerA ? 'bg-[#a78bfa]' : 'bg-[#a78bfa]/50'}`}
+                      class={`h-3 rounded-full transition-all ${winnerA ? 'bg-[#D4FF00]' : 'bg-[#D4FF00]/50'}`}
                       style={`width: ${barWidthA}%`}
                     ></div>
                   </div>
                 </div>
                 <div class="flex items-center gap-3">
-                  <span class="text-[10px] text-[#4a4560] w-8 text-right font-mono">{g.fpsB}</span>
-                  <div class="flex-1 h-3 rounded-full bg-[#08070c] overflow-hidden">
+                  <span class="text-[10px] text-[var(--color-text-dim)] w-8 text-right font-mono">{g.fpsB}</span>
+                  <div class="flex-1 h-3 rounded-full bg-[var(--color-base)] overflow-hidden">
                     <div
                       class={`h-3 rounded-full transition-all ${winnerB ? 'bg-blue-400' : 'bg-blue-400/50'}`}
                       style={`width: ${barWidthB}%`}
@@ -387,8 +387,8 @@ const { verdictA, verdictB } = buildVerdicts(deviceA, deviceB);
       </div>
 
       <!-- 60 FPS reference line note -->
-      <div class="px-6 py-3 border-t border-white/6 bg-[#08070c]/30">
-        <p class="text-[10px] text-[#4a4560] text-center">Bar width proportional to 60 FPS target. Full bar = 60+ FPS.</p>
+      <div class="px-6 py-3 border-t border-white/6 bg-[var(--color-base)]/30">
+        <p class="text-[10px] text-[var(--color-text-dim)] text-center">Bar width proportional to 60 FPS target. Full bar = 60+ FPS.</p>
       </div>
     </div>
 
@@ -397,21 +397,21 @@ const { verdictA, verdictB } = buildVerdicts(deviceA, deviceB);
          ═══════════════════════════════════════════ -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
       <!-- Device A Verdict -->
-      <div class="rounded-2xl border-2 border-[#a78bfa]/25 bg-gradient-to-br from-[#a78bfa]/[0.03] to-transparent p-6 relative overflow-hidden">
-        <div class="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-[#a78bfa]/40 via-[#a78bfa]/20 to-transparent"></div>
+      <div class="rounded-lg border-2 border-[#D4FF00]/25 bg-gradient-to-br from-[#D4FF00]/[0.03] to-transparent p-6 relative overflow-hidden">
+        <div class="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-[#D4FF00]/40 via-[#D4FF00]/20 to-transparent"></div>
         <div class="flex items-center gap-2 mb-4">
-          <div class="h-8 w-8 rounded-lg bg-[#a78bfa]/15 flex items-center justify-center">
-            <svg class="h-4 w-4 text-[#a78bfa]" fill="currentColor" viewBox="0 0 20 20">
+          <div class="h-8 w-8 rounded-lg bg-[#D4FF00]/15 flex items-center justify-center">
+            <svg class="h-4 w-4 text-[#D4FF00]" fill="currentColor" viewBox="0 0 20 20">
               <path fill-rule="evenodd" d="M10.868 2.884c-.321-.772-1.415-.772-1.736 0l-1.83 4.401-4.753.381c-.833.067-1.171 1.107-.536 1.651l3.62 3.102-1.106 4.637c-.194.813.691 1.456 1.405 1.02L10 15.591l4.069 2.485c.713.436 1.598-.207 1.404-1.02l-1.106-4.637 3.62-3.102c.635-.544.297-1.584-.536-1.65l-4.752-.382-1.831-4.401z" clip-rule="evenodd" />
             </svg>
           </div>
-          <h3 class="font-bold text-[#a78bfa] text-lg">{a.name} excels at</h3>
+          <h3 class="font-bold text-[#D4FF00] text-lg">{a.name} excels at</h3>
         </div>
         {verdictA.length > 0 ? (
-          <ul class="space-y-2.5 text-sm text-[#9890a8]">
+          <ul class="space-y-2.5 text-sm text-[var(--color-text-2)]">
             {verdictA.map((v) => (
               <li class="flex items-start gap-2">
-                <svg class="h-4 w-4 text-[#a78bfa] mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                <svg class="h-4 w-4 text-[#D4FF00] mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                   <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
                 </svg>
                 {v}
@@ -419,12 +419,12 @@ const { verdictA, verdictB } = buildVerdicts(deviceA, deviceB);
             ))}
           </ul>
         ) : (
-          <p class="text-sm text-[#4a4560] italic">Not enough data to determine advantages yet.</p>
+          <p class="text-sm text-[var(--color-text-dim)] italic">Not enough data to determine advantages yet.</p>
         )}
       </div>
 
       <!-- Device B Verdict -->
-      <div class="rounded-2xl border-2 border-blue-500/25 bg-gradient-to-br from-blue-500/[0.03] to-transparent p-6 relative overflow-hidden">
+      <div class="rounded-lg border-2 border-blue-500/25 bg-gradient-to-br from-blue-500/[0.03] to-transparent p-6 relative overflow-hidden">
         <div class="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-blue-500/40 via-blue-500/20 to-transparent"></div>
         <div class="flex items-center gap-2 mb-4">
           <div class="h-8 w-8 rounded-lg bg-blue-500/15 flex items-center justify-center">
@@ -435,7 +435,7 @@ const { verdictA, verdictB } = buildVerdicts(deviceA, deviceB);
           <h3 class="font-bold text-blue-400 text-lg">{b.name} excels at</h3>
         </div>
         {verdictB.length > 0 ? (
-          <ul class="space-y-2.5 text-sm text-[#9890a8]">
+          <ul class="space-y-2.5 text-sm text-[var(--color-text-2)]">
             {verdictB.map((v) => (
               <li class="flex items-start gap-2">
                 <svg class="h-4 w-4 text-blue-400 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
@@ -446,7 +446,7 @@ const { verdictA, verdictB } = buildVerdicts(deviceA, deviceB);
             ))}
           </ul>
         ) : (
-          <p class="text-sm text-[#4a4560] italic">Not enough data to determine advantages yet.</p>
+          <p class="text-sm text-[var(--color-text-dim)] italic">Not enough data to determine advantages yet.</p>
         )}
       </div>
     </div>

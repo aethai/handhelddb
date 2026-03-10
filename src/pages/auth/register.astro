@@ -17,7 +17,7 @@ const errorParam = Astro.url.searchParams.get('error');
     <!-- ═══════════════════════════════════════════
          LEFT PANEL — Atmospheric branding (desktop only)
          ═══════════════════════════════════════════ -->
-    <div class="hidden lg:flex lg:w-[45%] relative overflow-hidden flex-col items-center justify-center p-12 bg-[#0e0c16]">
+    <div class="hidden lg:flex lg:w-[45%] relative overflow-hidden flex-col items-center justify-center p-12 bg-[var(--color-raised)]">
       <!-- Radial glow background -->
       <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_50%_50%,rgba(96,165,250,0.06),transparent_70%)]"></div>
       <!-- Subtle grain texture -->
@@ -25,7 +25,7 @@ const errorParam = Astro.url.searchParams.get('error');
 
       <div class="relative z-10 flex flex-col items-center text-center max-w-sm">
         <!-- Logo -->
-        <svg class="h-20 w-20 text-[#a78bfa] mb-8" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <svg class="h-20 w-20 text-[#D4FF00] mb-8" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
           <rect x="4" y="8" width="24" height="16" rx="4" stroke="currentColor" stroke-width="2" />
           <circle cx="11" cy="16" r="2" fill="currentColor" />
           <circle cx="21" cy="14" r="1.5" fill="currentColor" />
@@ -38,41 +38,41 @@ const errorParam = Astro.url.searchParams.get('error');
         <h2 class="text-2xl font-bold text-white leading-tight">
           Join the<br />Community
         </h2>
-        <p class="mt-4 text-sm text-[#4a4560] leading-relaxed">
+        <p class="mt-4 text-sm text-[var(--color-text-dim)] leading-relaxed">
           Help build the most comprehensive handheld gaming performance database. Submit reports, earn badges, and track your devices.
         </p>
 
         <!-- Benefits -->
         <div class="mt-10 space-y-4 text-left w-full">
           <div class="flex items-start gap-3">
-            <div class="flex-shrink-0 mt-0.5 h-5 w-5 rounded-full bg-[#a78bfa]/15 flex items-center justify-center">
-              <svg class="h-3 w-3 text-[#a78bfa]" fill="currentColor" viewBox="0 0 20 20">
+            <div class="flex-shrink-0 mt-0.5 h-5 w-5 rounded-full bg-[#D4FF00]/15 flex items-center justify-center">
+              <svg class="h-3 w-3 text-[#D4FF00]" fill="currentColor" viewBox="0 0 20 20">
                 <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
               </svg>
             </div>
-            <p class="text-sm text-[#9890a8]">Submit FPS reports and optimal settings</p>
+            <p class="text-sm text-[var(--color-text-2)]">Submit FPS reports and optimal settings</p>
           </div>
           <div class="flex items-start gap-3">
-            <div class="flex-shrink-0 mt-0.5 h-5 w-5 rounded-full bg-[#a78bfa]/15 flex items-center justify-center">
-              <svg class="h-3 w-3 text-[#a78bfa]" fill="currentColor" viewBox="0 0 20 20">
+            <div class="flex-shrink-0 mt-0.5 h-5 w-5 rounded-full bg-[#D4FF00]/15 flex items-center justify-center">
+              <svg class="h-3 w-3 text-[#D4FF00]" fill="currentColor" viewBox="0 0 20 20">
                 <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
               </svg>
             </div>
-            <p class="text-sm text-[#9890a8]">Track your handheld device collection</p>
+            <p class="text-sm text-[var(--color-text-2)]">Track your handheld device collection</p>
           </div>
           <div class="flex items-start gap-3">
-            <div class="flex-shrink-0 mt-0.5 h-5 w-5 rounded-full bg-[#a78bfa]/15 flex items-center justify-center">
-              <svg class="h-3 w-3 text-[#a78bfa]" fill="currentColor" viewBox="0 0 20 20">
+            <div class="flex-shrink-0 mt-0.5 h-5 w-5 rounded-full bg-[#D4FF00]/15 flex items-center justify-center">
+              <svg class="h-3 w-3 text-[#D4FF00]" fill="currentColor" viewBox="0 0 20 20">
                 <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
               </svg>
             </div>
-            <p class="text-sm text-[#9890a8]">Earn badges and level up your profile</p>
+            <p class="text-sm text-[var(--color-text-2)]">Earn badges and level up your profile</p>
           </div>
         </div>
       </div>
 
       <!-- Bottom border accent -->
-      <div class="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#a78bfa]/30 to-transparent"></div>
+      <div class="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#D4FF00]/30 to-transparent"></div>
     </div>
 
     <!-- ═══════════════════════════════════════════
@@ -82,7 +82,7 @@ const errorParam = Astro.url.searchParams.get('error');
       <div class="w-full max-w-md">
         <!-- Mobile logo (hidden on desktop where left panel shows) -->
         <div class="lg:hidden text-center mb-8">
-          <svg class="h-12 w-12 text-[#a78bfa] mx-auto mb-3" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <svg class="h-12 w-12 text-[#D4FF00] mx-auto mb-3" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
             <rect x="4" y="8" width="24" height="16" rx="4" stroke="currentColor" stroke-width="2" />
             <circle cx="11" cy="16" r="2" fill="currentColor" />
             <circle cx="21" cy="14" r="1.5" fill="currentColor" />
@@ -90,13 +90,13 @@ const errorParam = Astro.url.searchParams.get('error');
             <circle cx="21" cy="18" r="1.5" fill="currentColor" />
             <circle cx="19" cy="16" r="1.5" fill="currentColor" />
           </svg>
-          <span class="text-sm text-[#9890a8]">Handheld GameDB</span>
+          <span class="text-sm text-[var(--color-text-2)]">Handheld GameDB</span>
         </div>
 
         <!-- Header -->
         <div class="mb-8">
           <h1 class="text-2xl font-bold text-white">Create your account</h1>
-          <p class="mt-2 text-sm text-[#9890a8]">
+          <p class="mt-2 text-sm text-[var(--color-text-2)]">
             Join the community and start contributing performance data.
           </p>
         </div>
@@ -111,7 +111,7 @@ const errorParam = Astro.url.searchParams.get('error');
           <input type="hidden" name="redirect" value={redirectTo} />
 
           <div>
-            <label for="displayName" class="block text-sm font-medium text-[#9890a8] mb-1.5">Display name <span class="text-[#2a2838]">(optional)</span></label>
+            <label for="displayName" class="block text-sm font-medium text-[var(--color-text-2)] mb-1.5">Display name <span class="text-[var(--color-text-dim)]">(optional)</span></label>
             <input
               type="text"
               id="displayName"
@@ -119,12 +119,12 @@ const errorParam = Astro.url.searchParams.get('error');
               maxlength="50"
               autocomplete="name"
               placeholder="How others will see you"
-              class="w-full rounded-xl border border-white/10 bg-[#0e0c16] px-4 py-3 text-sm text-white placeholder-[#4a4560] focus:border-[#a78bfa] focus:outline-none focus:ring-1 focus:ring-[#a78bfa] transition-colors"
+              class="w-full rounded-lg border border-white/10 bg-[var(--color-raised)] px-4 py-3 text-sm text-white placeholder-[var(--color-text-dim)] focus:border-[#D4FF00] focus:outline-none focus:ring-1 focus:ring-[#D4FF00] transition-colors"
             />
           </div>
 
           <div>
-            <label for="email" class="block text-sm font-medium text-[#9890a8] mb-1.5">Email address</label>
+            <label for="email" class="block text-sm font-medium text-[var(--color-text-2)] mb-1.5">Email address</label>
             <input
               type="email"
               id="email"
@@ -132,12 +132,12 @@ const errorParam = Astro.url.searchParams.get('error');
               required
               autocomplete="email"
               placeholder="you@example.com"
-              class="w-full rounded-xl border border-white/10 bg-[#0e0c16] px-4 py-3 text-sm text-white placeholder-[#4a4560] focus:border-[#a78bfa] focus:outline-none focus:ring-1 focus:ring-[#a78bfa] transition-colors"
+              class="w-full rounded-lg border border-white/10 bg-[var(--color-raised)] px-4 py-3 text-sm text-white placeholder-[var(--color-text-dim)] focus:border-[#D4FF00] focus:outline-none focus:ring-1 focus:ring-[#D4FF00] transition-colors"
             />
           </div>
 
           <div>
-            <label for="password" class="block text-sm font-medium text-[#9890a8] mb-1.5">Password</label>
+            <label for="password" class="block text-sm font-medium text-[var(--color-text-2)] mb-1.5">Password</label>
             <div class="relative">
               <input
                 type="password"
@@ -147,12 +147,12 @@ const errorParam = Astro.url.searchParams.get('error');
                 minlength="8"
                 autocomplete="new-password"
                 placeholder="Min. 8 characters"
-                class="w-full rounded-xl border border-white/10 bg-[#0e0c16] px-4 py-3 pr-10 text-sm text-white placeholder-[#4a4560] focus:border-[#a78bfa] focus:outline-none focus:ring-1 focus:ring-[#a78bfa] transition-colors"
+                class="w-full rounded-lg border border-white/10 bg-[var(--color-raised)] px-4 py-3 pr-10 text-sm text-white placeholder-[var(--color-text-dim)] focus:border-[#D4FF00] focus:outline-none focus:ring-1 focus:ring-[#D4FF00] transition-colors"
               />
               <button
                 type="button"
                 id="toggle-password"
-                class="absolute right-3 top-1/2 -translate-y-1/2 text-[#4a4560] hover:text-[#9890a8] transition-colors"
+                class="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--color-text-dim)] hover:text-[var(--color-text-2)] transition-colors"
                 aria-label="Toggle password visibility"
               >
                 <svg id="eye-icon" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
@@ -161,11 +161,11 @@ const errorParam = Astro.url.searchParams.get('error');
                 </svg>
               </button>
             </div>
-            <p id="password-strength" class="mt-1.5 text-xs text-[#2a2838]"></p>
+            <p id="password-strength" class="mt-1.5 text-xs text-[var(--color-text-dim)]"></p>
           </div>
 
           <div>
-            <label for="confirmPassword" class="block text-sm font-medium text-[#9890a8] mb-1.5">Confirm password</label>
+            <label for="confirmPassword" class="block text-sm font-medium text-[var(--color-text-2)] mb-1.5">Confirm password</label>
             <input
               type="password"
               id="confirmPassword"
@@ -174,7 +174,7 @@ const errorParam = Astro.url.searchParams.get('error');
               minlength="8"
               autocomplete="new-password"
               placeholder="Repeat your password"
-              class="w-full rounded-xl border border-white/10 bg-[#0e0c16] px-4 py-3 text-sm text-white placeholder-[#4a4560] focus:border-[#a78bfa] focus:outline-none focus:ring-1 focus:ring-[#a78bfa] transition-colors"
+              class="w-full rounded-lg border border-white/10 bg-[var(--color-raised)] px-4 py-3 text-sm text-white placeholder-[var(--color-text-dim)] focus:border-[#D4FF00] focus:outline-none focus:ring-1 focus:ring-[#D4FF00] transition-colors"
             />
             <p id="password-match" class="mt-1.5 text-xs text-red-400 hidden">Passwords do not match</p>
           </div>
@@ -182,7 +182,7 @@ const errorParam = Astro.url.searchParams.get('error');
           <button
             type="submit"
             id="submit-btn"
-            class="w-full rounded-xl bg-[#a78bfa] px-4 py-3 text-sm font-semibold text-white hover:bg-[#c4b5fd] focus:outline-none focus:ring-2 focus:ring-[#a78bfa] focus:ring-offset-2 focus:ring-offset-[#08070c] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            class="w-full rounded-lg bg-[#D4FF00] px-4 py-3 text-sm font-semibold text-[#0a0a0a] hover:bg-[#e8ff4d] focus:outline-none focus:ring-2 focus:ring-[#D4FF00] focus:ring-offset-2 focus:ring-offset-[var(--color-base)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Create account
           </button>
@@ -194,7 +194,7 @@ const errorParam = Astro.url.searchParams.get('error');
             <div class="w-full border-t border-white/6"></div>
           </div>
           <div class="relative flex justify-center text-xs">
-            <span class="bg-[#08070c] px-3 text-[#4a4560]">or continue with</span>
+            <span class="bg-[var(--color-base)] px-3 text-[var(--color-text-dim)]">or continue with</span>
           </div>
         </div>
 
@@ -202,7 +202,7 @@ const errorParam = Astro.url.searchParams.get('error');
         <div class="space-y-3">
           <a
             href={`/auth/callback/google?redirect=${encodeURIComponent(redirectTo)}`}
-            class="flex w-full items-center justify-center gap-3 rounded-xl border border-white/10 bg-[#0e0c16] px-4 py-3 text-sm font-medium text-white hover:border-[#a78bfa]/30 hover:bg-[#0e0c16]/80 transition-colors"
+            class="flex w-full items-center justify-center gap-3 rounded-lg border border-white/10 bg-[var(--color-raised)] px-4 py-3 text-sm font-medium text-white hover:border-[#D4FF00]/30 hover:bg-[var(--color-raised)]/80 transition-colors"
           >
             <svg class="h-5 w-5" viewBox="0 0 24 24">
               <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1Z"/>
@@ -215,19 +215,19 @@ const errorParam = Astro.url.searchParams.get('error');
         </div>
 
         <!-- Sign in link -->
-        <p class="mt-8 text-center text-sm text-[#4a4560]">
+        <p class="mt-8 text-center text-sm text-[var(--color-text-dim)]">
           Already have an account?
-          <a href={`/auth/login?redirect=${encodeURIComponent(redirectTo)}`} class="text-[#a78bfa] hover:text-[#c4b5fd] transition-colors font-medium">
+          <a href={`/auth/login?redirect=${encodeURIComponent(redirectTo)}`} class="text-[#D4FF00] hover:text-[#e8ff4d] transition-colors font-medium">
             Sign in
           </a>
         </p>
 
         <!-- Terms -->
-        <div class="mt-6 rounded-xl border border-white/6 bg-[#0e0c16]/50 p-4">
-          <p class="text-xs text-[#4a4560] leading-relaxed">
+        <div class="mt-6 rounded-lg border border-white/6 bg-[var(--color-raised)]/50 p-4">
+          <p class="text-xs text-[var(--color-text-dim)] leading-relaxed">
             By creating an account, you agree to our
-            <a href="/terms" class="text-[#a78bfa] hover:text-[#c4b5fd]">Terms of Service</a> and
-            <a href="/privacy" class="text-[#a78bfa] hover:text-[#c4b5fd]">Privacy Policy</a>.
+            <a href="/terms" class="text-[#D4FF00] hover:text-[#e8ff4d]">Terms of Service</a> and
+            <a href="/privacy" class="text-[#D4FF00] hover:text-[#e8ff4d]">Privacy Policy</a>.
           </p>
         </div>
       </div>
@@ -265,7 +265,7 @@ const errorParam = Astro.url.searchParams.get('error');
     if (/[^A-Za-z0-9]/.test(val)) score++;
 
     const labels = ['Very weak', 'Weak', 'Fair', 'Good', 'Strong'];
-    const colors = ['text-red-400', 'text-orange-400', 'text-yellow-400', 'text-[#a78bfa]', 'text-[#c4b5fd]'];
+    const colors = ['text-red-400', 'text-orange-400', 'text-yellow-400', 'text-[#D4FF00]', 'text-[#e8ff4d]'];
     const idx = Math.min(score, labels.length) - 1;
     if (idx < 0) { strengthMsg.textContent = ''; return; }
     strengthMsg.textContent = labels[idx];
