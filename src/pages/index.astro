@@ -13,7 +13,7 @@ if (!_cached) {
 const [
   devicesRes, gameCountRes, deviceCountRes,
   reportCountRes, articlesRes, trendingRes, userCountRes,
-  perfReportsRes,
+  perfReportsRes, freshDropsRes,
 ] = await Promise.all([
   supabaseAdmin
     .from('devices')
@@ -44,6 +44,13 @@ const [
     .eq('moderation_status', 'approved')
     .order('fps_avg', { ascending: false })
     .limit(60),
+  // Fresh Drops: recently added games with report counts
+  supabaseAdmin
+    .from('games')
+    .select('name, slug, header_image, created_at, performance_reports(count)')
+    .not('header_image', 'is', null)
+    .order('created_at', { ascending: false })
+    .limit(6),
 ]);
 
 const gameCount = gameCountRes.count ?? 0;
@@ -153,11 +160,48 @@ const battleTested = perfData
     };
   });
 
-  _cached = { gameCount, deviceCount, reportCount, userCount, devices, articles, liveFeed, spotlight, battleTested };
+// Fresh Drops: recently added games
+const freshDrops = (freshDropsRes.data ?? []).map(g => {
+  const rptCount = Array.isArray((g as any).performance_reports) ? (g as any).performance_reports[0]?.count ?? 0 : 0;
+  const diffDays = Math.round((Date.now() - new Date(g.created_at).getTime()) / 86400000);
+  let addedAgo: string;
+  if (diffDays < 1) addedAgo = 'today';
+  else if (diffDays === 1) addedAgo = 'yesterday';
+  else if (diffDays < 7) addedAgo = `${diffDays}d ago`;
+  else if (diffDays < 30) addedAgo = `${Math.round(diffDays / 7)}w ago`;
+  else addedAgo = `${Math.round(diffDays / 30)}mo ago`;
+  return { name: g.name, slug: g.slug, image: g.header_image ?? '', reports: rptCount, addedAgo };
+});
+
+// Device War: build head-to-head matchups from spotlightMap
+const multiDeviceGames = [...spotlightMap.values()].filter(g => g.devices.length >= 2 && g.image);
+// Find device pairs with the most shared games
+const pairMap = new Map<string, { a: string; b: string; games: { name: string; slug: string; image: string; fpsA: number; fpsB: number }[] }>();
+for (const g of multiDeviceGames) {
+  for (let i = 0; i < g.devices.length; i++) {
+    for (let j = i + 1; j < g.devices.length; j++) {
+      const [a, b] = [g.devices[i].name, g.devices[j].name].sort();
+      const key = `${a}|${b}`;
+      if (!pairMap.has(key)) pairMap.set(key, { a, b, games: [] });
+      pairMap.get(key)!.games.push({
+        name: g.name, slug: g.slug, image: g.image,
+        fpsA: g.devices.find(d => d.name === a)!.fps,
+        fpsB: g.devices.find(d => d.name === b)!.fps,
+      });
+    }
+  }
+}
+const deviceWarMatchups = [...pairMap.values()]
+  .filter(p => p.games.length >= 2)
+  .sort((a, b) => b.games.length - a.games.length)
+  .slice(0, 4)
+  .map(p => ({ ...p, games: p.games.slice(0, 4) }));
+
+  _cached = { gameCount, deviceCount, reportCount, userCount, devices, articles, liveFeed, spotlight, battleTested, freshDrops, deviceWarMatchups };
   setCache(CACHE_KEY, _cached, 120);
 }
 
-const { gameCount, deviceCount, reportCount, userCount, devices, articles, liveFeed, spotlight, battleTested } = _cached;
+const { gameCount, deviceCount, reportCount, userCount, devices, articles, liveFeed, spotlight, battleTested, freshDrops, deviceWarMatchups } = _cached;
 
 // Helpers
 const fmtDate = (d: Date | null) => d ? d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '';
@@ -181,17 +225,6 @@ const milestones = [50, 100, 250, 500, 1000, 2000, 5000, 10000, 25000, 50000];
 const nextMilestone = milestones.find(m => m > reportCount) ?? milestones[milestones.length - 1];
 const prevMilestone = milestones[milestones.indexOf(nextMilestone) - 1] ?? 0;
 const ctaPct = Math.min(((reportCount - prevMilestone) / (nextMilestone - prevMilestone)) * 100, 100);
-
-// Manufacturer logo mapping
-const mfrLogo: Record<string, string> = {
-  'Valve': '/img/devices/steam.svg',
-  'ASUS': '/img/devices/rog.svg',
-  'Lenovo': '/img/devices/lenovo.svg',
-  'MSI': '/img/devices/msi.svg',
-  'Ayaneo': '/img/devices/ayaneo.svg',
-  'GPD': '/img/devices/gpd.svg',
-  'Nintendo': '/img/devices/nintendo.svg',
-};
 
 // Schema.org
 const siteUrl = import.meta.env.PUBLIC_SITE_URL ?? 'https://handheldgamedb.com';
@@ -431,42 +464,92 @@ const schemaWebSite = {
       </section>
     )}
 
-    <!-- ══════ 4b. PICK YOUR DEVICE ══════ -->
-    <section class="hp-section hp-section-animate hp-section-divider">
-      <SectionHeader title="Pick Your Device" href="/devices" linkText="All devices" editorial="COMPARE" />
-      <div class="hp-devices2-grid">
-        {devices.slice(0, 6).map(d => (
-          <a href={`/devices/${d.slug}`} class="hp-device2-card">
-            <div class="hp-device2-top">
-              {mfrLogo[d.manufacturer] && (
-                <img src={mfrLogo[d.manufacturer]} alt="" class="hp-device2-logo" loading="lazy" />
-              )}
-              <span class="hp-device2-mfr">{d.manufacturer}</span>
-            </div>
-            <span class="hp-device2-name">{d.name}</span>
-            <div class="hp-device2-specs">
-              <div class="hp-device2-spec">
-                <svg class="hp-device2-spec-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="1" x2="9" y2="4"/><line x1="15" y1="1" x2="15" y2="4"/><line x1="9" y1="20" x2="9" y2="23"/><line x1="15" y1="20" x2="15" y2="23"/><line x1="20" y1="9" x2="23" y2="9"/><line x1="20" y1="14" x2="23" y2="14"/><line x1="1" y1="9" x2="4" y2="9"/><line x1="1" y1="14" x2="4" y2="14"/></svg>
-                <span>{d.chip}</span>
+    <!-- ══════ 4b. DEVICE WAR ══════ -->
+    {deviceWarMatchups.length > 0 && (
+      <section class="hp-section hp-section-animate hp-section-divider">
+        <SectionHeader title="Device War" href="/devices" linkText="Compare all" editorial="HEAD TO HEAD" />
+        <div class="hp-dw" id="deviceWar" data-matchups={JSON.stringify(deviceWarMatchups)}>
+          <div class="hp-dw-header">
+            <button class="hp-dw-device hp-dw-device-a" id="dwDeviceA">{deviceWarMatchups[0].a}</button>
+            <span class="hp-dw-vs">VS</span>
+            <button class="hp-dw-device hp-dw-device-b" id="dwDeviceB">{deviceWarMatchups[0].b}</button>
+          </div>
+          <div class="hp-dw-games" id="dwGames">
+            {deviceWarMatchups[0].games.map(g => {
+              const maxFps = Math.max(g.fpsA, g.fpsB);
+              const pctA = maxFps > 0 ? (g.fpsA / maxFps) * 100 : 0;
+              const pctB = maxFps > 0 ? (g.fpsB / maxFps) * 100 : 0;
+              const clsA = g.fpsA >= 55 ? 'bar-green' : g.fpsA >= 40 ? 'bar-yellow' : g.fpsA >= 30 ? 'bar-orange' : 'bar-red';
+              const clsB = g.fpsB >= 55 ? 'bar-green' : g.fpsB >= 40 ? 'bar-yellow' : g.fpsB >= 30 ? 'bar-orange' : 'bar-red';
+              const winA = g.fpsA > g.fpsB;
+              const winB = g.fpsB > g.fpsA;
+              return (
+                <a href={`/games/${g.slug}`} class="hp-dw-row">
+                  <span class="hp-dw-game">{g.name}</span>
+                  <div class="hp-dw-bars">
+                    <div class="hp-dw-bar-side hp-dw-bar-left">
+                      <span class={`hp-dw-fps ${winA ? 'hp-dw-fps-win' : ''}`}>{g.fpsA}<span class="hp-fps-unit">fps</span></span>
+                      <div class="hp-dw-bar-track">
+                        <div class={`hp-dw-bar-fill hp-dw-fill-left ${clsA}`} style={`width:${pctA}%`}></div>
+                      </div>
+                    </div>
+                    <div class="hp-dw-bar-side hp-dw-bar-right">
+                      <div class="hp-dw-bar-track">
+                        <div class={`hp-dw-bar-fill hp-dw-fill-right ${clsB}`} style={`width:${pctB}%`}></div>
+                      </div>
+                      <span class={`hp-dw-fps ${winB ? 'hp-dw-fps-win' : ''}`}>{g.fpsB}<span class="hp-fps-unit">fps</span></span>
+                    </div>
+                  </div>
+                </a>
+              );
+            })}
+          </div>
+          {deviceWarMatchups.length > 1 && (
+            <div class="hp-dw-nav">
+              <button class="hp-dw-nav-btn" id="dwPrev" aria-label="Previous matchup">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+              </button>
+              <div class="hp-dw-dots" id="dwDots">
+                {deviceWarMatchups.map((_: any, i: number) => (
+                  <span class={`hp-dw-dot ${i === 0 ? 'hp-dw-dot-active' : ''}`}></span>
+                ))}
               </div>
-              {d.batteryWh && (
-                <div class="hp-device2-spec">
-                  <svg class="hp-device2-spec-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="6" width="18" height="12" rx="2"/><line x1="23" y1="10" x2="23" y2="14"/></svg>
-                  <span>{d.batteryWh} Wh</span>
-                </div>
-              )}
+              <button class="hp-dw-nav-btn" id="dwNext" aria-label="Next matchup">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 6 15 12 9 18"/></svg>
+              </button>
             </div>
-            {d.msrpUsd && (
-              <div class="hp-device2-price">
-                <span class="hp-device2-price-from">from</span>
-                <span class="hp-device2-price-val">${d.msrpUsd}</span>
+          )}
+        </div>
+      </section>
+    )}
+
+    <!-- ══════ 4c. FRESH DROPS ══════ -->
+    {freshDrops.length > 0 && (
+      <section class="hp-section hp-section-alt hp-section-animate hp-section-divider">
+        <SectionHeader title="Fresh Drops" href="/games" linkText="See all new" editorial="RECENTLY ADDED" />
+        <div class="hp-fresh-grid">
+          {freshDrops.map((g: any) => (
+            <a href={`/games/${g.slug}`} class="hp-fresh-card">
+              <div class="hp-fresh-img">
+                {g.image ? (
+                  <img src={g.image} alt={g.name} loading="lazy" />
+                ) : (
+                  <div class="hp-fresh-placeholder"></div>
+                )}
+                <div class="hp-fresh-gradient"></div>
+                <span class="hp-fresh-badge">{g.addedAgo}</span>
               </div>
-            )}
-            <span class="hp-device2-cta">View benchmarks →</span>
-          </a>
-        ))}
-      </div>
-    </section>
+              <div class="hp-fresh-body">
+                <span class="hp-fresh-name">{g.name}</span>
+                <span class="hp-fresh-meta">
+                  {g.reports > 0 ? `${g.reports} report${g.reports !== 1 ? 's' : ''}` : 'No reports yet'}
+                </span>
+              </div>
+            </a>
+          ))}
+        </div>
+      </section>
+    )}
 
     <!-- ══════ 5. NEWS — Editorial Highlights ══════ -->
     {articles.length > 0 && (
@@ -593,6 +676,58 @@ const schemaWebSite = {
   if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
     animateCounters();
   }
+
+  // Device War — cycle matchups
+  (function initDeviceWar() {
+    const el = document.getElementById('deviceWar');
+    if (!el) return;
+    const matchups = JSON.parse(el.dataset.matchups || '[]');
+    if (matchups.length < 2) return;
+    let idx = 0;
+    const deviceA = document.getElementById('dwDeviceA')!;
+    const deviceB = document.getElementById('dwDeviceB')!;
+    const gamesEl = document.getElementById('dwGames')!;
+    const dots = document.querySelectorAll('.hp-dw-dot');
+    const prevBtn = document.getElementById('dwPrev');
+    const nextBtn = document.getElementById('dwNext');
+
+    function fpsClass(fps: number) {
+      return fps >= 55 ? 'bar-green' : fps >= 40 ? 'bar-yellow' : fps >= 30 ? 'bar-orange' : 'bar-red';
+    }
+
+    function render() {
+      const m = matchups[idx];
+      deviceA.textContent = m.a;
+      deviceB.textContent = m.b;
+      dots.forEach((d, i) => d.classList.toggle('hp-dw-dot-active', i === idx));
+
+      gamesEl.innerHTML = m.games.map((g: any) => {
+        const maxFps = Math.max(g.fpsA, g.fpsB);
+        const pctA = maxFps > 0 ? (g.fpsA / maxFps) * 100 : 0;
+        const pctB = maxFps > 0 ? (g.fpsB / maxFps) * 100 : 0;
+        const clsA = fpsClass(g.fpsA);
+        const clsB = fpsClass(g.fpsB);
+        const winA = g.fpsA > g.fpsB ? ' hp-dw-fps-win' : '';
+        const winB = g.fpsB > g.fpsA ? ' hp-dw-fps-win' : '';
+        return `<a href="/games/${g.slug}" class="hp-dw-row">
+          <span class="hp-dw-game">${g.name}</span>
+          <div class="hp-dw-bars">
+            <div class="hp-dw-bar-side hp-dw-bar-left">
+              <span class="hp-dw-fps${winA}">${g.fpsA}<span class="hp-fps-unit">fps</span></span>
+              <div class="hp-dw-bar-track"><div class="hp-dw-bar-fill hp-dw-fill-left ${clsA}" style="width:${pctA}%"></div></div>
+            </div>
+            <div class="hp-dw-bar-side hp-dw-bar-right">
+              <div class="hp-dw-bar-track"><div class="hp-dw-bar-fill hp-dw-fill-right ${clsB}" style="width:${pctB}%"></div></div>
+              <span class="hp-dw-fps${winB}">${g.fpsB}<span class="hp-fps-unit">fps</span></span>
+            </div>
+          </div>
+        </a>`;
+      }).join('');
+    }
+
+    prevBtn?.addEventListener('click', () => { idx = (idx - 1 + matchups.length) % matchups.length; render(); });
+    nextBtn?.addEventListener('click', () => { idx = (idx + 1) % matchups.length; render(); });
+  })();
 </script>
 
 <style>
@@ -1285,160 +1420,240 @@ const schemaWebSite = {
     letter-spacing: 0.04em;
   }
 
-  /* ─── 4b. PICK YOUR DEVICE (redesigned) ─── */
-  .hp-devices2-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 14px;
-  }
-  .hp-device2-card {
-    display: flex;
-    flex-direction: column;
+  /* ─── 4b. DEVICE WAR ─── */
+  .hp-dw {
     border: 1px solid var(--color-border);
-    border-radius: 10px;
-    padding: 0;
-    text-decoration: none;
-    transition: border-color 0.15s, background 0.15s, transform 0.2s;
-    position: relative;
+    border-radius: 12px;
     overflow: hidden;
+    background: var(--color-surface);
   }
-  .hp-device2-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 3px;
-    background: linear-gradient(90deg, var(--color-accent), transparent);
-    opacity: 0;
-    transition: opacity 0.2s;
-    z-index: 2;
-  }
-  .hp-device2-card::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 80px;
-    background:
-      radial-gradient(circle at 80% 30%, rgba(212,255,0,0.04) 0%, transparent 60%),
-      linear-gradient(180deg, var(--color-elevated) 0%, transparent 100%);
-    pointer-events: none;
-    z-index: 0;
-  }
-  .hp-device2-card:hover::before { opacity: 1; }
-  .hp-device2-card:hover {
-    border-color: rgba(212,255,0,0.25);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 20px rgba(212,255,0,0.05);
-  }
-  .hp-device2-top {
-    position: relative;
-    z-index: 1;
+  .hp-dw-header {
     display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 18px 18px 0;
-    margin-bottom: 8px;
+    justify-content: center;
+    gap: 20px;
+    padding: 24px 24px 20px;
+    border-bottom: 1px solid var(--color-border-subtle);
   }
-  .hp-device2-logo {
-    width: 32px;
-    height: 32px;
-    flex-shrink: 0;
-    opacity: 0.4;
-    filter: grayscale(100%);
-    transition: opacity 0.2s, filter 0.2s;
-  }
-  .hp-device2-card:hover .hp-device2-logo {
-    opacity: 0.8;
-    filter: grayscale(0%);
-  }
-  .hp-device2-mfr {
-    font-family: var(--font-mono);
-    font-size: 10px;
-    font-weight: 600;
-    color: var(--color-accent);
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    opacity: 0.8;
-  }
-  .hp-device2-name {
-    position: relative;
-    z-index: 1;
-    display: block;
+  .hp-dw-device {
     font-family: var(--font-heading);
     font-size: 18px;
     font-weight: 700;
     color: var(--color-text);
-    transition: color 0.12s;
-    margin-bottom: 14px;
+    background: none;
+    border: none;
+    cursor: default;
+    padding: 0;
     letter-spacing: -0.01em;
-    padding: 0 18px;
   }
-  .hp-device2-card:hover .hp-device2-name {
+  .hp-dw-device-a { text-align: right; }
+  .hp-dw-device-b { text-align: left; }
+  .hp-dw-vs {
+    font-family: var(--font-heading);
+    font-size: 13px;
+    font-weight: 800;
     color: var(--color-accent);
+    background: rgba(212,255,0,0.08);
+    border: 1px solid rgba(212,255,0,0.2);
+    border-radius: 6px;
+    padding: 4px 12px;
+    letter-spacing: 0.1em;
+    flex-shrink: 0;
   }
-  .hp-device2-specs {
-    position: relative;
-    z-index: 1;
+  .hp-dw-games {
+    padding: 4px 0;
+  }
+  .hp-dw-row {
     display: flex;
     flex-direction: column;
     gap: 6px;
-    margin: 0 18px 14px;
-    padding-bottom: 14px;
+    padding: 14px 24px;
+    text-decoration: none;
+    transition: background 0.12s;
     border-bottom: 1px solid var(--color-border-subtle);
   }
-  .hp-device2-spec {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-family: var(--font-mono);
-    font-size: 11px;
-    color: var(--color-text-3);
-  }
-  .hp-device2-spec-icon {
-    width: 14px;
-    height: 14px;
-    flex-shrink: 0;
-    color: var(--color-text-dim);
-  }
-  .hp-device2-price {
-    display: flex;
-    align-items: baseline;
-    gap: 6px;
-    margin-bottom: 12px;
-    padding: 0 18px;
-    position: relative;
-    z-index: 1;
-  }
-  .hp-device2-price-from {
-    font-family: var(--font-mono);
-    font-size: 10px;
-    color: var(--color-text-dim);
-    text-transform: uppercase;
-  }
-  .hp-device2-price-val {
-    font-family: var(--font-mono);
-    font-size: 18px;
-    font-weight: 700;
-    color: var(--color-text);
-  }
-  .hp-device2-cta {
+  .hp-dw-row:last-child { border-bottom: none; }
+  .hp-dw-row:hover { background: rgba(212,255,0,0.02); }
+  .hp-dw-game {
     font-family: var(--font-mono);
     font-size: 11px;
     font-weight: 600;
-    color: var(--color-text-dim);
-    transition: color 0.12s, background 0.12s;
-    margin-top: auto;
-    padding: 12px 18px;
-    border-top: 1px solid var(--color-border-subtle);
-    position: relative;
-    z-index: 1;
+    color: var(--color-text-3);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    text-align: center;
   }
-  .hp-device2-card:hover .hp-device2-cta {
+  .hp-dw-bars {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .hp-dw-bar-side {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .hp-dw-bar-left {
+    flex-direction: row-reverse;
+  }
+  .hp-dw-bar-track {
+    flex: 1;
+    height: 24px;
+    background: var(--color-elevated);
+    border-radius: 4px;
+    overflow: hidden;
+    position: relative;
+  }
+  .hp-dw-bar-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.5s ease-out;
+  }
+  .hp-dw-fill-left {
+    float: right;
+    border-radius: 4px 0 0 4px;
+  }
+  .hp-dw-fill-right {
+    border-radius: 0 4px 4px 0;
+  }
+  .hp-dw-fps {
+    font-family: var(--font-mono);
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--color-text-dim);
+    min-width: 52px;
+    white-space: nowrap;
+  }
+  .hp-dw-bar-left .hp-dw-fps { text-align: left; }
+  .hp-dw-bar-right .hp-dw-fps { text-align: right; }
+  .hp-dw-fps-win {
     color: var(--color-accent);
-    background: rgba(212,255,0,0.03);
+  }
+  .hp-dw-nav {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 14px 24px 18px;
+    border-top: 1px solid var(--color-border-subtle);
+  }
+  .hp-dw-nav-btn {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    background: none;
+    color: var(--color-text-dim);
+    cursor: pointer;
+    transition: border-color 0.12s, color 0.12s;
+  }
+  .hp-dw-nav-btn:hover {
+    border-color: var(--color-accent);
+    color: var(--color-accent);
+  }
+  .hp-dw-nav-btn svg { width: 16px; height: 16px; }
+  .hp-dw-dots {
+    display: flex;
+    gap: 6px;
+  }
+  .hp-dw-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--color-border);
+    transition: background 0.2s;
+  }
+  .hp-dw-dot-active {
+    background: var(--color-accent);
+  }
+
+  /* ─── 4c. FRESH DROPS ─── */
+  .hp-fresh-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+  }
+  .hp-fresh-card {
+    display: flex;
+    flex-direction: column;
+    border-radius: 10px;
+    overflow: hidden;
+    text-decoration: none;
+    border: 1px solid var(--color-border);
+    transition: border-color 0.15s, transform 0.2s, box-shadow 0.2s;
+    background: var(--color-surface);
+  }
+  .hp-fresh-card:hover {
+    border-color: rgba(212,255,0,0.25);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 20px rgba(212,255,0,0.05);
+  }
+  .hp-fresh-img {
+    position: relative;
+    aspect-ratio: 16/9;
+    overflow: hidden;
+    background: var(--color-elevated);
+  }
+  .hp-fresh-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s;
+  }
+  .hp-fresh-card:hover .hp-fresh-img img {
+    transform: scale(1.05);
+  }
+  .hp-fresh-gradient {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, transparent 50%, rgba(0,0,0,0.6) 100%);
+    pointer-events: none;
+  }
+  .hp-fresh-placeholder {
+    width: 100%;
+    height: 100%;
+    background: var(--color-elevated);
+  }
+  .hp-fresh-badge {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--color-bg);
+    background: var(--color-accent);
+    padding: 2px 8px;
+    border-radius: 4px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .hp-fresh-body {
+    padding: 12px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .hp-fresh-name {
+    font-family: var(--font-heading);
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--color-text);
+    transition: color 0.12s;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .hp-fresh-card:hover .hp-fresh-name {
+    color: var(--color-accent);
+  }
+  .hp-fresh-meta {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--color-text-dim);
   }
 
   /* ─── 5. EDITORIAL (News redesign) ─── */
@@ -1919,11 +2134,14 @@ const schemaWebSite = {
     .hp-pulse-card-img { aspect-ratio: 16/10; }
     .hp-pulse-card-lg .hp-pulse-card-img { aspect-ratio: 16/10; }
 
-    /* Devices mobile */
-    .hp-devices2-grid {
-      grid-template-columns: repeat(2, 1fr);
-      gap: 10px;
-    }
+    /* Device War mobile */
+    .hp-dw-header { padding: 16px 16px 14px; gap: 12px; }
+    .hp-dw-device { font-size: 14px; }
+    .hp-dw-row { padding: 12px 16px; }
+    .hp-dw-fps { font-size: 12px; min-width: 42px; }
+    .hp-dw-bar-track { height: 20px; }
+    /* Fresh Drops mobile */
+    .hp-fresh-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
 
     .hp-section-alt::before {
       top: -20px;
@@ -1966,9 +2184,9 @@ const schemaWebSite = {
 
     .hp-ticker { display: none; }
 
-    .hp-devices2-grid {
-      grid-template-columns: 1fr;
-    }
+    .hp-fresh-grid { grid-template-columns: 1fr; }
+    .hp-dw-bars { gap: 6px; }
+    .hp-dw-fps { font-size: 11px; min-width: 38px; }
     .hp-pulse-grid {
       grid-template-columns: 1fr;
     }
@@ -1999,8 +2217,9 @@ const schemaWebSite = {
     .hp-editorial-hero-img img,
     .hp-editorial-card-img img,
     .hp-spotlight-bar-fill,
-    .hp-device2-card,
-    .hp-device2-logo,
+    .hp-fresh-card,
+    .hp-fresh-img img,
+    .hp-dw-bar-fill,
     .hp-battle-row,
     .hp-editorial-card,
     .hp-widget-dot {
