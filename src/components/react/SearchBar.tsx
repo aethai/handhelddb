@@ -186,8 +186,9 @@ export default function SearchBar({
             )}
             <kbd
               className={`hidden sm:inline-flex items-center rounded-md border border-[#1a1828] bg-[#12101a] px-2 py-0.5 text-xs text-[#4a4560]`}
+              title="Press / or Ctrl+K to search"
             >
-              Ctrl+K
+              /
             </kbd>
             {isHero && (
               <a

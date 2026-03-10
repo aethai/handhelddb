@@ -253,8 +253,23 @@ function GamesBrowserInner({ initialGames, totalGames, allGenres }: Props) {
         </div>
       </div>
 
+      {/* Loading skeleton */}
+      {loading && games.length === 0 && (
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+          {Array.from({ length: 10 }).map((_, i) => (
+            <div key={i} className="rounded-lg border border-[#12101a] bg-[#0e0c16] overflow-hidden">
+              <div className="aspect-[460/300] hdb-skeleton" />
+              <div style={{ padding: '10px 12px' }}>
+                <div className="hdb-skeleton hdb-skeleton-text" />
+                <div className="hdb-skeleton hdb-skeleton-text short" />
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
       {/* Game Grid / List */}
-      {games.length > 0 ? (
+      {(!loading || games.length > 0) && games.length > 0 ? (
         viewMode === 'grid' ? (
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
             {games.map(game => (
@@ -339,11 +354,15 @@ function GamesBrowserInner({ initialGames, totalGames, allGenres }: Props) {
           </div>
         )
       ) : (
-        <div className="rounded-xl border border-[#12101a] bg-[#0e0c16] p-8 text-center">
-          <p className="text-[#4a4560]">No games found matching your criteria.</p>
+        <div className="rounded-xl border border-[#12101a] bg-[#0e0c16] p-12 text-center">
+          <svg className="mx-auto h-12 w-12 text-[#2a2838] mb-4" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z" />
+          </svg>
+          <p className="text-[#6d6882] font-medium">No games found</p>
+          <p className="mt-1 text-sm text-[#4a4560]">Try adjusting your search or filters</p>
           {hasFilters && (
-            <button onClick={clearFilters} className="mt-2 text-sm text-[#a78bfa] hover:text-[#c4b5fd]">
-              Clear filters
+            <button onClick={clearFilters} className="mt-4 rounded-lg border border-[#a78bfa]/20 bg-[#a78bfa]/5 px-4 py-2 text-sm text-[#a78bfa] hover:bg-[#a78bfa]/10 transition-colors">
+              Clear all filters
             </button>
           )}
         </div>
@@ -355,9 +374,17 @@ function GamesBrowserInner({ initialGames, totalGames, allGenres }: Props) {
           <button
             onClick={() => doSearch(true)}
             disabled={loadingMore}
-            className="rounded-xl border border-[#1a1828] bg-[#0e0c16] px-8 py-3 text-sm font-medium text-[#9890a8] hover:border-[#a78bfa] hover:text-white transition-colors disabled:opacity-50"
+            className="rounded-xl border border-[#1a1828] bg-[#0e0c16] px-8 py-3 text-sm font-medium text-[#9890a8] hover:border-[#a78bfa] hover:text-white transition-all hover:shadow-[0_0_20px_rgba(167,139,250,0.08)] disabled:opacity-50"
           >
-            {loadingMore ? 'Loading...' : `Load more (${games.length} of ${totalHits})`}
+            {loadingMore ? (
+              <span className="flex items-center gap-2">
+                <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                </svg>
+                Loading...
+              </span>
+            ) : `Load more (${games.length} of ${totalHits.toLocaleString()})`}
           </button>
         </div>
       )}
