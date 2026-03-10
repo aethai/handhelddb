@@ -11,7 +11,7 @@ let _cached = getCached<any>(CACHE_KEY);
 
 if (!_cached) {
 const [
-  devicesRes, topGamesRes, gameCountRes, deviceCountRes,
+  devicesRes, gameCountRes, deviceCountRes,
   reportCountRes, articlesRes, trendingRes, userCountRes,
   spotlightRes, battleTestedRes,
 ] = await Promise.all([
@@ -20,13 +20,6 @@ const [
     .select('id, slug, name, manufacturer, chip, battery_wh, msrp_usd')
     .eq('is_active', true)
     .order('name'),
-  supabaseAdmin
-    .from('games')
-    .select('slug, name, header_image, genres, metacritic_score')
-    .not('header_image', 'is', null)
-    .not('metacritic_score', 'is', null)
-    .order('metacritic_score', { ascending: false, nullsFirst: false })
-    .limit(8),
   supabaseAdmin.from('games').select('*', { count: 'exact', head: true }),
   supabaseAdmin.from('devices').select('*', { count: 'exact', head: true }).eq('is_active', true),
   supabaseAdmin.from('performance_reports').select('*', { count: 'exact', head: true }),
@@ -68,12 +61,6 @@ const userCount = userCountRes.count ?? 0;
 const devices = (devicesRes.data ?? []).map(d => ({
   slug: d.slug, name: d.name, manufacturer: d.manufacturer,
   chip: d.chip, batteryWh: d.battery_wh, msrpUsd: d.msrp_usd,
-}));
-
-const topGames = (topGamesRes.data ?? []).slice(0, 8).map(g => ({
-  slug: g.slug, name: g.name, headerImage: g.header_image,
-  genres: ((g.genres as string[]) ?? []).slice(0, 2),
-  metacritic: g.metacritic_score,
 }));
 
 const articles = (articlesRes.data ?? []).map(a => ({
@@ -171,11 +158,11 @@ const battleTested = (battleTestedRes.data ?? [])
     };
   });
 
-  _cached = { gameCount, deviceCount, reportCount, userCount, devices, topGames, articles, liveFeed, spotlight, battleTested };
+  _cached = { gameCount, deviceCount, reportCount, userCount, devices, articles, liveFeed, spotlight, battleTested };
   setCache(CACHE_KEY, _cached, 120);
 }
 
-const { gameCount, deviceCount, reportCount, userCount, devices, topGames, articles, liveFeed, spotlight, battleTested } = _cached;
+const { gameCount, deviceCount, reportCount, userCount, devices, articles, liveFeed, spotlight, battleTested } = _cached;
 
 // Helpers
 const fmtDate = (d: Date | null) => d ? d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '';
@@ -368,78 +355,83 @@ const schemaWebSite = {
       </section>
     )}
 
-    <!-- ══════ 3. PERFORMANCE SPOTLIGHT ══════ -->
-    {spotlight && (
+    <!-- ══════ 3. PERFORMANCE HUB (Spotlight + Leaderboard combined) ══════ -->
+    {(spotlight || battleTested.length > 0) && (
       <section class="hp-section hp-section-alt hp-section-animate hp-section-divider">
-        <SectionHeader title="Performance Spotlight" href={`/games/${spotlight.slug}`} linkText="Full details" editorial="FEATURED" />
-        <div class="hp-spotlight">
-          <div class="hp-spotlight-hero">
-            <img src={spotlight.image} alt={spotlight.name} class="hp-spotlight-bg" loading="lazy" />
-            <div class="hp-spotlight-overlay"></div>
-            <div class="hp-spotlight-info">
-              <div class="hp-spotlight-meta">
-                {spotlight.metacritic && (
-                  <span class={`hp-spotlight-score ${spotlight.metacritic >= 80 ? 'score-high' : spotlight.metacritic >= 60 ? 'score-mid' : 'score-low'}`}>{spotlight.metacritic}</span>
-                )}
-                {spotlight.genres.length > 0 && <span class="hp-spotlight-genre">{spotlight.genres.join(' · ')}</span>}
-              </div>
-              <h3 class="hp-spotlight-title">{spotlight.name}</h3>
-              <p class="hp-spotlight-subtitle">Tested on {spotlight.devices.length} devices by the community</p>
-            </div>
-          </div>
-          <div class="hp-spotlight-bars">
-            <div class="hp-spotlight-bars-header">
-              <span class="hp-spotlight-bars-label">CROSS-DEVICE PERFORMANCE</span>
-              <span class="hp-spotlight-bars-unit">AVG FPS</span>
-            </div>
-            {spotlight.devices.slice(0, 5).map(d => {
-              const maxFps = Math.max(...spotlight.devices.map(dd => dd.fps));
-              const pct = maxFps > 0 ? (d.fps / maxFps) * 100 : 0;
-              const cls = d.fps >= 55 ? 'bar-green' : d.fps >= 40 ? 'bar-yellow' : d.fps >= 30 ? 'bar-orange' : 'bar-red';
-              return (
-                <div class="hp-spotlight-bar-row">
-                  <span class="hp-spotlight-bar-device">{d.name}</span>
-                  <div class="hp-spotlight-bar-track">
-                    <div class={`hp-spotlight-bar-fill ${cls}`} style={`width:${pct}%`}></div>
-                  </div>
-                  <span class={`hp-spotlight-bar-fps ${cls}`}>{d.fps}<span class="hp-fps-unit">fps</span></span>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </section>
-    )}
+        <SectionHeader title="Performance Hub" href="/games" linkText="Explore all" editorial="BENCHMARKS" />
 
-    <!-- ══════ 4a. BATTLE TESTED — Leaderboard ══════ -->
-    {battleTested.length > 0 && (
-      <section class="hp-section hp-section-alt hp-section-animate hp-section-divider">
-        <SectionHeader title="Battle Tested" href="/games" linkText="Explore" editorial="LEADERBOARD" />
-        <p class="hp-battle-subtitle">The highest-performing game + device combos reported by the community.</p>
-        <div class="hp-battle">
-          {battleTested.map(b => {
-            const fpsClass = b.fps >= 55 ? 'fps-green' : b.fps >= 40 ? 'fps-yellow' : b.fps >= 30 ? 'fps-orange' : 'fps-red';
-            return (
-              <a href={`/games/${b.gameSlug}`} class="hp-battle-row">
-                <span class="hp-battle-rank">#{b.rank}</span>
-                <div class="hp-battle-thumb-wrap">
-                  {b.gameImage && <img src={b.gameImage} alt="" class="hp-battle-thumb" loading="lazy" />}
+        <div class="hp-perfhub">
+          {/* Left: Featured game spotlight */}
+          {spotlight && (
+            <a href={`/games/${spotlight.slug}`} class="hp-perfhub-spotlight">
+              <div class="hp-spotlight-hero">
+                <img src={spotlight.image} alt={spotlight.name} class="hp-spotlight-bg" loading="lazy" />
+                <div class="hp-spotlight-overlay"></div>
+                <div class="hp-spotlight-info">
+                  <div class="hp-spotlight-meta">
+                    {spotlight.metacritic && (
+                      <span class={`hp-spotlight-score ${spotlight.metacritic >= 80 ? 'score-high' : spotlight.metacritic >= 60 ? 'score-mid' : 'score-low'}`}>{spotlight.metacritic}</span>
+                    )}
+                    {spotlight.genres.length > 0 && <span class="hp-spotlight-genre">{spotlight.genres.join(' · ')}</span>}
+                  </div>
+                  <h3 class="hp-spotlight-title">{spotlight.name}</h3>
+                  <p class="hp-spotlight-subtitle">Tested on {spotlight.devices.length} devices</p>
                 </div>
-                <div class="hp-battle-info">
-                  <span class="hp-battle-game">{b.game}</span>
-                  <span class="hp-battle-device">
-                    <svg class="hp-battle-device-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12" y2="18.01"/></svg>
-                    {b.device}
-                  </span>
+              </div>
+              <div class="hp-spotlight-bars">
+                <div class="hp-spotlight-bars-header">
+                  <span class="hp-spotlight-bars-label">CROSS-DEVICE FPS</span>
+                  <span class="hp-spotlight-bars-unit">AVG</span>
                 </div>
-                <div class="hp-battle-stats">
-                  <span class={`hp-battle-fps ${fpsClass}`}>{b.fps}<span class="hp-fps-unit">fps</span></span>
-                  <span class="hp-battle-preset">{b.preset}</span>
-                </div>
-                {b.battery && <span class="hp-battle-battery">{b.battery}</span>}
-              </a>
-            );
-          })}
+                {spotlight.devices.slice(0, 4).map(d => {
+                  const maxFps = Math.max(...spotlight.devices.map(dd => dd.fps));
+                  const pct = maxFps > 0 ? (d.fps / maxFps) * 100 : 0;
+                  const cls = d.fps >= 55 ? 'bar-green' : d.fps >= 40 ? 'bar-yellow' : d.fps >= 30 ? 'bar-orange' : 'bar-red';
+                  return (
+                    <div class="hp-spotlight-bar-row">
+                      <span class="hp-spotlight-bar-device">{d.name}</span>
+                      <div class="hp-spotlight-bar-track">
+                        <div class={`hp-spotlight-bar-fill ${cls}`} style={`width:${pct}%`}></div>
+                      </div>
+                      <span class={`hp-spotlight-bar-fps ${cls}`}>{d.fps}<span class="hp-fps-unit">fps</span></span>
+                    </div>
+                  );
+                })}
+              </div>
+            </a>
+          )}
+
+          {/* Right: Leaderboard */}
+          {battleTested.length > 0 && (
+            <div class="hp-perfhub-board">
+              <div class="hp-perfhub-board-header">
+                <span class="hp-perfhub-board-label">TOP COMBOS</span>
+                <span class="hp-perfhub-board-label">FPS</span>
+              </div>
+              {battleTested.map(b => {
+                const fpsClass = b.fps >= 55 ? 'fps-green' : b.fps >= 40 ? 'fps-yellow' : b.fps >= 30 ? 'fps-orange' : 'fps-red';
+                return (
+                  <a href={`/games/${b.gameSlug}`} class="hp-battle-row">
+                    <span class="hp-battle-rank">#{b.rank}</span>
+                    <div class="hp-battle-thumb-wrap">
+                      {b.gameImage && <img src={b.gameImage} alt="" class="hp-battle-thumb" loading="lazy" />}
+                    </div>
+                    <div class="hp-battle-info">
+                      <span class="hp-battle-game">{b.game}</span>
+                      <span class="hp-battle-device">
+                        <svg class="hp-battle-device-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12" y2="18.01"/></svg>
+                        {b.device}
+                      </span>
+                    </div>
+                    <div class="hp-battle-stats">
+                      <span class={`hp-battle-fps ${fpsClass}`}>{b.fps}<span class="hp-fps-unit">fps</span></span>
+                      <span class="hp-battle-preset">{b.preset}</span>
+                    </div>
+                  </a>
+                );
+              })}
+            </div>
+          )}
         </div>
       </section>
     )}
@@ -891,10 +883,10 @@ const schemaWebSite = {
     gap: 2px;
   }
 
-  /* ─── 2. COMMUNITY PULSE — Visual Cards ─── */
+  /* ─── 2. COMMUNITY PULSE — Bento Grid ─── */
   .hp-pulse-grid {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(4, 1fr);
     gap: 14px;
   }
   .hp-pulse-card {
@@ -911,7 +903,7 @@ const schemaWebSite = {
     box-shadow: 0 6px 24px rgba(212,255,0,0.06);
   }
   .hp-pulse-card-lg {
-    grid-column: span 1;
+    grid-column: span 2;
   }
   .hp-pulse-card-img {
     position: relative;
@@ -1028,12 +1020,48 @@ const schemaWebSite = {
   .fps-orange { color: var(--color-fps-orange); }
   .fps-red    { color: var(--color-fps-red); }
 
-  /* ─── 3. PERFORMANCE SPOTLIGHT ─── */
-  .hp-spotlight {
+  /* ─── 3. PERFORMANCE HUB (combined) ─── */
+  .hp-perfhub {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    align-items: start;
+  }
+  .hp-perfhub-spotlight {
     border: 1px solid var(--color-border);
     border-radius: 12px;
     overflow: hidden;
     background: var(--color-raised);
+    text-decoration: none;
+    display: block;
+    transition: border-color 0.15s, box-shadow 0.2s;
+  }
+  .hp-perfhub-spotlight:hover {
+    border-color: rgba(212,255,0,0.3);
+    box-shadow: 0 6px 24px rgba(212,255,0,0.06);
+  }
+  .hp-perfhub-spotlight:hover .hp-spotlight-title { color: var(--color-accent); }
+  .hp-perfhub-board {
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    overflow: hidden;
+    background: var(--color-raised);
+  }
+  .hp-perfhub-board-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--color-border);
+    background: var(--color-elevated);
+  }
+  .hp-perfhub-board-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--color-text-dim);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
   }
   .hp-spotlight-hero {
     position: relative;
@@ -1162,34 +1190,19 @@ const schemaWebSite = {
   .hp-spotlight-bar-fps.bar-orange { color: var(--color-fps-orange); }
   .hp-spotlight-bar-fps.bar-red { color: var(--color-fps-red); }
 
-  /* ─── 4a. BATTLE TESTED ─── */
-  .hp-battle-subtitle {
-    font-size: 13px;
-    color: var(--color-text-3);
-    margin-bottom: 16px;
-    margin-top: -8px;
-  }
-  .hp-battle {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 10px;
-  }
+  /* ─── BATTLE TESTED (inside perfhub board) ─── */
   .hp-battle-row {
     display: flex;
     align-items: center;
     gap: 14px;
-    padding: 12px 16px;
-    border: 1px solid var(--color-border);
-    border-radius: 8px;
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--color-border-subtle);
     text-decoration: none;
-    transition: border-color 0.15s, background 0.15s, transform 0.2s;
-    background: var(--color-base);
+    transition: background 0.15s;
   }
+  .hp-battle-row:last-child { border-bottom: none; }
   .hp-battle-row:hover {
-    border-color: rgba(212,255,0,0.3);
     background: var(--color-elevated);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 16px rgba(212,255,0,0.06);
   }
   .hp-battle-rank {
     font-family: var(--font-heading);
@@ -1267,13 +1280,6 @@ const schemaWebSite = {
     color: var(--color-text-dim);
     text-transform: uppercase;
     letter-spacing: 0.04em;
-  }
-  .hp-battle-battery {
-    font-family: var(--font-mono);
-    font-size: 11px;
-    color: var(--color-text-3);
-    flex-shrink: 0;
-    display: none;
   }
 
   /* ─── 4b. PICK YOUR DEVICE (redesigned) ─── */
@@ -1853,9 +1859,9 @@ const schemaWebSite = {
 
   /* ─── Responsive: tablet ─── */
   @media (max-width: 1024px) {
-    .hp-games-grid {
-      grid-template-columns: repeat(3, 1fr);
-    }
+    .hp-pulse-grid { grid-template-columns: repeat(2, 1fr); }
+    .hp-pulse-card-lg { grid-column: span 1; }
+    .hp-perfhub { grid-template-columns: 1fr; }
   }
 
   /* ─── Responsive: mobile ─── */
@@ -1877,7 +1883,7 @@ const schemaWebSite = {
     }
     .hp-pulse-card-lg { grid-column: span 1; }
     .hp-pulse-card-fps { font-size: 15px; }
-    .hp-pulse-card-lg .hp-pulse-card-fps { font-size: 17px; }
+    .hp-pulse-card-lg .hp-pulse-card-fps { font-size: 15px; }
     .hp-pulse-card-img { aspect-ratio: 16/10; }
     .hp-pulse-card-lg .hp-pulse-card-img { aspect-ratio: 16/10; }
 
@@ -1892,7 +1898,8 @@ const schemaWebSite = {
       bottom: -20px;
     }
 
-    /* Spotlight mobile */
+    /* Performance Hub mobile */
+    .hp-perfhub { grid-template-columns: 1fr; }
     .hp-spotlight-hero { height: 200px; }
     .hp-spotlight-info { padding: 16px 20px; }
     .hp-spotlight-bars { padding: 16px 20px; }
@@ -1900,9 +1907,6 @@ const schemaWebSite = {
       grid-template-columns: 80px 1fr 50px;
       gap: 8px;
     }
-
-    /* Battle Tested mobile */
-    .hp-battle { grid-template-columns: 1fr; }
     .hp-battle-thumb-wrap { display: none; }
 
     /* Editorial mobile */
