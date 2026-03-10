@@ -1,7 +1,6 @@
 ---
 import BaseLayout from '@layouts/BaseLayout.astro';
 import SearchBar from '@components/react/SearchBar';
-import GameGrid from '@components/react/GameGrid';
 import { supabaseAdmin } from '@lib/db/client';
 import { getCached, setCache } from '@lib/cache';
 
@@ -230,7 +229,7 @@ const schemaItemList = {
 
 <div class="page-wrap">
 
-  <!-- ══════ HERO ══════ -->
+  <!-- ══════ 1. HERO — Split Data Hero ══════ -->
   <section class="hp-hero">
     <div class="hp-hero-bg">
       {featured?.headerImage && <img src={featured.headerImage} alt="" class="hp-hero-bg-img" fetchpriority="high" />}
@@ -239,62 +238,79 @@ const schemaItemList = {
     <div class="hp-hero-grain"></div>
 
     <div class="hw" style="position:relative;z-index:2;">
-      <div class="hp-hero-content">
-        <h1 class="hp-hero-title">
-          Does it run on your handheld<span style="color:#4ade80;">?</span>
-        </h1>
-        <p class="hp-hero-sub">Real FPS &amp; battery data from <strong style="color:#9890a8;font-weight:600;">{reportCount.toLocaleString()}</strong> community reports across <strong style="color:#9890a8;font-weight:600;">{deviceCount}</strong> devices</p>
+      <div class="hp-hero-split">
+        <!-- Left: Editorial hero content -->
+        <div>
+          <span class="editorial-label" style="margin-bottom:12px;">PERFORMANCE DATABASE</span>
+          <h1 class="hp-hero-title" style="line-height:1.05;">
+            Real FPS.<br/>Real hardware.<br/><span style="color:#4ade80;">Every handheld.</span>
+          </h1>
+          <p class="hp-hero-sub" style="margin-top:14px;">
+            Community-tested performance data from <strong style="color:#9890a8;font-weight:600;">{reportCount.toLocaleString()}</strong> reports across <strong style="color:#9890a8;font-weight:600;">{deviceCount}</strong> devices. Find the settings that actually work.
+          </p>
 
-        <div class="hp-hero-search">
-          <SearchBar client:load variant="hero" placeholder={`Search ${gameCount.toLocaleString()} games...`} />
+          <div class="hp-hero-search" style="margin-top:20px;">
+            <SearchBar client:load variant="hero" placeholder={`Search ${gameCount.toLocaleString()} games...`} />
+          </div>
+
+          <div class="hp-device-pills" style="margin-top:14px;">
+            {featuredDevices.map(d => (
+              <a href={`/devices/${d.slug}`} class="hp-device-pill" style={`--pill-color:${d.color};`}>{d.short}</a>
+            ))}
+            <a href="/devices" class="hp-device-pill hp-device-pill-all">All {deviceCount} →</a>
+          </div>
         </div>
 
-        <div class="hp-device-pills">
-          {featuredDevices.map(d => (
-            <a href={`/devices/${d.slug}`} class="hp-device-pill" style={`--pill-color:${d.color};`}>{d.short}</a>
-          ))}
-          <a href="/devices" class="hp-device-pill hp-device-pill-all">All {deviceCount} →</a>
-        </div>
+        <!-- Right: FPS Showcase Card -->
+        {featured && (
+          <div class="hp-showcase">
+            <a href={`/games/${featured.slug}`} style="text-decoration:none;display:block;">
+              <div class="hp-showcase-main">
+                <div class="hp-showcase-img">
+                  {featured.headerImage && <img src={featured.headerImage} alt={featured.name} />}
+                </div>
+                <div class="hp-showcase-data">
+                  <div>
+                    <span class="hp-showcase-fps" style={`color:${heroFpsColor};text-shadow:0 0 30px ${heroFpsColor}30;`}>{featured.fps}</span>
+                    <span class="hp-showcase-fps-unit">FPS</span>
+                  </div>
+                  <div class="hp-showcase-game">{featured.name}</div>
+                  <div class="hp-showcase-device">{featured.device} · {featured.reports} reports</div>
+                </div>
+              </div>
+
+              <div class="hp-showcase-meta">
+                <div class="hp-showcase-meta-item">
+                  <span class="hp-showcase-meta-val" style={`color:${heroTier.color};`}>{heroTier.label}</span>
+                  <span class="hp-showcase-meta-lbl">Verdict</span>
+                </div>
+                <div class="hp-showcase-meta-item">
+                  <span class="hp-showcase-meta-val">{featured.reports}</span>
+                  <span class="hp-showcase-meta-lbl">Reports</span>
+                </div>
+              </div>
+            </a>
+
+            {bestOnDeck.length > 0 && (
+              <div class="hp-showcase-also">
+                <div class="hp-showcase-also-label">Also tested on Deck</div>
+                {bestOnDeck.slice(0, 3).map(g => (
+                  <a href={`/games/${g.slug}`} class="hp-showcase-also-row">
+                    <span class="hp-showcase-also-name">{g.name}</span>
+                    <span class="hp-showcase-also-fps" style={`color:${fpsColor(g.fps)};`}>{g.fps} fps</span>
+                  </a>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
       </div>
-
-      {/* Desktop: absolute positioned card */}
-      {featured && (
-        <a href={`/games/${featured.slug}`} class="hp-featured-card" style="text-decoration:none;">
-          <div class="hp-featured-inner">
-            <div style="font-family:var(--font-mono);font-size:9px;letter-spacing:0.06em;color:#6d6882;margin-bottom:6px;">MOST TESTED</div>
-            <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:6px;">
-              <span class="hp-featured-fps" style={`color:${heroFpsColor};text-shadow:0 0 20px ${heroFpsColor}40;`}>{featured.fps}</span>
-              <span style="font-family:var(--font-mono);font-size:11px;color:#6d6882;">fps</span>
-              <span style={`font-family:var(--font-mono);font-size:9px;font-weight:700;letter-spacing:0.06em;color:${heroTier.color};background:${heroTier.color}15;padding:3px 8px;border-radius:4px;margin-left:4px;`}>{heroTier.label.toUpperCase()}</span>
-            </div>
-            <div style="font-family:var(--font-display);font-size:16px;font-weight:700;color:#e0dce8;margin-bottom:3px;">{featured.name}</div>
-            <div style="font-family:var(--font-mono);font-size:10px;color:#6d6882;">{featured.device} · {featured.reports} reports</div>
-          </div>
-        </a>
-      )}
-
-      {/* Mobile: inline featured card (visible only on small screens) */}
-      {featured && (
-        <a href={`/games/${featured.slug}`} class="hp-featured-mobile" style="text-decoration:none;">
-          <div style="display:flex;align-items:center;gap:14px;">
-            <div style="flex-shrink:0;">
-              <span class="hp-featured-fps" style={`color:${heroFpsColor};text-shadow:0 0 16px ${heroFpsColor}40;font-size:28px;`}>{featured.fps}</span>
-              <span style="font-family:var(--font-mono);font-size:9px;color:#6d6882;margin-left:2px;">fps</span>
-            </div>
-            <div style="flex:1;min-width:0;">
-              <div style="font-family:var(--font-display);font-size:13px;font-weight:700;color:#e0dce8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{featured.name}</div>
-              <div style="font-family:var(--font-mono);font-size:9px;color:#6d6882;">{featured.device} · {featured.reports} rpts</div>
-            </div>
-            <span style={`font-family:var(--font-mono);font-size:8px;font-weight:700;letter-spacing:0.06em;color:${heroTier.color};background:${heroTier.color}15;padding:3px 8px;border-radius:4px;flex-shrink:0;`}>{heroTier.label.toUpperCase()}</span>
-          </div>
-        </a>
-      )}
     </div>
   </section>
 
   <div class="hw">
 
-    <!-- ══════ STATS ══════ -->
+    <!-- ══════ 2. DATA PROOF BAR — Enhanced Stats ══════ -->
     <section class="hp-stats stagger" aria-label="Site statistics">
       <div class="hp-stat" data-tooltip="Games in our database">
         <div class="hp-stat-value" data-count={gameCount} aria-live="polite">{gameCount.toLocaleString()}</div>
@@ -319,17 +335,21 @@ const schemaItemList = {
           </div>
         </>
       )}
+      <div class="hp-stats-live">
+        <span class="hp-stats-live-dot"></span>
+        LIVE
+      </div>
     </section>
 
-    <!-- ══════ TICKER (only if >= 3 unique games) ══════ -->
+    <!-- ══════ 3. FPS TICKER — Enhanced Marquee ══════ -->
     {showTicker && (
-      <div class="hp-ticker" style="margin-bottom:36px;">
+      <div class="hp-ticker" style="margin-bottom:40px;">
         <div class="hp-ticker-inner">
           {[...trending, ...trending, ...trending].map((t) => (
             <a href={`/games/${t.slug}`} class="hp-ticker-item" style="text-decoration:none;">
-              <span style="color:#6a6080;">●</span>
-              {' '}<span style="color:#9890a8;">{t.name}</span>{' on '}{t.device}
-              {' '}<span style={`color:${fpsColor(t.fps)};font-weight:600;`}>{fpsTierIcon(t.fps)} {t.fps} fps</span>
+              <span style={`display:inline-block;width:6px;height:6px;border-radius:50%;background:${fpsColor(t.fps)};vertical-align:middle;margin-right:4px;`}></span>
+              <span style="color:#9890a8;">{t.name}</span>{' on '}{t.device}
+              {' '}<span style={`color:${fpsColor(t.fps)};font-weight:600;`}>{t.fps} fps</span>
               {' · '}<span style="color:#4a4560;">{t.timeAgo}</span>
             </a>
           ))}
@@ -337,83 +357,87 @@ const schemaItemList = {
       </div>
     )}
 
-    <!-- ══════ GAME GRID ══════ -->
-    <section style="margin-bottom:40px;">
+    <!-- ══════ 4. TOP GAMES — Static Bento Grid ══════ -->
+    <section style="margin-bottom:48px;">
       <div class="hp-section-head">
         <h2>Top Rated</h2>
         <a href="/games">View all →</a>
       </div>
-      <GameGrid client:load games={gameGrid} />
-    </section>
-
-    <!-- ══════ BEST ON DECK (only if >= 2) ══════ -->
-    {showBestOnDeck && (
-      <section style="margin-bottom:40px;">
-        <div class="hp-section-head">
-          <h2>Runs great on <span style="color:#4ade80;">Deck</span></h2>
-          <a href="/games">View all →</a>
-        </div>
-        <div class="stagger" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px;">
-          {bestOnDeck.map((g, i) => (
-            <a href={`/games/${g.slug}`} class="hp-game-card" style={`animation:rise 0.3s ease ${i * 0.06}s both;`}>
-              <div style="position:relative;height:100px;overflow:hidden;">
+      <div class="hp-bento-grid stagger">
+        {gameGrid.map((g, i) => {
+          const mcColor = g.metacritic >= 80 ? '#4ade80' : g.metacritic >= 60 ? '#facc15' : '#f87171';
+          if (i === 0) {
+            return (
+              <a href={`/games/${g.slug}`} class="hp-bento-card hp-bento-feature">
+                <div class="hp-bento-card-img-wrap">
+                  {g.headerImage && <img src={g.headerImage} alt={g.name} class="hp-bento-card-img" />}
+                </div>
+                <div class="hp-bento-overlay"></div>
+                {g.metacritic && <span class="hp-bento-mc" style={`color:${mcColor};`}>{g.metacritic}</span>}
+                <div class="hp-bento-content">
+                  <div class="hp-bento-title">{g.name}</div>
+                  <div class="hp-bento-sub">{g.genres.join(' · ')}{g.developers ? ` · ${g.developers}` : ''}</div>
+                </div>
+              </a>
+            );
+          }
+          return (
+            <a href={`/games/${g.slug}`} class="hp-bento-card">
+              <div class="hp-bento-small-wrap">
                 {g.headerImage ? (
-                  <img src={g.headerImage} alt={g.name} style="width:100%;height:100%;object-fit:cover;" loading="lazy" />
+                  <img src={g.headerImage} alt={g.name} class="hp-bento-card-img" loading="lazy" />
                 ) : (
-                  <div class="game-art" style="height:100%;background:linear-gradient(135deg,#0e0c16,#1a1828);">
-                    <span class="game-art-label" style="font-size:12px;">{g.name}</span>
-                  </div>
+                  <div style="width:100%;height:100%;background:#12101a;"></div>
                 )}
-                <div style="position:absolute;inset:0;background:linear-gradient(transparent 20%,#0e0c16);"></div>
-                <div style="position:absolute;top:6px;right:6px;background:rgba(0,0,0,0.75);backdrop-filter:blur(8px);padding:2px 6px;border-radius:5px;display:flex;align-items:baseline;gap:2px;">
-                  <span style={`font-family:var(--font-mono);font-size:16px;font-weight:800;color:${fpsColor(g.fps)};text-shadow:0 0 10px ${fpsColor(g.fps)}40;`}>{g.fps}<span style="font-size:8px;margin-left:1px;opacity:0.6;">{fpsTierIcon(g.fps)}</span></span>
-                  <span style="font-family:var(--font-mono);font-size:7px;color:#9890a8;">fps</span>
-                </div>
               </div>
-              <div style="padding:6px 12px 10px;">
-                <div style="font-family:var(--font-display);font-size:13px;font-weight:700;color:#e0dce8;margin-bottom:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{g.name}</div>
-                <div style="display:flex;align-items:center;justify-content:space-between;">
-                  <span style="font-family:var(--font-mono);font-size:9px;color:#6d6882;">{g.battery}</span>
-                  <span style="font-family:var(--font-mono);font-size:9px;color:#4a4560;">{g.reportCount} rpts</span>
-                </div>
+              {g.metacritic && <span class="hp-bento-mc" style={`color:${mcColor};`}>{g.metacritic}</span>}
+              <div class="hp-bento-small-body">
+                <div class="hp-bento-small-title">{g.name}</div>
+                <div class="hp-bento-small-genre">{g.genres.join(' · ')}</div>
               </div>
             </a>
-          ))}
-        </div>
-      </section>
-    )}
+          );
+        })}
+      </div>
+    </section>
 
-    <!-- ══════ NEWS ══════ -->
-    {articles.length >= 2 && (
-      <section style="margin-bottom:40px;">
+    <!-- ══════ 5. BEST ON DECK — Performance Data Table ══════ -->
+    {showBestOnDeck && (
+      <section style="margin-bottom:48px;">
         <div class="hp-section-head">
-          <h2>Latest News</h2>
-          <a href="/news">All articles →</a>
+          <h2>Best on <span style="color:#4ade80;">Deck</span></h2>
+          <a href="/games">View all →</a>
         </div>
-        <div class="stagger" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px;">
-          {articles.map((n, i) => {
-            const tag = categoryTag[n.category] ?? { label: 'NEWS', color: '#60a5fa' };
-            const gradients = [
-              'linear-gradient(135deg,#1a0e2e 0%,#0e0c16 60%,rgba(167,139,250,0.08) 100%)',
-              'linear-gradient(135deg,#0e0c16 0%,#0c1a1a 50%,rgba(74,222,128,0.06) 100%)',
-              'linear-gradient(135deg,#0e0c16 0%,#1a140e 50%,rgba(251,146,60,0.06) 100%)',
-            ];
+        <div class="hp-perf-table">
+          <div class="hp-perf-header">
+            <span class="hp-perf-col-game">Game</span>
+            <span class="hp-perf-col-fps">FPS</span>
+            <span class="hp-perf-col-verdict">Verdict</span>
+            <span class="hp-perf-col-battery">Battery</span>
+            <span class="hp-perf-col-reports">Reports</span>
+          </div>
+          {bestOnDeck.map((g) => {
+            const gc = fpsColor(g.fps);
+            const tier = tierLabel(g.fps >= 55 ? 'excellent' : g.fps >= 45 ? 'good' : g.fps >= 35 ? 'fair' : 'poor');
             return (
-              <a href={`/news/${n.slug}`} class="hp-game-card" style={`animation:rise 0.3s ease ${i * 0.06}s both;`}>
-                <div style="position:relative;height:110px;overflow:hidden;">
-                  {n.coverImage ? (
-                    <img src={n.coverImage} alt={n.title} style="width:100%;height:100%;object-fit:cover;" loading="lazy" />
-                  ) : (
-                    <div class="game-art" style={`height:100%;background:${gradients[i % gradients.length]};`}>
-                      <span class="game-art-label" style="font-size:11px;">{n.title.split('—')[0]?.trim() ?? n.title}</span>
-                    </div>
-                  )}
-                  <div style="position:absolute;inset:0;background:linear-gradient(transparent 30%,#0e0c16 95%);"></div>
+              <a href={`/games/${g.slug}`} class="hp-perf-row">
+                <div class="hp-perf-col-game">
+                  <div class="hp-perf-thumb">
+                    {g.headerImage && <img src={g.headerImage} alt="" loading="lazy" />}
+                  </div>
+                  <span class="hp-perf-name">{g.name}</span>
                 </div>
-                <div style="padding:0 14px 14px;">
-                  <span style={`font-family:var(--font-mono);font-size:8px;font-weight:700;letter-spacing:0.08em;color:${tag.color};background:${tag.color}12;padding:2px 6px;border-radius:3px;display:inline-block;margin-bottom:6px;`}>{tag.label}</span>
-                  <h3 style="font-family:var(--font-display);font-size:14px;font-weight:700;color:#e0dce8;line-height:1.3;margin-bottom:4px;">{n.title}</h3>
-                  <div style="font-family:var(--font-mono);font-size:9px;color:#4a4458;">HandheldDB · {fmtDate(n.publishedAt)}</div>
+                <div class="hp-perf-col-fps">
+                  <span class="hp-perf-fps" style={`color:${gc};text-shadow:0 0 12px ${gc}25;`}>{g.fps}</span>
+                </div>
+                <div class="hp-perf-col-verdict">
+                  <span class="hp-perf-verdict" style={`color:${tier.color};background:${tier.color}12;`}>{tier.label}</span>
+                </div>
+                <div class="hp-perf-col-battery">
+                  <span class="hp-perf-battery">{g.battery}</span>
+                </div>
+                <div class="hp-perf-col-reports">
+                  <span class="hp-perf-reports">{g.reportCount} rpts</span>
                 </div>
               </a>
             );
@@ -422,137 +446,166 @@ const schemaItemList = {
       </section>
     )}
 
-    <!-- ══════ COMMUNITY ACTIVITY (only if enough data) ══════ -->
+    <!-- ══════ 6. LATEST NEWS — Editorial Layout ══════ -->
+    {articles.length >= 2 && (
+      <section style="margin-bottom:48px;">
+        <div class="hp-section-head">
+          <h2>Latest News</h2>
+          <a href="/news">All articles →</a>
+        </div>
+        <div class="hp-news-editorial">
+          {articles.map((n, i) => {
+            const tag = categoryTag[n.category] ?? { label: 'NEWS', color: '#60a5fa' };
+            const gradients = [
+              'linear-gradient(135deg,#1a0e2e 0%,#0e0c16 60%,rgba(167,139,250,0.08) 100%)',
+              'linear-gradient(135deg,#0e0c16 0%,#0c1a1a 50%,rgba(74,222,128,0.06) 100%)',
+              'linear-gradient(135deg,#0e0c16 0%,#1a140e 50%,rgba(251,146,60,0.06) 100%)',
+            ];
+            if (i === 0) {
+              return (
+                <a href={`/news/${n.slug}`} class="hp-bento-card hp-news-feature" style="text-decoration:none;">
+                  {n.coverImage ? (
+                    <img src={n.coverImage} alt={n.title} loading="lazy" />
+                  ) : (
+                    <div style={`position:absolute;inset:0;background:${gradients[0]};`}></div>
+                  )}
+                  <div class="hp-news-feature-overlay"></div>
+                  <div class="hp-news-feature-content">
+                    <span style={`font-family:var(--font-mono);font-size:9px;font-weight:700;letter-spacing:0.08em;color:${tag.color};background:${tag.color}12;padding:3px 8px;border-radius:4px;display:inline-block;margin-bottom:8px;`}>{tag.label}</span>
+                    <h3 style="font-family:var(--font-display);font-size:20px;font-weight:800;color:#eae6f4;line-height:1.25;margin-bottom:6px;">{n.title}</h3>
+                    {n.lead && <p style="font-family:var(--font-display);font-size:13px;color:#9890a8;line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">{n.lead}</p>}
+                    <div style="font-family:var(--font-mono);font-size:9px;color:#4a4560;margin-top:8px;">HandheldDB · {fmtDate(n.publishedAt)}</div>
+                  </div>
+                </a>
+              );
+            }
+            return (
+              <a href={`/news/${n.slug}`} class="hp-bento-card hp-news-side" style="text-decoration:none;display:flex;gap:12px;padding:14px;">
+                <div style="width:80px;height:52px;border-radius:8px;overflow:hidden;flex-shrink:0;background:#12101a;">
+                  {n.coverImage ? (
+                    <img src={n.coverImage} alt="" style="width:100%;height:100%;object-fit:cover;" loading="lazy" />
+                  ) : (
+                    <div style={`width:100%;height:100%;background:${gradients[i % gradients.length]};`}></div>
+                  )}
+                </div>
+                <div style="flex:1;min-width:0;">
+                  <span style={`font-family:var(--font-mono);font-size:8px;font-weight:700;letter-spacing:0.08em;color:${tag.color};`}>{tag.label}</span>
+                  <h3 style="font-family:var(--font-display);font-size:13px;font-weight:700;color:#eae6f4;line-height:1.3;margin-top:2px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">{n.title}</h3>
+                  <div style="font-family:var(--font-mono);font-size:9px;color:#4a4560;margin-top:4px;">{fmtDate(n.publishedAt)}</div>
+                </div>
+              </a>
+            );
+          })}
+        </div>
+      </section>
+    )}
+
+    <!-- ══════ 7. COMMUNITY ACTIVITY — Side-by-Side ══════ -->
     {showCommunityActivity && (
-      <section style="margin-bottom:40px;">
+      <section style="margin-bottom:48px;">
         <div class="hp-section-head">
           <h2>Community Activity</h2>
           <a href="/games">Browse all →</a>
         </div>
-
-        {showTrending && showMostTested ? (
-          <>
-            <div class="hp-activity-tabs" id="activity-tabs" role="tablist" aria-label="Community activity views">
-              <button class="hp-activity-tab active" data-tab="trending" role="tab" aria-selected="true" aria-controls="panel-trending" id="tab-trending">Recent</button>
-              <button class="hp-activity-tab" data-tab="most-tested" role="tab" aria-selected="false" aria-controls="panel-most-tested" id="tab-most-tested">Most Reports</button>
-            </div>
-            <div class="hp-activity-panel active" id="panel-trending" role="tabpanel" aria-labelledby="tab-trending">
-              <div style="border-radius:14px;overflow:hidden;border:1px solid rgba(255,255,255,0.06);">
-                {trending.map((g, i) => {
-                  const gc = fpsColor(g.fps);
-                  const tier = tierLabel(g.rating);
-                  return (
-                    <a href={`/games/${g.slug}`} class="hp-trending-row" style={`border-bottom:${i < trending.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none'};animation:rise 0.25s ease ${i * 0.04}s both;`}>
-                      <div style={`font-family:var(--font-mono);font-size:28px;font-weight:800;color:${gc};text-shadow:0 0 14px ${gc}25;width:50px;text-align:center;letter-spacing:-0.04em;flex-shrink:0;`} aria-label={`${g.fps} fps - ${tierLabel(g.rating).label}`}>{g.fps}<span style="font-size:10px;margin-left:2px;vertical-align:super;opacity:0.6;">{fpsTierIcon(g.fps)}</span></div>
-                      <div style="flex:1;min-width:0;">
-                        <div style="font-family:var(--font-display);font-size:14px;font-weight:700;color:#d0cce0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{g.name}</div>
-                        <div style="font-family:var(--font-mono);font-size:9px;color:#4a4458;">{g.device} · {g.genres.join(' · ')}</div>
-                      </div>
-                      <span style={`font-family:var(--font-mono);font-size:9px;font-weight:700;color:${tier.color};letter-spacing:0.04em;flex-shrink:0;`}>{tier.label.toUpperCase()}</span>
-                      <span style="font-family:var(--font-mono);font-size:9px;color:#4a4560;flex-shrink:0;">{g.timeAgo}</span>
-                    </a>
-                  );
-                })}
-              </div>
-            </div>
-            <div class="hp-activity-panel" id="panel-most-tested" role="tabpanel" aria-labelledby="tab-most-tested">
-              <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px;">
-                {mostTested.map((g, i) => (
-                  <a href={`/games/${g.slug}`} class="hp-game-card" style={`text-align:center;padding:0;animation:rise 0.25s ease ${i * 0.04}s both;`}>
-                    {g.headerImage ? (
-                      <div style="position:relative;height:70px;overflow:hidden;">
-                        <img src={g.headerImage} alt={g.name} style="width:100%;height:100%;object-fit:cover;" loading="lazy" />
-                        <div style="position:absolute;inset:0;background:linear-gradient(transparent 20%,#0e0c16);"></div>
-                        <div style="position:absolute;top:6px;left:6px;font-family:var(--font-mono);font-size:18px;font-weight:900;color:#ffffff18;">#{g.rank}</div>
-                      </div>
-                    ) : (
-                      <div style="height:70px;display:flex;align-items:center;justify-content:center;background:#0a0914;">
-                        <span style="font-family:var(--font-mono);font-size:28px;font-weight:900;color:#1a1828;">#{g.rank}</span>
-                      </div>
-                    )}
-                    <div style="padding:8px 10px 10px;">
-                      <div style="font-family:var(--font-display);font-size:12px;font-weight:700;color:#c8c4d4;margin-bottom:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{g.name}</div>
-                      <div style="font-family:var(--font-mono);font-size:9px;color:#4a4458;">{g.rpts} reports · {g.devs} devices</div>
+        <div class="hp-community-grid">
+          {showTrending && (
+            <div class="hp-community-panel">
+              <div class="hp-community-panel-head">Recent Reports</div>
+              {trending.map((g, i) => {
+                const gc = fpsColor(g.fps);
+                const tier = tierLabel(g.rating);
+                return (
+                  <a href={`/games/${g.slug}`} class="hp-trending-row" style={`border-bottom:${i < trending.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none'};`}>
+                    <div style={`font-family:var(--font-mono);font-size:24px;font-weight:800;color:${gc};text-shadow:0 0 12px ${gc}20;width:44px;text-align:center;letter-spacing:-0.04em;flex-shrink:0;`}>{g.fps}</div>
+                    <div style="flex:1;min-width:0;">
+                      <div style="font-family:var(--font-display);font-size:13px;font-weight:700;color:#eae6f4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{g.name}</div>
+                      <div style="font-family:var(--font-mono);font-size:9px;color:#4a4560;">{g.device} · {g.genres.join(' · ')}</div>
                     </div>
+                    <span style={`font-family:var(--font-mono);font-size:9px;font-weight:700;color:${tier.color};letter-spacing:0.04em;flex-shrink:0;`}>{tier.label.toUpperCase()}</span>
                   </a>
-                ))}
-              </div>
+                );
+              })}
             </div>
-          </>
-        ) : showTrending ? (
-          <div style="border-radius:14px;overflow:hidden;border:1px solid rgba(255,255,255,0.06);">
-            {trending.map((g, i) => {
-              const gc = fpsColor(g.fps);
-              const tier = tierLabel(g.rating);
-              return (
-                <a href={`/games/${g.slug}`} class="hp-trending-row" style={`border-bottom:${i < trending.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none'};`}>
-                  <div style={`font-family:var(--font-mono);font-size:28px;font-weight:800;color:${gc};text-shadow:0 0 14px ${gc}25;width:50px;text-align:center;letter-spacing:-0.04em;flex-shrink:0;`}>{g.fps}</div>
-                  <div style="flex:1;min-width:0;">
-                    <div style="font-family:var(--font-display);font-size:14px;font-weight:700;color:#d0cce0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{g.name}</div>
-                    <div style="font-family:var(--font-mono);font-size:9px;color:#4a4458;">{g.device} · {g.genres.join(' · ')}</div>
-                  </div>
-                  <span style={`font-family:var(--font-mono);font-size:9px;font-weight:700;color:${tier.color};letter-spacing:0.04em;flex-shrink:0;`}>{tier.label.toUpperCase()}</span>
-                  <span style="font-family:var(--font-mono);font-size:9px;color:#4a4560;flex-shrink:0;">{g.timeAgo}</span>
+          )}
+
+          {showMostTested && (
+            <div class="hp-community-panel">
+              <div class="hp-community-panel-head">Most Tested</div>
+              {mostTested.map((g) => (
+                <a href={`/games/${g.slug}`} class="hp-ranked-row">
+                  <span class="hp-ranked-num">#{g.rank}</span>
+                  <span class="hp-ranked-name">{g.name}</span>
+                  <span class="hp-ranked-stat">{g.rpts} rpts · {g.devs} dev</span>
                 </a>
-              );
-            })}
-          </div>
-        ) : (
-          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px;">
-            {mostTested.map((g, i) => (
-              <a href={`/games/${g.slug}`} class="hp-game-card" style={`text-align:center;padding:0;animation:rise 0.25s ease ${i * 0.04}s both;`}>
-                {g.headerImage ? (
-                  <div style="position:relative;height:70px;overflow:hidden;">
-                    <img src={g.headerImage} alt={g.name} style="width:100%;height:100%;object-fit:cover;" loading="lazy" />
-                    <div style="position:absolute;inset:0;background:linear-gradient(transparent 20%,#0e0c16);"></div>
-                  </div>
-                ) : (
-                  <div style="height:70px;display:flex;align-items:center;justify-content:center;background:#0a0914;">
-                    <span style="font-family:var(--font-mono);font-size:28px;font-weight:900;color:#1a1828;">#{g.rank}</span>
-                  </div>
-                )}
-                <div style="padding:8px 10px 10px;">
-                  <div style="font-family:var(--font-display);font-size:12px;font-weight:700;color:#c8c4d4;margin-bottom:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{g.name}</div>
-                  <div style="font-family:var(--font-mono);font-size:9px;color:#4a4458;">{g.rpts} reports</div>
-                </div>
-              </a>
-            ))}
-          </div>
-        )}
+              ))}
+            </div>
+          )}
+        </div>
       </section>
     )}
 
-    <!-- ══════ DEVICE STRIP ══════ -->
-    <div class="hp-devices-strip">
-      <span style="font-family:var(--font-mono);font-size:11px;color:#6d6882;flex-shrink:0;">Browse by device</span>
-      <div class="hp-devices-scroll">
-        {devices.slice(0, 8).map(d => (
-          <a href={`/devices/${d.slug}`} class="hp-device-chip">{d.name.replace('ASUS ', '').replace('Lenovo ', '')}</a>
-        ))}
-        <a href="/devices" class="hp-device-chip" style="color:#a78bfa;border-color:rgba(167,139,250,0.15);">All {deviceCount} →</a>
+    <!-- ══════ 8. DEVICE SHOWCASE — Featured Device Cards ══════ -->
+    <section style="margin-bottom:48px;">
+      <div class="hp-section-head">
+        <h2>Devices</h2>
+        <a href="/devices">All {deviceCount} →</a>
       </div>
-    </div>
+      <div class="hp-device-showcase">
+        {devices.slice(0, 6).map(d => {
+          const accentMap = { 'Valve': '#4ea8f0', 'ASUS': '#ff4060', 'Lenovo': '#e04040', 'MSI': '#ff2020', 'AYANEO': '#ff8040' };
+          const accent = accentMap[d.manufacturer] ?? '#a78bfa';
+          return (
+            <a href={`/devices/${d.slug}`} class="hp-device-showcase-card" style={`--accent-color:${accent};`}>
+              <div class="hp-device-showcase-mfr">{d.manufacturer}</div>
+              <div class="hp-device-showcase-name">{d.name.replace('ASUS ', '').replace('Lenovo ', '')}</div>
+              <div class="hp-device-showcase-specs">
+                {d.chip && <span>{d.chip}</span>}
+                {d.batteryWh && <span>{d.batteryWh} Wh</span>}
+                {d.msrpUsd && <span>${d.msrpUsd}</span>}
+              </div>
+              <div class="hp-device-showcase-link">View performance →</div>
+            </a>
+          );
+        })}
+      </div>
+    </section>
 
-    <!-- ══════ CTA ══════ -->
-    <section style="margin-bottom:40px;">
+    <!-- ══════ 9. CTA — With Progress Bar ══════ -->
+    <section style="margin-bottom:48px;">
       <div class="hp-cta">
         <div class="hp-cta-glow"></div>
         <div style="position:relative;z-index:1;">
           <h2 style="font-family:var(--font-display);font-size:clamp(20px,3vw,26px);font-weight:800;color:#eae6f4;margin-bottom:8px;letter-spacing:-0.02em;">Help us benchmark handheld gaming</h2>
-          <p style="font-family:var(--font-display);font-size:14px;color:#6d6882;margin-bottom:20px;line-height:1.5;">
-            Share your real-world performance data. Takes about 5 minutes per report.
+          <p style="font-family:var(--font-display);font-size:14px;color:#6d6882;margin-bottom:16px;line-height:1.5;">
+            Share your real-world performance data. Every report makes the database more accurate.
           </p>
-          <div style="display:flex;gap:24px;flex-wrap:wrap;">
+
+          {(() => {
+            const milestones = [500, 1000, 2000, 5000, 10000, 25000, 50000, 100000];
+            const next = milestones.find(m => m > reportCount) ?? milestones[milestones.length - 1];
+            const prev = milestones[milestones.indexOf(next) - 1] ?? 0;
+            const pct = Math.min(((reportCount - prev) / (next - prev)) * 100, 100);
+            return (
+              <>
+                <div class="hp-cta-progress">
+                  <div class="hp-cta-progress-fill" style={`width:${pct}%;`}></div>
+                </div>
+                <div class="hp-cta-milestone">{reportCount.toLocaleString()} / {next.toLocaleString()} reports — {Math.round(pct)}% to next milestone</div>
+              </>
+            );
+          })()}
+
+          <div style="display:flex;gap:28px;flex-wrap:wrap;margin-top:20px;">
             <div>
-              <div style="font-family:var(--font-mono);font-size:14px;font-weight:700;color:#c8c4d4;">{reportCount.toLocaleString()}</div>
+              <div style="font-family:var(--font-mono);font-size:16px;font-weight:700;color:#eae6f4;">{reportCount.toLocaleString()}</div>
               <div style="font-family:var(--font-mono);font-size:10px;color:#6d6882;letter-spacing:0.04em;">REPORTS</div>
             </div>
             <div>
-              <div style="font-family:var(--font-mono);font-size:14px;font-weight:700;color:#c8c4d4;">{gameCount.toLocaleString()}</div>
+              <div style="font-family:var(--font-mono);font-size:16px;font-weight:700;color:#eae6f4;">{gameCount.toLocaleString()}</div>
               <div style="font-family:var(--font-mono);font-size:10px;color:#6d6882;letter-spacing:0.04em;">GAMES</div>
             </div>
             <div>
-              <div style="font-family:var(--font-mono);font-size:14px;font-weight:700;color:#c8c4d4;">{deviceCount}</div>
+              <div style="font-family:var(--font-mono);font-size:16px;font-weight:700;color:#eae6f4;">{deviceCount}</div>
               <div style="font-family:var(--font-mono);font-size:10px;color:#6d6882;letter-spacing:0.04em;">DEVICES</div>
             </div>
           </div>
@@ -565,21 +618,6 @@ const schemaItemList = {
 </div>
 
 <script>
-  // Tab switching with ARIA
-  document.querySelectorAll('.hp-activity-tab').forEach(tab => {
-    tab.addEventListener('click', () => {
-      const target = tab.getAttribute('data-tab');
-      document.querySelectorAll('.hp-activity-tab').forEach(t => {
-        t.classList.remove('active');
-        t.setAttribute('aria-selected', 'false');
-      });
-      document.querySelectorAll('.hp-activity-panel').forEach(p => p.classList.remove('active'));
-      tab.classList.add('active');
-      tab.setAttribute('aria-selected', 'true');
-      document.getElementById(`panel-${target}`)?.classList.add('active');
-    });
-  });
-
   // Animated stat counters
   const counters = document.querySelectorAll('.hp-stat-value[data-count]');
   const observer = new IntersectionObserver((entries) => {
