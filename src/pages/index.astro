@@ -13,7 +13,7 @@ if (!_cached) {
 const [
   devicesRes, gameCountRes, deviceCountRes,
   reportCountRes, articlesRes, trendingRes, userCountRes,
-  perfReportsRes, freshDropsRes,
+  perfReportsRes, freshDropsRes, deckTrendingRes,
 ] = await Promise.all([
   supabaseAdmin
     .from('devices')
@@ -51,6 +51,12 @@ const [
     .not('header_image', 'is', null)
     .order('created_at', { ascending: false })
     .limit(6),
+  // Deck Trending: games from Steam Deck Top Played with our perf data
+  supabaseAdmin
+    .from('games')
+    .select('name, slug, header_image, steam_appid, performance_reports(fps_avg, devices(name))')
+    .not('steam_appid', 'is', null)
+    .not('header_image', 'is', null),
 ]);
 
 const gameCount = gameCountRes.count ?? 0;
@@ -197,11 +203,47 @@ const deviceWarMatchups = [...pairMap.values()]
   .slice(0, 4)
   .map(p => ({ ...p, games: p.games.slice(0, 4) }));
 
-  _cached = { gameCount, deviceCount, reportCount, userCount, devices, articles, liveFeed, spotlight, battleTested, freshDrops, deviceWarMatchups };
+// Deck Trending: cross-reference Steam Deck Top Played with our DB
+// Source: https://store.steampowered.com/charts/steamdecktopplayed (weekly updated)
+const deckTopNames = [
+  'Slay the Spire 2', 'Mewgenics', 'Stardew Valley', 'Slay the Spire',
+  'Resident Evil Requiem', "Baldur's Gate 3", 'Megabonk', 'Balatro',
+  'Fallout 4', 'The Binding of Isaac: Rebirth', 'Hades II', 'Brotato',
+  'ARC Raiders', 'ELDEN RING', 'Red Dead Redemption 2', 'Fields of Mistria',
+  'Cyberpunk 2077', 'Hades', 'The Elder Scrolls V: Skyrim Special Edition',
+  'Resident Evil 4', 'Resident Evil 2', 'HELLDIVERS 2', 'Hollow Knight: Silksong',
+  'The Witcher 3: Wild Hunt', 'Vampire Survivors', 'Hollow Knight',
+  'Cult of the Lamb', 'Deep Rock Galactic: Survivor', 'Disney Dreamlight Valley',
+  'Hogwarts Legacy', 'Terraria', 'Warframe', 'No Man\'s Sky', 'Diablo IV',
+  'DAVE THE DIVER', 'Palworld', 'Dead Cells', 'Dead by Daylight',
+  'Clair Obscur: Expedition 33', 'Persona 5 Royal', 'Marvel Rivals',
+];
+const deckNameLower = new Map(deckTopNames.map((n, i) => [n.toLowerCase(), i + 1]));
+const allDbGames = deckTrendingRes.data ?? [];
+const deckTrending = allDbGames
+  .filter(g => {
+    const rank = deckNameLower.get(g.name.toLowerCase());
+    return rank !== undefined;
+  })
+  .map(g => {
+    const rank = deckNameLower.get(g.name.toLowerCase())!;
+    const reports = Array.isArray((g as any).performance_reports) ? (g as any).performance_reports : [];
+    const fpsValues = reports.map((r: any) => r.fps_avg).filter((f: any) => typeof f === 'number' && f > 0);
+    const avgFps = fpsValues.length > 0 ? Math.round(fpsValues.reduce((a: number, b: number) => a + b, 0) / fpsValues.length) : null;
+    const deviceCount = new Set(reports.map((r: any) => (r.devices as any)?.name).filter(Boolean)).size;
+    return {
+      rank, name: g.name, slug: g.slug, image: g.header_image ?? '',
+      avgFps, reportCount: reports.length, deviceCount,
+    };
+  })
+  .sort((a, b) => a.rank - b.rank)
+  .slice(0, 12);
+
+  _cached = { gameCount, deviceCount, reportCount, userCount, devices, articles, liveFeed, spotlight, battleTested, freshDrops, deviceWarMatchups, deckTrending };
   setCache(CACHE_KEY, _cached, 120);
 }
 
-const { gameCount, deviceCount, reportCount, userCount, devices, articles, liveFeed, spotlight, battleTested, freshDrops, deviceWarMatchups } = _cached;
+const { gameCount, deviceCount, reportCount, userCount, devices, articles, liveFeed, spotlight, battleTested, freshDrops, deviceWarMatchups, deckTrending } = _cached;
 
 // Helpers
 const fmtDate = (d: Date | null) => d ? d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '';
@@ -375,6 +417,44 @@ const schemaWebSite = {
                     </span>
                     <span class="hp-pulse-card-preset">{r.preset}</span>
                   </div>
+                </div>
+              </a>
+            );
+          })}
+        </div>
+      </section>
+    )}
+
+    <!-- ══════ 2b. TRENDING ON DECK ══════ -->
+    {deckTrending.length > 0 && (
+      <section class="hp-section hp-section-alt hp-section-animate hp-section-divider">
+        <SectionHeader title="Trending on Deck" href="/games" linkText="Browse all" editorial="STEAM DECK TOP PLAYED" />
+        <div class="hp-deck-grid">
+          {deckTrending.map((g: any) => {
+            const fpsClass = g.avgFps ? (g.avgFps >= 55 ? 'fps-green' : g.avgFps >= 40 ? 'fps-yellow' : g.avgFps >= 30 ? 'fps-orange' : 'fps-red') : '';
+            return (
+              <a href={`/games/${g.slug}`} class="hp-deck-card">
+                <div class="hp-deck-img">
+                  {g.image ? (
+                    <img src={g.image} alt={g.name} loading="lazy" />
+                  ) : (
+                    <div class="hp-deck-placeholder"></div>
+                  )}
+                  <div class="hp-deck-gradient"></div>
+                  <span class="hp-deck-rank">#{g.rank}</span>
+                  {g.avgFps && (
+                    <span class={`hp-deck-fps ${fpsClass}`}>{g.avgFps}<span class="hp-fps-unit">fps</span></span>
+                  )}
+                </div>
+                <div class="hp-deck-body">
+                  <span class="hp-deck-name">{g.name}</span>
+                  <span class="hp-deck-meta">
+                    {g.reportCount > 0 ? (
+                      <>{g.reportCount} report{g.reportCount !== 1 ? 's' : ''} · {g.deviceCount} device{g.deviceCount !== 1 ? 's' : ''}</>
+                    ) : (
+                      <>No reports yet</>
+                    )}
+                  </span>
                 </div>
               </a>
             );
@@ -1420,6 +1500,101 @@ const schemaWebSite = {
     letter-spacing: 0.04em;
   }
 
+  /* ─── 2b. TRENDING ON DECK ─── */
+  .hp-deck-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+  }
+  .hp-deck-card {
+    display: flex;
+    flex-direction: column;
+    border-radius: 10px;
+    overflow: hidden;
+    text-decoration: none;
+    border: 1px solid var(--color-border);
+    transition: border-color 0.15s, transform 0.2s, box-shadow 0.2s;
+    background: var(--color-surface);
+  }
+  .hp-deck-card:hover {
+    border-color: rgba(212,255,0,0.25);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 20px rgba(212,255,0,0.05);
+  }
+  .hp-deck-img {
+    position: relative;
+    aspect-ratio: 16/9;
+    overflow: hidden;
+    background: var(--color-elevated);
+  }
+  .hp-deck-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s;
+  }
+  .hp-deck-card:hover .hp-deck-img img {
+    transform: scale(1.05);
+  }
+  .hp-deck-gradient {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(0,0,0,0.4) 0%, transparent 40%, transparent 50%, rgba(0,0,0,0.7) 100%);
+    pointer-events: none;
+  }
+  .hp-deck-placeholder {
+    width: 100%;
+    height: 100%;
+    background: var(--color-elevated);
+  }
+  .hp-deck-rank {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    font-family: var(--font-heading);
+    font-size: 13px;
+    font-weight: 800;
+    color: #fff;
+    text-shadow: 0 1px 4px rgba(0,0,0,0.6);
+    letter-spacing: -0.02em;
+  }
+  .hp-deck-fps {
+    position: absolute;
+    bottom: 8px;
+    right: 8px;
+    font-family: var(--font-mono);
+    font-size: 14px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 4px;
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(4px);
+  }
+  .hp-deck-body {
+    padding: 10px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+  .hp-deck-name {
+    font-family: var(--font-heading);
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--color-text);
+    transition: color 0.12s;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .hp-deck-card:hover .hp-deck-name {
+    color: var(--color-accent);
+  }
+  .hp-deck-meta {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--color-text-dim);
+  }
+
   /* ─── 4b. DEVICE WAR ─── */
   .hp-dw {
     border: 1px solid var(--color-border);
@@ -2109,6 +2284,7 @@ const schemaWebSite = {
     .hp-pulse-grid { grid-template-columns: repeat(2, 1fr); }
     .hp-pulse-card-lg { grid-column: span 1; }
     .hp-perfhub { grid-template-columns: 1fr; }
+    .hp-deck-grid { grid-template-columns: repeat(3, 1fr); }
   }
 
   /* ─── Responsive: mobile ─── */
@@ -2134,6 +2310,8 @@ const schemaWebSite = {
     .hp-pulse-card-img { aspect-ratio: 16/10; }
     .hp-pulse-card-lg .hp-pulse-card-img { aspect-ratio: 16/10; }
 
+    /* Deck Trending mobile */
+    .hp-deck-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
     /* Device War mobile */
     .hp-dw-header { padding: 16px 16px 14px; gap: 12px; }
     .hp-dw-device { font-size: 14px; }
@@ -2217,6 +2395,8 @@ const schemaWebSite = {
     .hp-editorial-hero-img img,
     .hp-editorial-card-img img,
     .hp-spotlight-bar-fill,
+    .hp-deck-card,
+    .hp-deck-img img,
     .hp-fresh-card,
     .hp-fresh-img img,
     .hp-dw-bar-fill,
