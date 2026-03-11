@@ -1,0 +1,1364 @@
+---
+import BaseLayout from '@layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="Project Documentation — HandheldDB" description="Complete technical documentation of the HandheldDB project — architecture, features, database schema, API reference, components, and deployment.">
+  <div class="doc-wrap">
+    <aside class="doc-sidebar" id="docSidebar">
+      <div class="doc-sidebar-inner">
+        <p class="doc-sidebar-title">DOCUMENTATION</p>
+        <nav class="doc-nav">
+          <a href="#overview" class="doc-nav-link">Overview</a>
+          <a href="#architecture" class="doc-nav-link">Architecture</a>
+          <a href="#tech-stack" class="doc-nav-link">Tech Stack</a>
+          <a href="#pages" class="doc-nav-link">Pages & Routes</a>
+          <a href="#api" class="doc-nav-link">API Reference</a>
+          <a href="#database" class="doc-nav-link">Database Schema</a>
+          <a href="#components" class="doc-nav-link">Components</a>
+          <a href="#design-system" class="doc-nav-link">Design System</a>
+          <a href="#auth" class="doc-nav-link">Authentication</a>
+          <a href="#search" class="doc-nav-link">Search</a>
+          <a href="#consensus" class="doc-nav-link">Consensus Algorithm</a>
+          <a href="#cron" class="doc-nav-link">Cron Jobs & Scripts</a>
+          <a href="#infrastructure" class="doc-nav-link">Infrastructure</a>
+          <a href="#seo" class="doc-nav-link">SEO & Performance</a>
+        </nav>
+      </div>
+    </aside>
+
+    <main class="doc-content">
+      <!-- ═══ OVERVIEW ═══ -->
+      <section id="overview" class="doc-section">
+        <span class="doc-label">PROJECT</span>
+        <h1 class="doc-h1">HandheldDB</h1>
+        <p class="doc-intro">
+          HandheldDB is a community-driven performance database for handheld gaming PCs. It answers one question:
+          <strong>"Does this game run on my handheld?"</strong> — with real FPS data, optimal settings, and battery life estimates
+          submitted by actual players.
+        </p>
+
+        <div class="doc-stats-grid">
+          <div class="doc-stat-card">
+            <span class="doc-stat-val">6,470</span>
+            <span class="doc-stat-lbl">Games cataloged</span>
+          </div>
+          <div class="doc-stat-card">
+            <span class="doc-stat-val">6</span>
+            <span class="doc-stat-lbl">Active devices</span>
+          </div>
+          <div class="doc-stat-card">
+            <span class="doc-stat-val">22</span>
+            <span class="doc-stat-lbl">API endpoints</span>
+          </div>
+          <div class="doc-stat-card">
+            <span class="doc-stat-val">20</span>
+            <span class="doc-stat-lbl">Database tables</span>
+          </div>
+          <div class="doc-stat-card">
+            <span class="doc-stat-val">16</span>
+            <span class="doc-stat-lbl">React components</span>
+          </div>
+          <div class="doc-stat-card">
+            <span class="doc-stat-val">11</span>
+            <span class="doc-stat-lbl">Astro components</span>
+          </div>
+        </div>
+
+        <h2 class="doc-h2">Core Features</h2>
+        <div class="doc-feature-grid">
+          <div class="doc-feature">
+            <h3 class="doc-h3">Performance Reports</h3>
+            <p>Users submit detailed performance reports: FPS averages, graphics presets, TDP settings, battery life, thermal behavior, and custom settings. Reports are voted on and aggregated into consensus ratings.</p>
+          </div>
+          <div class="doc-feature">
+            <h3 class="doc-h3">Consensus Ratings</h3>
+            <p>A weighted algorithm processes all reports for a game+device pair into a single consensus: recommended settings, expected FPS, battery life, and an overall verdict (excellent/good/fair/poor/unplayable).</p>
+          </div>
+          <div class="doc-feature">
+            <h3 class="doc-h3">Device Comparison</h3>
+            <p>Side-by-side comparison of up to 3 handheld devices across specs and game performance. Battery estimator, FPS heatmaps, and shared game analysis.</p>
+          </div>
+          <div class="doc-feature">
+            <h3 class="doc-h3">Game Discovery</h3>
+            <p>Browse 6,470+ games with filters by genre, Deck compatibility, Metacritic score, and search powered by Meilisearch with fuzzy matching.</p>
+          </div>
+          <div class="doc-feature">
+            <h3 class="doc-h3">Editorial Content</h3>
+            <p>AI-assisted news articles covering game launches, patches, device updates, and performance analyses. RSS feed support and automated ingestion from gaming news sources.</p>
+          </div>
+          <div class="doc-feature">
+            <h3 class="doc-h3">Community System</h3>
+            <p>Threaded comments on game pages, report voting, game following, achievement badges, contributor leaderboard, and Steam library import.</p>
+          </div>
+        </div>
+
+        <h2 class="doc-h2">Supported Devices</h2>
+        <table class="doc-table">
+          <thead><tr><th>Device</th><th>Manufacturer</th><th>Chip</th><th>Battery</th></tr></thead>
+          <tbody>
+            <tr><td>Steam Deck (OLED)</td><td>Valve</td><td>AMD Van Gogh (custom APU)</td><td>50 Wh</td></tr>
+            <tr><td>ROG Ally</td><td>ASUS</td><td>AMD Ryzen Z1 Extreme</td><td>40 Wh</td></tr>
+            <tr><td>ROG Ally X</td><td>ASUS</td><td>AMD Ryzen Z1 Extreme</td><td>80 Wh</td></tr>
+            <tr><td>Legion Go</td><td>Lenovo</td><td>AMD Ryzen Z1 Extreme</td><td>49.2 Wh</td></tr>
+            <tr><td>Legion Go S</td><td>Lenovo</td><td>AMD Ryzen Z2 Go</td><td>55.5 Wh</td></tr>
+            <tr><td>Claw 8 AI+</td><td>MSI</td><td>Intel Core Ultra 7 258V</td><td>80 Wh</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <!-- ═══ ARCHITECTURE ═══ -->
+      <section id="architecture" class="doc-section">
+        <span class="doc-label">SYSTEM</span>
+        <h1 class="doc-h1">Architecture</h1>
+
+        <h2 class="doc-h2">High-Level Overview</h2>
+        <div class="doc-code">
+          <pre>┌──────────────────┐    ┌─────────────┐    ┌────────────────┐
+│   Nginx (443)    │───▶│ Astro SSR   │───▶│   Supabase     │
+│   SSL + Cache    │    │ (port 4321) │    │  (PostgreSQL)  │
+└──────────────────┘    └─────────────┘    └────────────────┘
+        │                      │                     │
+   Static files          React Islands         Row-Level Security
+   (/_astro/*)          (client:load)          Auth (JWT)
+        │                      │                     │
+   Proxy cache           Meilisearch            Drizzle ORM
+   (5m TTL)             (full-text)            (migrations)</pre>
+        </div>
+
+        <h2 class="doc-h2">Request Flow</h2>
+        <ol class="doc-list">
+          <li><strong>Client</strong> hits <code>handhelddb.com</code> over HTTPS</li>
+          <li><strong>Nginx</strong> terminates SSL, checks proxy cache. If cached → serve immediately</li>
+          <li><strong>Astro SSR</strong> renders the page server-side, fetching data from Supabase</li>
+          <li><strong>React islands</strong> hydrate on the client for interactive components (search, voting, forms)</li>
+          <li><strong>API calls</strong> from React components hit <code>/api/*</code> endpoints, which query Supabase or Meilisearch</li>
+          <li>Responses are proxy-cached by Nginx for subsequent visitors</li>
+        </ol>
+
+        <h2 class="doc-h2">Data Flow: Performance Report</h2>
+        <ol class="doc-list">
+          <li>User fills <code>ReportForm</code> at <code>/report/new</code></li>
+          <li><code>POST /api/reports</code> validates and stores in <code>performance_reports</code></li>
+          <li>Cron job (<code>cron-consensus.ts</code>) recalculates consensus ratings every 12h</li>
+          <li>Consensus uses weighted median of all reports for that game+device</li>
+          <li>Result stored in <code>consensus_ratings</code> with verdict, FPS, and recommended settings</li>
+          <li>Game detail page fetches consensus data and renders it in real-time</li>
+        </ol>
+      </section>
+
+      <!-- ═══ TECH STACK ═══ -->
+      <section id="tech-stack" class="doc-section">
+        <span class="doc-label">TECHNOLOGY</span>
+        <h1 class="doc-h1">Tech Stack</h1>
+
+        <h2 class="doc-h2">Core Framework</h2>
+        <table class="doc-table">
+          <thead><tr><th>Technology</th><th>Version</th><th>Purpose</th></tr></thead>
+          <tbody>
+            <tr><td>Astro</td><td>5.5.0</td><td>SSR web framework — server-rendered pages with React islands</td></tr>
+            <tr><td>React</td><td>19.0.0</td><td>Interactive UI components (search, forms, voting, heatmaps)</td></tr>
+            <tr><td>TypeScript</td><td>5.x</td><td>Type-safe codebase throughout</td></tr>
+            <tr><td>Node.js</td><td>22.x</td><td>Runtime (Astro SSR adapter: standalone)</td></tr>
+          </tbody>
+        </table>
+
+        <h2 class="doc-h2">Database & Backend</h2>
+        <table class="doc-table">
+          <thead><tr><th>Technology</th><th>Version</th><th>Purpose</th></tr></thead>
+          <tbody>
+            <tr><td>Supabase</td><td>2.98.0</td><td>PostgreSQL database, authentication, real-time</td></tr>
+            <tr><td>Drizzle ORM</td><td>0.39.0</td><td>Type-safe ORM with migrations</td></tr>
+            <tr><td>Meilisearch</td><td>0.48.0</td><td>Full-text fuzzy search engine</td></tr>
+            <tr><td>PostgreSQL</td><td>15.x</td><td>Primary database (via Supabase)</td></tr>
+          </tbody>
+        </table>
+
+        <h2 class="doc-h2">Styling</h2>
+        <table class="doc-table">
+          <thead><tr><th>Technology</th><th>Version</th><th>Purpose</th></tr></thead>
+          <tbody>
+            <tr><td>Tailwind CSS</td><td>4.0</td><td>Utility-first CSS (via Vite plugin)</td></tr>
+            <tr><td>Custom CSS</td><td>—</td><td>Design system with CSS custom properties (~1500 lines)</td></tr>
+            <tr><td>Scoped styles</td><td>—</td><td>Per-page Astro &lt;style&gt; blocks</td></tr>
+          </tbody>
+        </table>
+
+        <h2 class="doc-h2">External Services</h2>
+        <table class="doc-table">
+          <thead><tr><th>Service</th><th>Purpose</th></tr></thead>
+          <tbody>
+            <tr><td>Steam Web API</td><td>Game metadata, pricing, screenshots, library import</td></tr>
+            <tr><td>IGDB</td><td>Game details, artwork, external ratings</td></tr>
+            <tr><td>HowLongToBeat</td><td>Playtime estimates (main/extra/completionist)</td></tr>
+            <tr><td>ProtonDB</td><td>Proton compatibility tiers</td></tr>
+            <tr><td>YouTube API</td><td>Performance video transcript import</td></tr>
+            <tr><td>Anthropic API</td><td>AI-generated editorial articles (Claude)</td></tr>
+            <tr><td>Google OAuth</td><td>Social sign-in</td></tr>
+            <tr><td>Plausible Analytics</td><td>Privacy-friendly analytics</td></tr>
+            <tr><td>Let's Encrypt</td><td>SSL certificates (auto-renewed by Certbot)</td></tr>
+          </tbody>
+        </table>
+
+        <h2 class="doc-h2">Tooling</h2>
+        <table class="doc-table">
+          <thead><tr><th>Tool</th><th>Purpose</th></tr></thead>
+          <tbody>
+            <tr><td>pnpm</td><td>Package manager</td></tr>
+            <tr><td>Vitest</td><td>Unit + integration testing</td></tr>
+            <tr><td>Prettier</td><td>Code formatting</td></tr>
+            <tr><td>Drizzle Kit</td><td>Database migrations and studio</td></tr>
+            <tr><td>tsx</td><td>TypeScript script runner (crons, seeds)</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <!-- ═══ PAGES & ROUTES ═══ -->
+      <section id="pages" class="doc-section">
+        <span class="doc-label">FRONTEND</span>
+        <h1 class="doc-h1">Pages & Routes</h1>
+
+        <h2 class="doc-h2">Public Pages</h2>
+        <table class="doc-table">
+          <thead><tr><th>Route</th><th>Page</th><th>Description</th><th>Render</th></tr></thead>
+          <tbody>
+            <tr><td><code>/</code></td><td>Homepage</td><td>Hero with search, community tested games, top rated catalog, device cards, editorial, CTA</td><td>SSR (2m cache)</td></tr>
+            <tr><td><code>/games</code></td><td>Games Browser</td><td>Searchable game catalog with genre filters, Deck compatibility filter, sorting</td><td>SSR (5m cache)</td></tr>
+            <tr><td><code>/games/[slug]</code></td><td>Game Detail</td><td>Performance data per device, consensus ratings, reports, comments, similar games</td><td>SSR</td></tr>
+            <tr><td><code>/games/[slug]/[device]</code></td><td>Game+Device</td><td>Detailed performance breakdown for specific game on specific device</td><td>SSR</td></tr>
+            <tr><td><code>/devices</code></td><td>Device Catalog</td><td>All active devices grouped by manufacturer with specs</td><td>SSR (10m cache)</td></tr>
+            <tr><td><code>/devices/[slug]</code></td><td>Device Detail</td><td>Full specs, performance heatmap across all tested games</td><td>SSR</td></tr>
+            <tr><td><code>/compare</code></td><td>Compare Tool</td><td>Entry point for device comparison</td><td>Static</td></tr>
+            <tr><td><code>/compare/[...slugs]</code></td><td>Comparison</td><td>Side-by-side specs and performance (up to 3 devices)</td><td>SSR</td></tr>
+            <tr><td><code>/discover</code></td><td>Discovery</td><td>Alternative exploration hub for games</td><td>Static</td></tr>
+            <tr><td><code>/news</code></td><td>News Feed</td><td>Published articles with pagination, category badges</td><td>SSR (5m cache)</td></tr>
+            <tr><td><code>/news/[slug]</code></td><td>Article</td><td>Full article with cover image, rendered markdown</td><td>SSR</td></tr>
+            <tr><td><code>/report/new</code></td><td>Submit Report</td><td>4-step performance report form with game/device selection</td><td>Static</td></tr>
+            <tr><td><code>/leaderboard</code></td><td>Leaderboard</td><td>Top contributors ranked by points and reports</td><td>Static</td></tr>
+            <tr><td><code>/about</code></td><td>About</td><td>Mission, how it works, supported devices</td><td>Static</td></tr>
+            <tr><td><code>/privacy</code></td><td>Privacy Policy</td><td>Data collection, cookies, GDPR rights</td><td>Static</td></tr>
+            <tr><td><code>/terms</code></td><td>Terms of Service</td><td>Usage terms and conditions</td><td>Static</td></tr>
+          </tbody>
+        </table>
+
+        <h2 class="doc-h2">Auth Pages</h2>
+        <table class="doc-table">
+          <thead><tr><th>Route</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>/auth/login</code></td><td>Email/password + Google OAuth sign-in</td></tr>
+            <tr><td><code>/auth/register</code></td><td>Account creation with display name</td></tr>
+            <tr><td><code>/auth/forgot-password</code></td><td>Password reset request via email</td></tr>
+            <tr><td><code>/auth/reset-password</code></td><td>New password submission (token from email)</td></tr>
+            <tr><td><code>/auth/logout</code></td><td>Session destruction (server endpoint)</td></tr>
+            <tr><td><code>/auth/callback/google</code></td><td>Google OAuth callback handler</td></tr>
+          </tbody>
+        </table>
+
+        <h2 class="doc-h2">Protected Pages</h2>
+        <table class="doc-table">
+          <thead><tr><th>Route</th><th>Description</th><th>Guard</th></tr></thead>
+          <tbody>
+            <tr><td><code>/profile</code></td><td>User dashboard: devices, reports, badges, followed games, Steam import, settings</td><td>Auth required</td></tr>
+            <tr><td><code>/profile/[userId]</code></td><td>Public user profile: reports, badges, contributions</td><td>Public</td></tr>
+          </tbody>
+        </table>
+
+        <h2 class="doc-h2">Admin Pages</h2>
+        <table class="doc-table">
+          <thead><tr><th>Route</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>/admin</code></td><td>Admin dashboard overview</td></tr>
+            <tr><td><code>/admin/articles</code></td><td>Article management (list, publish, unpublish)</td></tr>
+            <tr><td><code>/admin/articles/new</code></td><td>Create new article</td></tr>
+            <tr><td><code>/admin/articles/[id]</code></td><td>Edit existing article</td></tr>
+            <tr><td><code>/admin/devices</code></td><td>Device management (add, edit, deactivate)</td></tr>
+            <tr><td><code>/admin/reports</code></td><td>Report moderation (approve, reject, delete)</td></tr>
+            <tr><td><code>/admin/comments</code></td><td>Comment moderation (approve, reject, delete)</td></tr>
+            <tr><td><code>/admin/users</code></td><td>User management (ban, verify, promote)</td></tr>
+          </tbody>
+        </table>
+
+        <h2 class="doc-h2">Generated Routes</h2>
+        <table class="doc-table">
+          <thead><tr><th>Route</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>/robots.txt</code></td><td>SEO robots directives</td></tr>
+            <tr><td><code>/rss.xml</code></td><td>RSS feed of published articles</td></tr>
+            <tr><td><code>/sitemap.xml</code></td><td>XML sitemap for search crawlers</td></tr>
+            <tr><td><code>/api/og/[slug]</code></td><td>Dynamic Open Graph image generation per game</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <!-- ═══ API REFERENCE ═══ -->
+      <section id="api" class="doc-section">
+        <span class="doc-label">BACKEND</span>
+        <h1 class="doc-h1">API Reference</h1>
+        <p class="doc-intro">All API routes are server-side Node.js endpoints at <code>/api/*</code>. Rate limited at 60 requests/minute per IP for API routes, 120/15min for search.</p>
+
+        <h2 class="doc-h2">Search & Discovery</h2>
+        <div class="doc-endpoint">
+          <div class="doc-method doc-method-get">GET</div>
+          <code>/api/search?q={"<query>"}&limit={"<n>"}</code>
+          <p>Full-text game search. Primary: Meilisearch fuzzy. Fallback: Supabase ilike. Returns name, slug, images, genres, Metacritic, Deck compatibility. Cached 2min.</p>
+        </div>
+        <div class="doc-endpoint">
+          <div class="doc-method doc-method-get">GET</div>
+          <code>/api/games-search</code>
+          <p>Alternative games search endpoint with similar functionality.</p>
+        </div>
+        <div class="doc-endpoint">
+          <div class="doc-method doc-method-get">GET</div>
+          <code>/api/devices-list</code>
+          <p>Returns all active devices with specs (cached).</p>
+        </div>
+
+        <h2 class="doc-h2">Performance Data</h2>
+        <div class="doc-endpoint">
+          <div class="doc-method doc-method-get">GET</div>
+          <code>/api/consensus</code>
+          <p>Fetch consensus ratings for game+device combos. Returns FPS averages, verdict, report counts, weighted scores, recommended profiles.</p>
+        </div>
+        <div class="doc-endpoint">
+          <div class="doc-method doc-method-get">GET</div>
+          <code>/api/reports</code>
+          <p>Fetch performance reports with filters (game, device, preset, rating). Supports sorting and pagination.</p>
+        </div>
+        <div class="doc-endpoint">
+          <div class="doc-method doc-method-post">POST</div>
+          <code>/api/reports</code>
+          <p>Submit a performance report. Auth optional (email required if anonymous). Fields: game, device, FPS, TDP, battery, settings, notes, rating. Triggers consensus recalculation.</p>
+        </div>
+
+        <h2 class="doc-h2">Voting</h2>
+        <div class="doc-endpoint">
+          <div class="doc-method doc-method-post">POST</div>
+          <code>/api/votes</code>
+          <p>Vote on performance reports. Auth required. Body: <code>{"{ reportId, isUpvote }"}</code>. Toggles/adds/changes vote. Rate limit: 60/15min.</p>
+        </div>
+
+        <h2 class="doc-h2">Comments</h2>
+        <div class="doc-endpoint">
+          <div class="doc-method doc-method-get">GET</div>
+          <code>/api/comments?gameId=&lt;id&gt;</code>
+          <p>Fetch threaded comments for a game. Nested up to 3 levels. Includes user info, vote counts, pagination.</p>
+        </div>
+        <div class="doc-endpoint">
+          <div class="doc-method doc-method-post">POST</div>
+          <code>/api/comments</code>
+          <p>Create comment. Body: <code>{"{ gameId, parentId?, body, depth }"}</code>. HTML sanitized with DOMPurify. Rate limited.</p>
+        </div>
+
+        <h2 class="doc-h2">Social</h2>
+        <div class="doc-endpoint">
+          <div class="doc-method doc-method-post">POST</div>
+          <code>/api/follows</code>
+          <p>Follow/unfollow a game. Auth required. Body: <code>{"{ gameId, follow }"}</code>.</p>
+        </div>
+        <div class="doc-endpoint">
+          <div class="doc-method doc-method-get">GET</div>
+          <code>/api/notifications</code>
+          <p>Fetch user notifications (comment replies, votes, badge awards). Auth required.</p>
+        </div>
+
+        <h2 class="doc-h2">User</h2>
+        <div class="doc-endpoint">
+          <div class="doc-method doc-method-patch">PATCH</div>
+          <code>/api/my-setup</code>
+          <p>Update user profile (display name, username, notification preferences). Auth required.</p>
+        </div>
+        <div class="doc-endpoint">
+          <div class="doc-method doc-method-delete">DELETE</div>
+          <code>/api/my-setup?deviceId=&lt;id&gt;</code>
+          <p>Remove device from user's setup. Auth required.</p>
+        </div>
+        <div class="doc-endpoint">
+          <div class="doc-method doc-method-post">POST</div>
+          <code>/api/steam-import</code>
+          <p>Import Steam library. Body: <code>{"{ steamId }"}</code>. Fetches Steam Web API, matches games by AppID.</p>
+        </div>
+
+        <h2 class="doc-h2">Auth</h2>
+        <div class="doc-endpoint">
+          <div class="doc-method doc-method-post">POST</div>
+          <code>/api/auth/login</code>
+          <p>Email/password authentication. Returns session cookie.</p>
+        </div>
+        <div class="doc-endpoint">
+          <div class="doc-method doc-method-post">POST</div>
+          <code>/api/auth/register</code>
+          <p>Create account. Body: <code>{"{ email, password, displayName }"}</code>.</p>
+        </div>
+        <div class="doc-endpoint">
+          <div class="doc-method doc-method-post">POST</div>
+          <code>/api/auth/change-password</code>
+          <p>Change password (logged in). Body: <code>{"{ currentPassword, newPassword }"}</code>.</p>
+        </div>
+        <div class="doc-endpoint">
+          <div class="doc-method doc-method-post">POST</div>
+          <code>/api/auth/forgot-password</code>
+          <p>Request password reset email.</p>
+        </div>
+        <div class="doc-endpoint">
+          <div class="doc-method doc-method-post">POST</div>
+          <code>/api/auth/reset-password</code>
+          <p>Complete password reset with token.</p>
+        </div>
+
+        <h2 class="doc-h2">Admin (all require admin role)</h2>
+        <div class="doc-endpoint">
+          <div class="doc-method doc-method-post">POST</div>
+          <code>/api/admin/articles</code>
+          <p>Create or update articles.</p>
+        </div>
+        <div class="doc-endpoint">
+          <div class="doc-method doc-method-post">POST</div>
+          <code>/api/admin/devices</code>
+          <p>Create or update devices.</p>
+        </div>
+        <div class="doc-endpoint">
+          <div class="doc-method doc-method-post">POST</div>
+          <code>/api/admin/reports</code>
+          <p>Moderate performance reports (approve/reject/delete).</p>
+        </div>
+        <div class="doc-endpoint">
+          <div class="doc-method doc-method-post">POST</div>
+          <code>/api/admin/comments</code>
+          <p>Moderate comments (approve/reject/delete).</p>
+        </div>
+        <div class="doc-endpoint">
+          <div class="doc-method doc-method-post">POST</div>
+          <code>/api/admin/users</code>
+          <p>Manage users (ban, verify, promote).</p>
+        </div>
+      </section>
+
+      <!-- ═══ DATABASE SCHEMA ═══ -->
+      <section id="database" class="doc-section">
+        <span class="doc-label">DATA</span>
+        <h1 class="doc-h1">Database Schema</h1>
+        <p class="doc-intro">PostgreSQL via Supabase. ORM: Drizzle. 20 tables with foreign keys, unique indexes, and cascade deletes.</p>
+
+        <h2 class="doc-h2">Core Tables</h2>
+
+        <h3 class="doc-h3">games</h3>
+        <p>Primary game catalog. 30+ columns.</p>
+        <table class="doc-table doc-table-sm">
+          <thead><tr><th>Column</th><th>Type</th><th>Notes</th></tr></thead>
+          <tbody>
+            <tr><td><code>id</code></td><td>uuid PK</td><td></td></tr>
+            <tr><td><code>steam_appid</code></td><td>int, unique</td><td>Steam store ID</td></tr>
+            <tr><td><code>name</code></td><td>text</td><td>Required</td></tr>
+            <tr><td><code>slug</code></td><td>varchar(255), unique</td><td>URL-safe identifier</td></tr>
+            <tr><td><code>header_image</code></td><td>text</td><td>Steam CDN header art</td></tr>
+            <tr><td><code>genres</code></td><td>jsonb (string[])</td><td>Action, RPG, etc.</td></tr>
+            <tr><td><code>tags</code></td><td>jsonb (string[])</td><td>Steam tags</td></tr>
+            <tr><td><code>developers</code></td><td>jsonb (string[])</td><td></td></tr>
+            <tr><td><code>metacritic_score</code></td><td>int</td><td>0-100</td></tr>
+            <tr><td><code>deck_compatibility</code></td><td>enum</td><td>verified/playable/unsupported/unknown</td></tr>
+            <tr><td><code>protondb_tier</code></td><td>enum</td><td>platinum/gold/silver/bronze/borked</td></tr>
+            <tr><td><code>price_usd</code></td><td>real</td><td></td></tr>
+            <tr><td><code>hltb_main_hours</code></td><td>real</td><td>HowLongToBeat main story</td></tr>
+            <tr><td><code>performance_tier</code></td><td>text</td><td>lightweight/medium/demanding/very_demanding</td></tr>
+            <tr><td><code>anticheat_engine</code></td><td>text</td><td>EAC/BattlEye/Vanguard/null</td></tr>
+          </tbody>
+        </table>
+
+        <h3 class="doc-h3">devices</h3>
+        <p>Handheld gaming device catalog. 25+ columns.</p>
+        <table class="doc-table doc-table-sm">
+          <thead><tr><th>Column</th><th>Type</th><th>Notes</th></tr></thead>
+          <tbody>
+            <tr><td><code>id</code></td><td>uuid PK</td><td></td></tr>
+            <tr><td><code>name, slug</code></td><td>text, varchar</td><td>Required, unique slug</td></tr>
+            <tr><td><code>manufacturer</code></td><td>text</td><td>Valve, ASUS, Lenovo, MSI</td></tr>
+            <tr><td><code>chip, gpu</code></td><td>text</td><td>CPU/GPU model names</td></tr>
+            <tr><td><code>ram_gb, storage_gb</code></td><td>int</td><td></td></tr>
+            <tr><td><code>screen_resolution</code></td><td>text</td><td>"1920x1080" format</td></tr>
+            <tr><td><code>battery_wh</code></td><td>real</td><td>Watt-hours</td></tr>
+            <tr><td><code>tdp_min, tdp_max</code></td><td>real</td><td>TDP range in watts</td></tr>
+            <tr><td><code>msrp_usd</code></td><td>real</td><td></td></tr>
+            <tr><td><code>is_active</code></td><td>boolean</td><td>Shown on site</td></tr>
+          </tbody>
+        </table>
+
+        <h3 class="doc-h3">performance_reports</h3>
+        <p>User-submitted performance data. 40+ columns.</p>
+        <table class="doc-table doc-table-sm">
+          <thead><tr><th>Column</th><th>Type</th><th>Notes</th></tr></thead>
+          <tbody>
+            <tr><td><code>id</code></td><td>uuid PK</td><td></td></tr>
+            <tr><td><code>game_id, device_id</code></td><td>uuid FK</td><td>Required</td></tr>
+            <tr><td><code>user_id</code></td><td>uuid FK</td><td>Optional (anonymous allowed)</td></tr>
+            <tr><td><code>fps_avg, fps_low</code></td><td>real</td><td>Average and 1% low FPS</td></tr>
+            <tr><td><code>preset</code></td><td>enum</td><td>ultra_low/low/medium/high/ultra/custom</td></tr>
+            <tr><td><code>resolution</code></td><td>text</td><td>"1280x800" format</td></tr>
+            <tr><td><code>fsr_enabled, fsr_mode</code></td><td>bool, enum</td><td>AMD FSR upscaling</td></tr>
+            <tr><td><code>tdp_limit_watts</code></td><td>real</td><td>TDP setting used</td></tr>
+            <tr><td><code>battery_life_hours</code></td><td>real</td><td>Estimated playtime</td></tr>
+            <tr><td><code>thermal</code></td><td>enum</td><td>cool/warm/hot</td></tr>
+            <tr><td><code>fan_noise</code></td><td>enum</td><td>silent/quiet/audible/loud</td></tr>
+            <tr><td><code>overall_rating</code></td><td>enum</td><td>excellent/good/fair/poor/unplayable</td></tr>
+            <tr><td><code>upvotes, downvotes</code></td><td>int</td><td>Community voting</td></tr>
+            <tr><td><code>quality_tier</code></td><td>enum</td><td>verified/community/reported/ai/imported</td></tr>
+            <tr><td><code>moderation_status</code></td><td>text</td><td>approved/pending/rejected</td></tr>
+            <tr><td><code>source</code></td><td>text</td><td>manual/decky_plugin/desktop_app</td></tr>
+          </tbody>
+        </table>
+
+        <h3 class="doc-h3">consensus_ratings</h3>
+        <p>Aggregated ratings per game+device pair. Calculated by consensus algorithm.</p>
+        <table class="doc-table doc-table-sm">
+          <thead><tr><th>Column</th><th>Type</th><th>Notes</th></tr></thead>
+          <tbody>
+            <tr><td><code>game_id, device_id</code></td><td>uuid FK</td><td>Unique pair</td></tr>
+            <tr><td><code>fps_avg, fps_low</code></td><td>real</td><td>Weighted median FPS</td></tr>
+            <tr><td><code>recommended_preset</code></td><td>enum</td><td>Best preset for playability</td></tr>
+            <tr><td><code>recommended_tdp</code></td><td>real</td><td>Optimal TDP in watts</td></tr>
+            <tr><td><code>estimated_battery</code></td><td>real</td><td>Expected battery hours</td></tr>
+            <tr><td><code>overall_verdict</code></td><td>enum</td><td>excellent/good/fair/poor/unplayable</td></tr>
+            <tr><td><code>balanced_profile</code></td><td>jsonb (TDPProfile)</td><td>Recommended settings profile</td></tr>
+            <tr><td><code>report_count</code></td><td>int</td><td>Number of reports aggregated</td></tr>
+            <tr><td><code>confidence_level</code></td><td>text</td><td>low/medium/high</td></tr>
+            <tr><td><code>weighted_score</code></td><td>real</td><td>Quality-weighted FPS score</td></tr>
+          </tbody>
+        </table>
+
+        <h2 class="doc-h2">Social Tables</h2>
+        <table class="doc-table doc-table-sm">
+          <thead><tr><th>Table</th><th>Purpose</th><th>Key columns</th></tr></thead>
+          <tbody>
+            <tr><td><code>users</code></td><td>User profiles</td><td>email, username, display_name, avatar, points, level, is_verified, is_admin</td></tr>
+            <tr><td><code>comments</code></td><td>Threaded game discussions</td><td>game_id, user_id, parent_id, depth (max 3), body_html, votes</td></tr>
+            <tr><td><code>comment_votes</code></td><td>Comment voting</td><td>comment_id, user_id, is_upvote</td></tr>
+            <tr><td><code>report_votes</code></td><td>Report voting</td><td>report_id, user_id, is_upvote</td></tr>
+            <tr><td><code>game_follows</code></td><td>Game following</td><td>user_id, game_id (unique pair)</td></tr>
+            <tr><td><code>notifications</code></td><td>User notifications</td><td>user_id, type, title, body, url, is_read</td></tr>
+            <tr><td><code>badges</code></td><td>Achievement definitions</td><td>name, description, icon, category</td></tr>
+            <tr><td><code>user_badges</code></td><td>Earned badges</td><td>user_id, badge_id, earned_at</td></tr>
+            <tr><td><code>user_devices</code></td><td>User's device collection</td><td>user_id, device_id, is_primary</td></tr>
+            <tr><td><code>user_library</code></td><td>Steam library import</td><td>user_id, game_id, playtime_minutes</td></tr>
+          </tbody>
+        </table>
+
+        <h2 class="doc-h2">Content Tables</h2>
+        <table class="doc-table doc-table-sm">
+          <thead><tr><th>Table</th><th>Purpose</th><th>Key columns</th></tr></thead>
+          <tbody>
+            <tr><td><code>articles</code></td><td>News & editorial</td><td>slug, title, lead, body_html, category, status, published_at, ai_generated</td></tr>
+            <tr><td><code>news_sources</code></td><td>RSS/API feed sources</td><td>name, type, url, is_active, check_interval</td></tr>
+            <tr><td><code>news_ingested</code></td><td>Raw ingested items</td><td>source_id, external_id, content, processed, discarded</td></tr>
+            <tr><td><code>game_versions</code></td><td>Patch tracking</td><td>game_id, version_string, is_major, performance_impact</td></tr>
+            <tr><td><code>settings_presets</code></td><td>Settings templates</td><td>game_id, device_id, name, settings (jsonb)</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <!-- ═══ COMPONENTS ═══ -->
+      <section id="components" class="doc-section">
+        <span class="doc-label">UI</span>
+        <h1 class="doc-h1">Components</h1>
+
+        <h2 class="doc-h2">React Components (Interactive Islands)</h2>
+        <p>React components are hydrated client-side using Astro's island architecture. They handle all interactive features.</p>
+
+        <div class="doc-component-grid">
+          <div class="doc-component">
+            <h3 class="doc-h3">SearchBar</h3>
+            <p class="doc-component-meta">client:load · 2 variants</p>
+            <p>Autocomplete game search with debounced API calls (200ms), keyboard navigation, Ctrl+K shortcut. Two variants: <code>hero</code> (large, homepage) and <code>header</code> (compact, navbar).</p>
+          </div>
+          <div class="doc-component">
+            <h3 class="doc-h3">GameDetailPanel</h3>
+            <p class="doc-component-meta">client:load · main game page</p>
+            <p>The core game page component. Animated FPS counter, device tab bar, recommended settings grid, TDP profiles, cross-device performance chart, community reports with voting.</p>
+          </div>
+          <div class="doc-component">
+            <h3 class="doc-h3">GamesBrowser</h3>
+            <p class="doc-component-meta">client:load · /games</p>
+            <p>Full game catalog browser with text search, genre filter chips, Deck compatibility filter, sorting (name/Metacritic/date), grid+list view modes, load-more pagination.</p>
+          </div>
+          <div class="doc-component">
+            <h3 class="doc-h3">ReportForm</h3>
+            <p class="doc-component-meta">client:load · 4-step wizard</p>
+            <p>Performance report submission form. Step 1: game + device. Step 2: FPS, preset, resolution, FSR, TDP. Step 3: rating, thermal, battery. Step 4: notes, versions. Custom settings editor with up to 20 key-value pairs.</p>
+          </div>
+          <div class="doc-component">
+            <h3 class="doc-h3">CompareTable</h3>
+            <p class="doc-component-meta">client:load · /compare</p>
+            <p>Side-by-side device comparison. Up to 3 devices. Spec categories: Display, Performance, Storage & Battery, Physical, Price. Highlights winner specs. Battery life estimator.</p>
+          </div>
+          <div class="doc-component">
+            <h3 class="doc-h3">CommentSection</h3>
+            <p class="doc-component-meta">client:visible · game pages</p>
+            <p>Threaded comment system with 3 nesting levels, infinite scroll (20/page), voting, editing (15min window), delete/flag, reply forms. HTML sanitized with DOMPurify.</p>
+          </div>
+          <div class="doc-component">
+            <h3 class="doc-h3">PerformanceHeatmap</h3>
+            <p class="doc-component-meta">client:visible · device pages</p>
+            <p>Color-coded FPS grid for all tested games on a device. Sort by FPS/name/rating. Search games. Summary stats (excellent/good/fair/poor counts). Visual FPS bar in each cell.</p>
+          </div>
+          <div class="doc-component">
+            <h3 class="doc-h3">FpsChecker</h3>
+            <p class="doc-component-meta">client:visible · discover page</p>
+            <p>Interactive "Will it run?" tool. Select device → search game → see FPS, verdict, battery, TDP, preset. FPS ring visualization with verdict colors.</p>
+          </div>
+          <div class="doc-component">
+            <h3 class="doc-h3">VoteButtons</h3>
+            <p class="doc-component-meta">client:visible · reports</p>
+            <p>Thumbs up/down with optimistic state updates. Score display (green/red/gray). Redirects to login if not authenticated.</p>
+          </div>
+          <div class="doc-component">
+            <h3 class="doc-h3">FollowButton</h3>
+            <p class="doc-component-meta">client:load · game pages</p>
+            <p>Heart icon toggle with follower count badge. Optimistic updates.</p>
+          </div>
+          <div class="doc-component">
+            <h3 class="doc-h3">NotificationBell</h3>
+            <p class="doc-component-meta">client:visible · header</p>
+            <p>Notification dropdown with 60s polling. Types: report, vote, reply, badge. Unread count badge. Mark-all-as-read.</p>
+          </div>
+          <div class="doc-component">
+            <h3 class="doc-h3">DevicePicker</h3>
+            <p class="doc-component-meta">client:load · profile</p>
+            <p>Device selection modal for user setup. Search/filter, add/remove confirmation dialogs.</p>
+          </div>
+          <div class="doc-component">
+            <h3 class="doc-h3">SteamImport</h3>
+            <p class="doc-component-meta">client:visible · profile</p>
+            <p>Steam library import widget. Input Steam URL/ID, shows progress, displays matched games with playtime.</p>
+          </div>
+          <div class="doc-component">
+            <h3 class="doc-h3">BadgeGrid</h3>
+            <p class="doc-component-meta">client:visible · profile</p>
+            <p>Achievement badge display. 4 categories: reporting, device, community, special. Progress bar, hover tooltips, grayed-out unearned badges.</p>
+          </div>
+          <div class="doc-component">
+            <h3 class="doc-h3">GameGrid</h3>
+            <p class="doc-component-meta">client:visible · discovery</p>
+            <p>Compact game cards with expand-on-click. Fetches consensus data dynamically. Shows FPS badge and "also on" devices.</p>
+          </div>
+          <div class="doc-component">
+            <h3 class="doc-h3">ErrorBoundary</h3>
+            <p class="doc-component-meta">wrapper</p>
+            <p>React error boundary. Catches component errors, shows reset button, logs to console.</p>
+          </div>
+        </div>
+
+        <h2 class="doc-h2">Astro Components (Server-Rendered)</h2>
+        <div class="doc-component-grid">
+          <div class="doc-component">
+            <h3 class="doc-h3">Header</h3>
+            <p>Sticky nav with logo, desktop links (Games/Devices/Discover/Compare/News), search, theme toggle, submit button, auth links. Mobile hamburger drawer.</p>
+          </div>
+          <div class="doc-component">
+            <h3 class="doc-h3">Footer</h3>
+            <p>3-column link grid (Browse/Community/About), brand tagline, RSS link, copyright.</p>
+          </div>
+          <div class="doc-component">
+            <h3 class="doc-h3">SectionHeader</h3>
+            <p>Reusable section title with editorial label, heading, optional subtitle, and "View all →" link.</p>
+          </div>
+          <div class="doc-component">
+            <h3 class="doc-h3">GameCard / GameCardFeatured</h3>
+            <p>Game listing cards with Steam header art, genres, Deck badge, performance indicator. Featured variant is larger.</p>
+          </div>
+          <div class="doc-component">
+            <h3 class="doc-h3">DeviceCard</h3>
+            <p>Device card with manufacturer label, name, chip/battery specs, games tested count.</p>
+          </div>
+          <div class="doc-component">
+            <h3 class="doc-h3">PerformanceBadge</h3>
+            <p>Color-coded FPS badge (green 60+, yellow 40+, orange 30+, red &lt;30).</p>
+          </div>
+          <div class="doc-component">
+            <h3 class="doc-h3">TDPProfileCard</h3>
+            <p>Displays TDP profile: FPS, watts, resolution, preset, battery estimate.</p>
+          </div>
+          <div class="doc-component">
+            <h3 class="doc-h3">GameJsonLd / BreadcrumbJsonLd</h3>
+            <p>Schema.org structured data components for SEO.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ═══ DESIGN SYSTEM ═══ -->
+      <section id="design-system" class="doc-section">
+        <span class="doc-label">VISUAL</span>
+        <h1 class="doc-h1">Design System</h1>
+
+        <h2 class="doc-h2">Theme: Clean Tech + Brutalist Touch</h2>
+        <p>Dark-first design with neon lime accent. Monospace data displays, uppercase headings, sharp borders.</p>
+
+        <h2 class="doc-h2">Typography</h2>
+        <table class="doc-table">
+          <thead><tr><th>Role</th><th>Font</th><th>Usage</th></tr></thead>
+          <tbody>
+            <tr><td>Headings</td><td>Space Grotesk (700)</td><td>Page titles, section headers — uppercase, tight tracking (-0.03em)</td></tr>
+            <tr><td>Body</td><td>Inter (400/500/600)</td><td>Paragraphs, descriptions, meta text</td></tr>
+            <tr><td>Data / Code</td><td>JetBrains Mono (400-700)</td><td>FPS counters, stats, labels, tags, buttons — monospace emphasis</td></tr>
+          </tbody>
+        </table>
+
+        <h2 class="doc-h2">Color Palette (Dark Mode)</h2>
+        <div class="doc-color-grid">
+          <div class="doc-color-swatch" style="background:#0a0a0a;border:1px solid rgba(255,255,255,0.1)"><span class="doc-color-label">Base<br/>#0a0a0a</span></div>
+          <div class="doc-color-swatch" style="background:#111111;border:1px solid rgba(255,255,255,0.1)"><span class="doc-color-label">Raised<br/>#111111</span></div>
+          <div class="doc-color-swatch" style="background:#171717;border:1px solid rgba(255,255,255,0.1)"><span class="doc-color-label">Elevated<br/>#171717</span></div>
+          <div class="doc-color-swatch" style="background:#D4FF00"><span class="doc-color-label" style="color:#0a0a0a">Accent<br/>#D4FF00</span></div>
+          <div class="doc-color-swatch" style="background:#22c55e"><span class="doc-color-label">FPS Green<br/>#22c55e</span></div>
+          <div class="doc-color-swatch" style="background:#eab308"><span class="doc-color-label">FPS Yellow<br/>#eab308</span></div>
+          <div class="doc-color-swatch" style="background:#f97316"><span class="doc-color-label">FPS Orange<br/>#f97316</span></div>
+          <div class="doc-color-swatch" style="background:#ef4444"><span class="doc-color-label">FPS Red<br/>#ef4444</span></div>
+        </div>
+
+        <h2 class="doc-h2">FPS Color System</h2>
+        <table class="doc-table">
+          <thead><tr><th>FPS Range</th><th>Color</th><th>Verdict</th><th>CSS Class</th></tr></thead>
+          <tbody>
+            <tr><td>60+</td><td style="color:#22c55e">Green (#22c55e)</td><td>Excellent</td><td><code>.fps-green</code></td></tr>
+            <tr><td>40-59</td><td style="color:#eab308">Yellow (#eab308)</td><td>Good</td><td><code>.fps-yellow</code></td></tr>
+            <tr><td>30-39</td><td style="color:#f97316">Orange (#f97316)</td><td>Fair</td><td><code>.fps-orange</code></td></tr>
+            <tr><td>&lt;30</td><td style="color:#ef4444">Red (#ef4444)</td><td>Poor/Unplayable</td><td><code>.fps-red</code></td></tr>
+          </tbody>
+        </table>
+
+        <h2 class="doc-h2">Responsive Breakpoints</h2>
+        <table class="doc-table">
+          <thead><tr><th>Breakpoint</th><th>Width</th><th>Changes</th></tr></thead>
+          <tbody>
+            <tr><td>Desktop</td><td>&gt;1024px</td><td>Full layout, 3-4 column grids</td></tr>
+            <tr><td>Tablet</td><td>768-1024px</td><td>2-3 column grids, adjusted spacing</td></tr>
+            <tr><td>Mobile</td><td>600-768px</td><td>2 columns, hamburger menu</td></tr>
+            <tr><td>Small</td><td>&lt;600px</td><td>1 column, compact hero, stacked cards</td></tr>
+          </tbody>
+        </table>
+
+        <h2 class="doc-h2">Animation System</h2>
+        <table class="doc-table">
+          <thead><tr><th>Animation</th><th>Duration</th><th>Usage</th></tr></thead>
+          <tbody>
+            <tr><td>Section entrance (<code>hp-rise</code>)</td><td>0.5s ease-out</td><td>Homepage sections staggered by 0.06s</td></tr>
+            <tr><td>Hero entrance</td><td>0.6s ease-out</td><td>Hero content fade+slide</td></tr>
+            <tr><td>Hero glow pulse</td><td>4s ease-in-out infinite</td><td>Background glow orb breathing</td></tr>
+            <tr><td>Card hover</td><td>0.2s</td><td>translateY(-3px) + border glow</td></tr>
+            <tr><td>Stat counter</td><td>1.2s ease-out cubic</td><td>Count-up animation with IntersectionObserver</td></tr>
+            <tr><td>View transitions</td><td>0.15-0.2s</td><td>Cross-fade between pages (Astro native)</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <!-- ═══ AUTH ═══ -->
+      <section id="auth" class="doc-section">
+        <span class="doc-label">SECURITY</span>
+        <h1 class="doc-h1">Authentication</h1>
+
+        <h2 class="doc-h2">Auth Methods</h2>
+        <ul class="doc-list">
+          <li><strong>Email/Password</strong> — standard registration with display name. Password stored in Supabase Auth (bcrypt).</li>
+          <li><strong>Google OAuth</strong> — social sign-in via Supabase OAuth flow. Callback at <code>/auth/callback/google</code>.</li>
+          <li><strong>Anonymous</strong> — performance reports can be submitted without an account (email required for contact).</li>
+        </ul>
+
+        <h2 class="doc-h2">Session Management</h2>
+        <ul class="doc-list">
+          <li>Cookie-based sessions via Supabase JWT tokens</li>
+          <li>Middleware reads token from cookies on every request</li>
+          <li>User object available to all pages via <code>Astro.locals</code></li>
+          <li>Protected pages redirect to <code>/auth/login?redirect=&lt;current_url&gt;</code></li>
+        </ul>
+
+        <h2 class="doc-h2">Authorization Levels</h2>
+        <table class="doc-table">
+          <thead><tr><th>Level</th><th>Access</th></tr></thead>
+          <tbody>
+            <tr><td>Anonymous</td><td>Browse all pages, submit reports (with email), read comments</td></tr>
+            <tr><td>Authenticated</td><td>Vote on reports, post comments, follow games, manage profile, import Steam library</td></tr>
+            <tr><td>Verified Tester</td><td>Higher quality tier on reports, verified badge</td></tr>
+            <tr><td>Moderator</td><td>Approve/reject reports and comments</td></tr>
+            <tr><td>Admin</td><td>Full access: manage users, devices, articles, all moderation</td></tr>
+          </tbody>
+        </table>
+
+        <h2 class="doc-h2">Security Headers (Middleware)</h2>
+        <ul class="doc-list">
+          <li><code>X-Content-Type-Options: nosniff</code></li>
+          <li><code>X-Frame-Options: DENY</code></li>
+          <li><code>X-XSS-Protection: 1; mode=block</code></li>
+          <li><code>Referrer-Policy: strict-origin-when-cross-origin</code></li>
+          <li><code>Permissions-Policy: camera=(), microphone=(), geolocation=()</code></li>
+          <li><code>Strict-Transport-Security: max-age=31536000</code> (via Nginx)</li>
+        </ul>
+      </section>
+
+      <!-- ═══ SEARCH ═══ -->
+      <section id="search" class="doc-section">
+        <span class="doc-label">FEATURE</span>
+        <h1 class="doc-h1">Search System</h1>
+
+        <h2 class="doc-h2">Architecture</h2>
+        <ul class="doc-list">
+          <li><strong>Primary</strong>: Meilisearch — fuzzy full-text search with typo tolerance</li>
+          <li><strong>Fallback</strong>: Supabase <code>ilike</code> query — reliable but exact</li>
+          <li><strong>Index</strong>: Games are indexed with name, genres, developers, tags</li>
+          <li><strong>Reindex</strong>: Cron job <code>cron-reindex-meilisearch.ts</code> runs periodically</li>
+        </ul>
+
+        <h2 class="doc-h2">SearchBar Component</h2>
+        <ul class="doc-list">
+          <li>200ms debounce on input</li>
+          <li>Dropdown shows top results with game art, genres, Metacritic score, Deck badge</li>
+          <li>Keyboard navigation: arrow keys to navigate, Enter to select, Esc to close</li>
+          <li>Global shortcut: <code>Ctrl+K</code> or <code>/</code> to focus</li>
+          <li>"View all" link to <code>/games?q={"<query>"}</code></li>
+        </ul>
+      </section>
+
+      <!-- ═══ CONSENSUS ═══ -->
+      <section id="consensus" class="doc-section">
+        <span class="doc-label">ALGORITHM</span>
+        <h1 class="doc-h1">Consensus Algorithm</h1>
+
+        <p class="doc-intro">The consensus algorithm aggregates all performance reports for a game+device pair into a single set of recommended settings and expected performance metrics.</p>
+
+        <h2 class="doc-h2">Weighting Factors</h2>
+        <table class="doc-table">
+          <thead><tr><th>Factor</th><th>Weight</th><th>Logic</th></tr></thead>
+          <tbody>
+            <tr><td>Quality Tier</td><td>0.3-5.0x</td><td>verified (5.0) &gt; community (3.0) &gt; reported (1.0) &gt; ai (0.5) &gt; imported (0.3)</td></tr>
+            <tr><td>Recency</td><td>exponential decay</td><td>90-day half-life — newer reports weigh more</td></tr>
+            <tr><td>Community Votes</td><td>variable</td><td>(upvotes + 1) / (upvotes + downvotes + 2) — Wilson score approximation</td></tr>
+          </tbody>
+        </table>
+
+        <h2 class="doc-h2">Calculation Method</h2>
+        <ol class="doc-list">
+          <li>Collect all approved reports for a game+device pair</li>
+          <li>Apply quality × recency × vote weights to each report</li>
+          <li>Calculate weighted median for FPS (avg + low), TDP, battery, thermal</li>
+          <li>Calculate weighted mode for preset, resolution, FSR settings</li>
+          <li>Determine overall verdict from weighted FPS median</li>
+          <li>Build TDP profile (recommended settings object)</li>
+          <li>Assign confidence level: low (&lt;3 reports), medium (3-10), high (&gt;10)</li>
+        </ol>
+
+        <h2 class="doc-h2">Verdict Thresholds</h2>
+        <table class="doc-table">
+          <thead><tr><th>Verdict</th><th>FPS Threshold</th></tr></thead>
+          <tbody>
+            <tr><td>Excellent</td><td>&ge;60 FPS</td></tr>
+            <tr><td>Good</td><td>&ge;40 FPS</td></tr>
+            <tr><td>Fair</td><td>&ge;30 FPS</td></tr>
+            <tr><td>Poor</td><td>&ge;20 FPS</td></tr>
+            <tr><td>Unplayable</td><td>&lt;20 FPS</td></tr>
+          </tbody>
+        </table>
+
+        <h2 class="doc-h2">TDP Profile Structure</h2>
+        <div class="doc-code">
+          <pre set:html={`interface TDPProfile {\n  tdpWatts: number;       // Recommended TDP in watts\n  gpuClockMhz?: number;   // GPU clock speed\n  fpsTarget: number;       // Target FPS\n  fpsAvg: number;          // Expected average FPS\n  resolution: string;      // "1280x800"\n  preset: string;          // "high", "ultra", etc.\n  fsrEnabled: boolean;     // AMD FSR upscaling\n  fsrMode?: string;        // quality/balanced/performance\n  estimatedBatteryHours: number;\n  thermal: string;         // cool/warm/hot\n  fanNoise: string;        // silent/quiet/audible/loud\n  keySettings?: Record&lt;string, string&gt;;\n  reportCount: number;\n  confidence: string;      // low/medium/high\n}`} />
+        </div>
+      </section>
+
+      <!-- ═══ CRON JOBS ═══ -->
+      <section id="cron" class="doc-section">
+        <span class="doc-label">AUTOMATION</span>
+        <h1 class="doc-h1">Cron Jobs & Scripts</h1>
+
+        <h2 class="doc-h2">Scheduled Tasks</h2>
+        <table class="doc-table">
+          <thead><tr><th>Script</th><th>Schedule</th><th>Purpose</th></tr></thead>
+          <tbody>
+            <tr><td><code>cron-consensus.ts</code></td><td>Every 12h</td><td>Recalculate consensus ratings for all game+device pairs with 1+ reports</td></tr>
+            <tr><td><code>cron-award-badges.ts</code></td><td>Daily</td><td>Calculate and award achievement badges to qualifying users</td></tr>
+            <tr><td><code>cron-sync-steam.ts</code></td><td>Daily</td><td>Sync game metadata from Steam (prices, reviews, descriptions)</td></tr>
+            <tr><td><code>cron-sync-protondb.ts</code></td><td>Daily</td><td>Update Proton compatibility tiers</td></tr>
+            <tr><td><code>cron-enrich-games.ts</code></td><td>Daily</td><td>Fetch missing IGDB/HLTB data for games</td></tr>
+            <tr><td><code>cron-ingest-news.ts</code></td><td>Hourly</td><td>Fetch RSS feeds from gaming news sources</td></tr>
+            <tr><td><code>cron-generate-articles.ts</code></td><td>On demand</td><td>AI-generated editorial articles using Claude</td></tr>
+            <tr><td><code>cron-import-top-games.ts</code></td><td>Daily</td><td>Import Steam Top Played games with quality gate</td></tr>
+            <tr><td><code>cron-youtube-import.ts</code></td><td>On demand</td><td>Import performance data from YouTube video transcripts</td></tr>
+            <tr><td><code>cron-reindex-meilisearch.ts</code></td><td>Daily</td><td>Full reindex of games into Meilisearch</td></tr>
+          </tbody>
+        </table>
+
+        <h2 class="doc-h2">Data Management Scripts</h2>
+        <table class="doc-table">
+          <thead><tr><th>Script</th><th>Purpose</th></tr></thead>
+          <tbody>
+            <tr><td><code>seed-devices.ts</code></td><td>Initialize device catalog (Steam Deck, ROG Ally, etc.)</td></tr>
+            <tr><td><code>seed-badges.ts</code></td><td>Create achievement badge definitions</td></tr>
+            <tr><td><code>seed-games-steam.ts</code></td><td>Import top Steam games</td></tr>
+            <tr><td><code>seed-initial-news.ts</code></td><td>Initial editorial articles</td></tr>
+            <tr><td><code>clean-fake-data.ts</code></td><td>Remove test/fake performance data</td></tr>
+            <tr><td><code>clean-junk-games.ts</code></td><td>Purge low-quality game entries</td></tr>
+            <tr><td><code>analyze-coverage.ts</code></td><td>Report coverage analysis</td></tr>
+            <tr><td><code>backup-db.sh</code></td><td>Database backup (pg_dump)</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <!-- ═══ INFRASTRUCTURE ═══ -->
+      <section id="infrastructure" class="doc-section">
+        <span class="doc-label">DEVOPS</span>
+        <h1 class="doc-h1">Infrastructure</h1>
+
+        <h2 class="doc-h2">Server</h2>
+        <table class="doc-table">
+          <thead><tr><th>Component</th><th>Detail</th></tr></thead>
+          <tbody>
+            <tr><td>Hosting</td><td>OVH VPS (Ubuntu 22.04, Linux 6.8)</td></tr>
+            <tr><td>Domain</td><td>handhelddb.com (Cloudflare DNS)</td></tr>
+            <tr><td>Web Server</td><td>Nginx 1.x — SSL termination, proxy cache, static files</td></tr>
+            <tr><td>Application</td><td>Node.js 22 — Astro SSR on port 4321</td></tr>
+            <tr><td>Process Manager</td><td>systemd (<code>handhelddb.service</code>)</td></tr>
+            <tr><td>SSL</td><td>Let's Encrypt via Certbot (auto-renewed)</td></tr>
+          </tbody>
+        </table>
+
+        <h2 class="doc-h2">Nginx Configuration</h2>
+        <ul class="doc-list">
+          <li><strong>Upstream</strong>: <code>127.0.0.1:4321</code> with keepalive pool (8 connections)</li>
+          <li><strong>Proxy cache</strong>: 10MB keys zone, 500MB max, 1h inactive TTL, 5min valid for 200 responses</li>
+          <li><strong>Static assets</strong>: <code>/_astro/*</code> served from disk with <code>Cache-Control: public, max-age=31536000, immutable</code></li>
+          <li><strong>Gzip</strong>: Level 6 compression for text/CSS/JS/JSON/XML/SVG (min 1000 bytes)</li>
+          <li><strong>Redirects</strong>: www → non-www, HTTP → HTTPS, old VPS hostname → domain</li>
+        </ul>
+
+        <h2 class="doc-h2">systemd Service</h2>
+        <div class="doc-code">
+          <pre>User=ubuntu
+WorkingDirectory=/home/ubuntu/handhelddb
+ExecStart=/usr/bin/node dist/server/entry.mjs
+Restart=always (3s delay)
+Security: NoNewPrivileges, PrivateTmp, ProtectKernelTunables</pre>
+        </div>
+
+        <h2 class="doc-h2">Deployment Pipeline</h2>
+        <ol class="doc-list">
+          <li><code>npx astro build</code> — generates <code>dist/server/</code> (SSR) + <code>dist/client/</code> (static)</li>
+          <li><code>sudo systemctl restart handhelddb</code> — restart the Node.js process</li>
+          <li>Nginx picks up new static files immediately (hashed filenames)</li>
+          <li>Proxy cache auto-expires within 5 minutes</li>
+        </ol>
+
+        <h2 class="doc-h2">Caching Strategy</h2>
+        <table class="doc-table">
+          <thead><tr><th>Layer</th><th>TTL</th><th>Scope</th></tr></thead>
+          <tbody>
+            <tr><td>Application (in-memory)</td><td>2-10 min</td><td>Homepage (2m), games (5m), devices (10m)</td></tr>
+            <tr><td>Nginx proxy cache</td><td>5 min</td><td>All SSR responses (bypassed with cookies)</td></tr>
+            <tr><td>Static assets</td><td>1 year</td><td><code>/_astro/*</code> — content-hashed, immutable</td></tr>
+            <tr><td>Browser</td><td>Varies</td><td>Standard HTTP cache headers</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <!-- ═══ SEO ═══ -->
+      <section id="seo" class="doc-section">
+        <span class="doc-label">OPTIMIZATION</span>
+        <h1 class="doc-h1">SEO & Performance</h1>
+
+        <h2 class="doc-h2">SEO Features</h2>
+        <ul class="doc-list">
+          <li><strong>Structured data</strong>: Schema.org JSON-LD for WebSite (search action), VideoGame (game pages), BreadcrumbList, Product (devices)</li>
+          <li><strong>Open Graph</strong>: Title, description, custom OG images per game (<code>/api/og/[slug]</code>)</li>
+          <li><strong>Twitter Cards</strong>: summary_large_image with custom images</li>
+          <li><strong>Canonical URLs</strong>: Every page has <code>&lt;link rel="canonical"&gt;</code></li>
+          <li><strong>Sitemap</strong>: Dynamic XML sitemap at <code>/sitemap.xml</code></li>
+          <li><strong>RSS</strong>: Article feed at <code>/rss.xml</code></li>
+          <li><strong>robots.txt</strong>: Dynamic generation</li>
+          <li><strong>View Transitions</strong>: Astro native cross-fade between pages</li>
+        </ul>
+
+        <h2 class="doc-h2">Performance Optimizations</h2>
+        <ul class="doc-list">
+          <li><strong>Server-side rendering</strong>: Full HTML delivered on first request — no blank page/spinner</li>
+          <li><strong>Island architecture</strong>: Only interactive components load JavaScript (React islands)</li>
+          <li><strong>Lazy hydration</strong>: <code>client:visible</code> defers component loading until in viewport</li>
+          <li><strong>Image optimization</strong>: Steam CDN images with <code>loading="lazy"</code></li>
+          <li><strong>Gzip compression</strong>: Nginx compresses all text-based responses</li>
+          <li><strong>Immutable static assets</strong>: Content-hashed filenames with 1-year cache</li>
+          <li><strong>Font preloading</strong>: Google Fonts with <code>preconnect</code></li>
+          <li><strong>Reduced motion</strong>: Animations respect <code>prefers-reduced-motion</code></li>
+        </ul>
+
+        <h2 class="doc-h2">Accessibility</h2>
+        <ul class="doc-list">
+          <li>Skip-to-content link</li>
+          <li>Keyboard navigation on search (arrow keys, Esc)</li>
+          <li>ARIA labels on interactive elements (buttons, links, modals)</li>
+          <li>Color contrast meets WCAG guidelines</li>
+          <li>Semantic HTML (nav, main, section, article)</li>
+          <li>Focus indicators on interactive elements</li>
+        </ul>
+      </section>
+
+      <footer class="doc-footer">
+        <p>HandheldDB Documentation — Last updated March 2026</p>
+        <p><a href="/">← Back to HandheldDB</a></p>
+      </footer>
+    </main>
+  </div>
+</BaseLayout>
+
+<style>
+  /* ═══ Documentation layout ═══ */
+  .doc-wrap {
+    display: grid;
+    grid-template-columns: 240px 1fr;
+    max-width: 1280px;
+    margin: 0 auto;
+    min-height: 100vh;
+  }
+
+  /* ═══ Sidebar ═══ */
+  .doc-sidebar {
+    position: sticky;
+    top: 60px;
+    height: calc(100vh - 60px);
+    overflow-y: auto;
+    border-right: 1px solid var(--color-border-subtle);
+    padding: 32px 0;
+  }
+  .doc-sidebar-inner { padding: 0 20px; }
+  .doc-sidebar-title {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--color-accent);
+    letter-spacing: 0.12em;
+    margin-bottom: 16px;
+  }
+  .doc-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .doc-nav-link {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--color-text-3);
+    text-decoration: none;
+    padding: 6px 10px;
+    border-radius: 4px;
+    transition: color 0.12s, background 0.12s;
+  }
+  .doc-nav-link:hover {
+    color: var(--color-text);
+    background: var(--color-elevated);
+  }
+
+  /* ═══ Content ═══ */
+  .doc-content {
+    padding: 40px 48px 80px;
+    max-width: 900px;
+  }
+
+  /* ═══ Section ═══ */
+  .doc-section {
+    margin-bottom: 72px;
+    padding-top: 24px;
+  }
+  .doc-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--color-accent);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    display: block;
+    margin-bottom: 8px;
+  }
+  .doc-h1 {
+    font-family: var(--font-heading);
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--color-text);
+    letter-spacing: -0.02em;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--color-border-subtle);
+  }
+  .doc-h2 {
+    font-family: var(--font-heading);
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--color-text);
+    letter-spacing: -0.01em;
+    margin-top: 40px;
+    margin-bottom: 16px;
+  }
+  .doc-h3 {
+    font-family: var(--font-heading);
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--color-text);
+    margin-bottom: 8px;
+  }
+  .doc-intro {
+    font-size: 16px;
+    color: var(--color-text-2);
+    line-height: 1.6;
+    margin-bottom: 24px;
+  }
+
+  /* ═══ Stats grid ═══ */
+  .doc-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 12px;
+    margin-bottom: 32px;
+  }
+  .doc-stat-card {
+    border: 1px solid var(--color-border);
+    padding: 16px;
+    text-align: center;
+  }
+  .doc-stat-val {
+    font-family: var(--font-mono);
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--color-accent);
+    display: block;
+  }
+  .doc-stat-lbl {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--color-text-3);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    display: block;
+    margin-top: 4px;
+  }
+
+  /* ═══ Feature grid ═══ */
+  .doc-feature-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+  .doc-feature {
+    border: 1px solid var(--color-border);
+    padding: 20px;
+    border-radius: 8px;
+  }
+  .doc-feature p {
+    font-size: 13px;
+    color: var(--color-text-3);
+    line-height: 1.6;
+    margin-top: 6px;
+  }
+
+  /* ═══ Table ═══ */
+  .doc-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 12px 0 24px;
+    font-size: 13px;
+  }
+  .doc-table th {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--color-text-3);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    text-align: left;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--color-border);
+    background: var(--color-elevated);
+  }
+  .doc-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--color-border-subtle);
+    color: var(--color-text-2);
+    vertical-align: top;
+  }
+  .doc-table code {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--color-accent);
+    background: rgba(212,255,0,0.06);
+    padding: 2px 6px;
+    border-radius: 3px;
+  }
+  .doc-table-sm { font-size: 12px; }
+  .doc-table-sm td { padding: 8px 10px; }
+
+  /* ═══ Lists ═══ */
+  .doc-list {
+    list-style: none;
+    padding: 0;
+    margin: 12px 0 24px;
+  }
+  .doc-list li {
+    position: relative;
+    padding: 6px 0 6px 20px;
+    font-size: 14px;
+    color: var(--color-text-2);
+    line-height: 1.6;
+  }
+  .doc-list li::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 14px;
+    width: 6px; height: 6px;
+    background: var(--color-accent);
+    border-radius: 1px;
+  }
+  ol.doc-list { counter-reset: doc-counter; }
+  ol.doc-list li { padding-left: 28px; }
+  ol.doc-list li::before {
+    content: counter(doc-counter);
+    counter-increment: doc-counter;
+    width: auto; height: auto;
+    background: none;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--color-accent);
+    top: 6px;
+    border-radius: 0;
+  }
+
+  /* ═══ Code blocks ═══ */
+  .doc-code {
+    background: var(--color-elevated);
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    padding: 16px 20px;
+    margin: 12px 0 24px;
+    overflow-x: auto;
+  }
+  .doc-code pre {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--color-text-2);
+    line-height: 1.6;
+    white-space: pre;
+    margin: 0;
+  }
+
+  /* ═══ API endpoints ═══ */
+  .doc-endpoint {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--color-border-subtle);
+    flex-wrap: wrap;
+  }
+  .doc-endpoint code {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--color-text);
+    flex-shrink: 0;
+  }
+  .doc-endpoint p {
+    font-size: 13px;
+    color: var(--color-text-3);
+    line-height: 1.5;
+    flex: 1;
+    min-width: 200px;
+    margin: 0;
+  }
+  .doc-method {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 3px;
+    flex-shrink: 0;
+  }
+  .doc-method-get { background: rgba(34,197,94,0.15); color: #4ade80; }
+  .doc-method-post { background: rgba(59,130,246,0.15); color: #60a5fa; }
+  .doc-method-patch { background: rgba(250,204,21,0.15); color: #facc15; }
+  .doc-method-delete { background: rgba(239,68,68,0.15); color: #ef4444; }
+
+  /* ═══ Component grid ═══ */
+  .doc-component-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+    margin: 16px 0 24px;
+  }
+  .doc-component {
+    border: 1px solid var(--color-border);
+    padding: 16px 18px;
+    border-radius: 8px;
+  }
+  .doc-component p {
+    font-size: 12px;
+    color: var(--color-text-3);
+    line-height: 1.5;
+    margin: 0;
+  }
+  .doc-component-meta {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--color-text-dim);
+    letter-spacing: 0.04em;
+    margin-bottom: 6px;
+  }
+
+  /* ═══ Color swatches ═══ */
+  .doc-color-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 10px;
+    margin: 16px 0 24px;
+  }
+  .doc-color-swatch {
+    aspect-ratio: 1;
+    border-radius: 8px;
+    display: flex;
+    align-items: flex-end;
+    padding: 10px;
+  }
+  .doc-color-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    color: #fff;
+    line-height: 1.4;
+  }
+
+  /* ═══ Footer ═══ */
+  .doc-footer {
+    border-top: 1px solid var(--color-border-subtle);
+    padding-top: 24px;
+    margin-top: 48px;
+  }
+  .doc-footer p {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--color-text-dim);
+    margin-bottom: 8px;
+  }
+  .doc-footer a {
+    color: var(--color-accent);
+    text-decoration: none;
+  }
+
+  /* ═══ Responsive ═══ */
+  @media (max-width: 900px) {
+    .doc-wrap { grid-template-columns: 1fr; }
+    .doc-sidebar {
+      position: static;
+      height: auto;
+      border-right: none;
+      border-bottom: 1px solid var(--color-border-subtle);
+      padding: 16px 0;
+    }
+    .doc-nav { flex-direction: row; flex-wrap: wrap; gap: 4px; }
+    .doc-content { padding: 24px 16px 60px; }
+    .doc-feature-grid { grid-template-columns: 1fr; }
+    .doc-component-grid { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 600px) {
+    .doc-h1 { font-size: 24px; }
+    .doc-table { font-size: 11px; }
+    .doc-endpoint { flex-direction: column; gap: 6px; }
+  }
+</style>
