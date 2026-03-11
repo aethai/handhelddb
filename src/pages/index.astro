@@ -32,7 +32,7 @@ const [
     .limit(4),
   supabaseAdmin
     .from('performance_reports')
-    .select('fps_avg, graphics_preset, resolution, overall_rating, created_at, estimated_battery, games(name, slug, header_image), devices(name)')
+    .select('fps_avg, preset, resolution, overall_rating, created_at, battery_life_hours, games(name, slug, header_image), devices(name)')
     .eq('moderation_status', 'approved')
     .order('created_at', { ascending: false })
     .limit(12),
@@ -40,7 +40,7 @@ const [
   // Combined query for Spotlight + Battle Tested (was 2 separate queries)
   supabaseAdmin
     .from('performance_reports')
-    .select('fps_avg, graphics_preset, estimated_battery, overall_rating, games(name, slug, header_image, genres, metacritic_score), devices(name)')
+    .select('fps_avg, preset, battery_life_hours, overall_rating, games(name, slug, header_image, genres, metacritic_score), devices(name)')
     .eq('moderation_status', 'approved')
     .order('fps_avg', { ascending: false })
     .limit(60),
@@ -93,8 +93,8 @@ const liveFeed = (trendingRes.data ?? [])
       thumb: (r.games as any)?.header_image ?? null,
       device: (r.devices as any)?.name?.replace('ASUS ', '').replace('Lenovo ', '') ?? '',
       fps,
-      preset: r.graphics_preset ?? '—',
-      battery: r.estimated_battery ? `~${r.estimated_battery.toFixed(1)}h` : '—',
+      preset: r.preset ?? '—',
+      battery: r.battery_life_hours ? `~${r.battery_life_hours.toFixed(1)}h` : '—',
       timeAgo,
     };
   });
@@ -122,8 +122,8 @@ for (const r of perfData) {
     entry.devices.push({
       name: deviceName,
       fps: Math.round(r.fps_avg ?? 0),
-      preset: r.graphics_preset ?? '—',
-      battery: r.estimated_battery ?? null,
+      preset: r.preset ?? '—',
+      battery: r.battery_life_hours ?? null,
     });
   }
 }
@@ -154,8 +154,8 @@ const battleTested = perfData
       gameImage: g.header_image ?? '',
       device: d.name.replace('ASUS ', '').replace('Lenovo ', ''),
       fps: Math.round(r.fps_avg ?? 0),
-      preset: r.graphics_preset ?? '—',
-      battery: r.estimated_battery ? `~${r.estimated_battery.toFixed(1)}h` : null,
+      preset: r.preset ?? '—',
+      battery: r.battery_life_hours ? `~${r.battery_life_hours.toFixed(1)}h` : null,
       rating: r.overall_rating ?? null,
     };
   });
