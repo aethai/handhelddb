@@ -75,11 +75,9 @@ if (hasReports) {
   avgTdp = tdpValues.length > 0 ? Math.round(tdpValues.reduce((a: number, b: number) => a + b, 0) / tdpValues.length * 10) / 10 : null;
 }
 
-// TDP Profiles from consensus
-const batterySaver = consensus?.battery_saver_profile as any;
-const balanced = consensus?.balanced_profile as any;
-const performance = consensus?.performance_profile as any;
-const hasTDPProfiles = batterySaver || balanced || performance;
+// Recommended profile from consensus (single profile replaces old 3-tier system)
+const recommendedProfile = (consensus?.balanced_profile ?? consensus?.battery_saver_profile ?? consensus?.performance_profile) as any;
+const hasTDPProfiles = !!recommendedProfile;
 
 const deckStatusColors: Record<string, { label: string; class: string }> = {
   verified: { label: 'Verified', class: 'bg-green-500/20 text-green-400 border-green-500/30' },
@@ -177,10 +175,8 @@ function formatBattery(hours: number): string {
         {hasTDPProfiles && (
           <div class="mt-6">
             <h2 class="text-xl font-bold text-white mb-4">Recommended Settings</h2>
-            <div class="tdp-shared-grid grid grid-cols-1 sm:grid-cols-3 gap-0">
-              {batterySaver && <TDPProfileCard profile={batterySaver} tier="battery_saver" />}
-              {balanced && <TDPProfileCard profile={balanced} tier="balanced" />}
-              {performance && <TDPProfileCard profile={performance} tier="performance" />}
+            <div class="max-w-md">
+              <TDPProfileCard profile={recommendedProfile} tier="balanced" />
             </div>
           </div>
         )}

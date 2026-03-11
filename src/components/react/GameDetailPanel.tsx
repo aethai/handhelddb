@@ -203,10 +203,9 @@ function GameDetailPanelInner({ dataId, initialData }: { dataId?: string; initia
     .sort((a, b) => (data.consensus[b.id]?.fps_avg ?? 0) - (data.consensus[a.id]?.fps_avg ?? 0));
   const maxFps = Math.max(...devicesWithData.map(d => data.consensus[d.id]?.fps_avg ?? 0), 60);
 
-  const bal = cons?.balanced_profile;
-  const eco = cons?.battery_saver_profile;
-  const perf = cons?.performance_profile;
-  const hasTDP = !!(eco || bal || perf);
+  // Single recommended profile (balanced_profile holds the recommended profile now)
+  const recommendedProfile = cons?.balanced_profile ?? cons?.battery_saver_profile ?? cons?.performance_profile;
+  const hasTDP = !!recommendedProfile;
 
   const gi = data.gameInfo;
   const deckMap: Record<string, { label: string; cls: string }> = {
@@ -325,25 +324,25 @@ function GameDetailPanelInner({ dataId, initialData }: { dataId?: string; initia
           </section>
         )}
 
-        {/* — TDP Profiles — */}
-        {hasTDP && (
+        {/* — Recommended Profile — */}
+        {hasTDP && recommendedProfile && (
           <section className="gd-section">
-            <h2 className="gd-section-title">TDP Profiles</h2>
+            <h2 className="gd-section-title">Recommended</h2>
             <div className="gd-profiles">
-              {([["ECO", eco], ["BALANCED", bal], ["PERFORMANCE", perf]] as [string, TDPProfile | null | undefined][]).map(([label, profile]) => {
-                const pFps = profile?.fpsAvg ? Math.round(profile.fpsAvg) : null;
-                const isBal = label === "BALANCED";
+              {(() => {
+                const pFps = recommendedProfile.fpsAvg ? Math.round(recommendedProfile.fpsAvg) : null;
                 return (
-                  <div key={label} className={`gd-profile ${isBal ? "gd-profile-bal" : ""}`}>
-                    <div className="gd-profile-label">{label}</div>
+                  <div className="gd-profile gd-profile-bal" style={{ flex: '1 1 100%' }}>
+                    <div className="gd-profile-label">RECOMMENDED</div>
                     <div className={`gd-profile-fps ${pFps ? fpsClass(pFps) : ""}`}>{pFps ?? "—"}</div>
                     <div className="gd-profile-meta">
-                      {profile?.estimatedBatteryHours ? `${profile.estimatedBatteryHours.toFixed(1)}h` : "—"}
-                      {profile?.tdpWatts ? ` · ${profile.tdpWatts}W` : ""}
+                      {recommendedProfile.estimatedBatteryHours ? `${recommendedProfile.estimatedBatteryHours.toFixed(1)}h` : "—"}
+                      {recommendedProfile.tdpWatts ? ` · ${recommendedProfile.tdpWatts}W` : ""}
+                      {recommendedProfile.preset ? ` · ${recommendedProfile.preset.replace('_', ' ')}` : ""}
                     </div>
                   </div>
                 );
-              })}
+              })()}
             </div>
           </section>
         )}

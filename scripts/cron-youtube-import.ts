@@ -60,12 +60,13 @@ const TRUSTED_CHANNELS: Record<string, string> = {
 };
 
 // Device search names → device slugs (ordered: most specific first)
-// Only 4 active devices: Steam Deck, ROG Ally, ROG Ally X, Legion Go
 const DEVICE_SEARCH_MAP: Array<{ searchTerms: string[]; slug: string }> = [
   { searchTerms: ['Steam Deck OLED', 'Deck OLED', 'Steam Deck LCD', 'Steam Deck'], slug: 'steam-deck-oled' },
   { searchTerms: ['ROG Ally X', 'Ally X'], slug: 'rog-ally-x' },
   { searchTerms: ['ROG Ally'], slug: 'rog-ally' },
+  { searchTerms: ['Legion Go S', 'Legion Go S Stealth'], slug: 'legion-go-s' },
   { searchTerms: ['Legion Go'], slug: 'legion-go' },
+  { searchTerms: ['MSI Claw 8 AI+', 'MSI Claw 8', 'MSI Claw'], slug: 'msi-claw-8-ai-plus' },
 ];
 
 // ─── Supadata YouTube search (no YouTube API quota needed!) ───
@@ -167,11 +168,13 @@ const EXTRACT_SYSTEM_PROMPT = `You are a strict data extraction assistant for a 
 - FPS values must be specific numbers the creator mentions (e.g. "getting about 40 fps", "averaging 35")
 - TDP must be explicitly mentioned (e.g. "set to 15 watts", "TDP at 12W", "maxed out the TDP")
   - Steam Deck "max TDP" = 15W. Any TDP above 15W for Deck is WRONG — reject as wrong device.
-  - ROG Ally/X max TDP = 30W. Legion Go max = 30W.
+  - ROG Ally/X max TDP = 30W. Legion Go/Go S max = 30W. MSI Claw 8 AI+ max = 37W.
 - Resolution must be explicitly stated ("1280 by 800", "native resolution", "720p")
   - Steam Deck "native" = 1280x800
   - ROG Ally/X "native" = 1920x1080
   - Legion Go "native" = 2560x1600
+  - Legion Go S "native" = 1920x1200
+  - MSI Claw 8 AI+ "native" = 1920x1200
 - Preset must be explicitly mentioned ("low settings", "set to medium")
 - thermal/fan_noise: ONLY if explicitly mentioned. Leave null otherwise.
 - If multiple TDP configs shown, extract the PRIMARY one the creator recommends or spends most time on
@@ -179,13 +182,15 @@ const EXTRACT_SYSTEM_PROMPT = `You are a strict data extraction assistant for a 
 - proton_version: Extract Proton/compatibility layer version if mentioned (e.g. "GE-Proton 9-11", "Proton Experimental", "Proton 8", "native Linux"). Set null if on Windows or not mentioned.
 
 === PC HANDHELD DEVICES (only these are valid): ===
-steam-deck-oled (covers both LCD and OLED — same performance), rog-ally, rog-ally-x, legion-go
+steam-deck-oled (covers both LCD and OLED — same performance), rog-ally, rog-ally-x, legion-go, legion-go-s, msi-claw-8-ai-plus
 NOTE: ROG Ally (16GB, Z1 Extreme) and ROG Ally X (24GB, ~40% faster) are DIFFERENT devices — distinguish them carefully from transcript context (mentions of "Ally X", "24 gig", etc.)
+NOTE: Legion Go (AMD, 2560x1600) and Legion Go S (AMD, 1920x1200, smaller/lighter) are DIFFERENT — distinguish by mentions of "Go S", "smaller screen", or resolution context.
+NOTE: MSI Claw 8 AI+ uses Intel Core Ultra — look for "MSI Claw", "Claw 8", "Intel handheld" context.
 
 Respond with a single JSON object. If the video should be rejected or has insufficient data, respond: {"no_data": true}
 
 {
-  "device_slug": "steam-deck-oled" | "rog-ally" | "rog-ally-x" | "legion-go",
+  "device_slug": "steam-deck-oled" | "rog-ally" | "rog-ally-x" | "legion-go" | "legion-go-s" | "msi-claw-8-ai-plus",
   "fps_avg": 40,
   "fps_low": number | null,
   "resolution": "1280x800" | null,
@@ -317,7 +322,7 @@ function preFilterVideo(title: string, description: string): { pass: boolean; re
   for (const { pattern, reason } of VIDEO_REJECT_PATTERNS) {
     if (pattern.test(combined)) {
       // Exception: allow if title clearly mentions a PC handheld device
-      const hasHandheld = /\b(steam\s*deck|rog\s*ally|legion\s*go(?!\s*[5-9])|ayaneo|gpd\s*win|msi\s*claw)\b/i.test(title);
+      const hasHandheld = /\b(steam\s*deck|rog\s*ally|legion\s*go(?!\s*[5-9])|ayaneo|gpd\s*win|msi\s*claw)\b/i.test(combined);
       // ALWAYS reject: comparison, laptop, frame gen (artificially inflated FPS), and desktop GPU videos
       if (reason.includes('Comparison') || reason.includes('multi-device')) return { pass: false, reason };
       if (reason.includes('laptop')) return { pass: false, reason };
@@ -338,6 +343,8 @@ const DEVICE_TDP_LIMITS: Record<string, { min: number; max: number }> = {
   'rog-ally': { min: 9, max: 30 },
   'rog-ally-x': { min: 9, max: 30 },
   'legion-go': { min: 8, max: 30 },
+  'legion-go-s': { min: 8, max: 30 },
+  'msi-claw-8-ai-plus': { min: 10, max: 37 },
 };
 
 const DEVICE_RESOLUTIONS: Record<string, string[]> = {
@@ -345,6 +352,8 @@ const DEVICE_RESOLUTIONS: Record<string, string[]> = {
   'rog-ally': ['1920x1080', '1600x900', '1280x720'],
   'rog-ally-x': ['1920x1080', '1600x900', '1280x720'],
   'legion-go': ['2560x1600', '1920x1200', '1920x1080', '1600x900', '1280x800', '1280x720'],
+  'legion-go-s': ['1920x1200', '1920x1080', '1600x900', '1280x800', '1280x720'],
+  'msi-claw-8-ai-plus': ['1920x1200', '1920x1080', '1600x900', '1280x720'],
 };
 
 function validateExtraction(data: ExtractedReport, deviceSlug: string): { valid: boolean; reason?: string } {
@@ -430,19 +439,15 @@ async function main() {
 
   const deviceMap = Object.fromEntries((dbDevices ?? []).map((d) => [d.slug, d]));
 
-  // Load top enriched games
+  // Load top games by Metacritic score
   const { data: games } = await supabase
     .from('games')
-    .select('id, slug, name, steam_appid, cached_stats')
+    .select('id, slug, name, steam_appid')
     .not('steam_appid', 'is', null)
-    .not('cached_stats', 'is', null)
     .order('metacritic_score', { ascending: false, nullsFirst: false })
     .limit(200);
 
-  const enrichedGames = (games ?? []).filter((g) => {
-    const stats = g.cached_stats as Record<string, unknown>;
-    return stats?.enriched_at;
-  });
+  const enrichedGames = games ?? [];
 
   console.log(`Loaded ${enrichedGames.length} enriched games, ${Object.keys(deviceMap).length} devices`);
 
@@ -455,12 +460,14 @@ async function main() {
   const existingIds = new Set((existingImports ?? []).map((r) => r.import_source_id));
   console.log(`${existingIds.size} existing YouTube imports\n`);
 
-  // Search targets: 4 active devices
+  // Search targets: 6 active devices
   const deviceSearchNames = [
     { name: 'Steam Deck', slug: 'steam-deck-oled' },
     { name: 'ROG Ally X', slug: 'rog-ally-x' },
     { name: 'ROG Ally', slug: 'rog-ally' },
+    { name: 'Legion Go S', slug: 'legion-go-s' },
     { name: 'Legion Go', slug: 'legion-go' },
+    { name: 'MSI Claw 8', slug: 'msi-claw-8-ai-plus' },
   ];
 
   let searchesUsed = 0;
@@ -579,7 +586,7 @@ async function main() {
             overall_rating: extracted.overall_rating,
             proton_version: extracted.proton_version ?? null,
             notes: `From YouTube: "${video.title}" by ${video.channelTitle}. ${extracted.notes_summary} Video: https://youtu.be/${video.videoId}`,
-            quality_tier: isTrusted ? 'imported' : 'ai_estimated',
+            quality_tier: 'imported',  // YouTube data is our primary real data source
             import_source: 'youtube',
             import_source_id: importId,
             source: 'manual' as const,

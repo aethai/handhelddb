@@ -15,39 +15,18 @@ interface TDPProfile {
 
 interface Props {
   profile: TDPProfile;
-  tier: 'battery_saver' | 'balanced' | 'performance';
+  tier?: 'battery_saver' | 'balanced' | 'performance';
 }
 
-const { profile, tier } = Astro.props;
+const { profile } = Astro.props;
 
-const tierConfig = {
-  battery_saver: {
-    label: 'Battery Saver',
-    icon: '🔋',
-    color: 'copper',
-    border: 'border-[#D4FF00]/30',
-    bg: 'bg-[#D4FF00]/5',
-    accent: 'text-[#D4FF00]',
-  },
-  balanced: {
-    label: 'Balanced',
-    icon: '⚖️',
-    color: 'copper',
-    border: 'border-[#D4FF00]/30',
-    bg: 'bg-[#D4FF00]/5',
-    accent: 'text-[#D4FF00]',
-  },
-  performance: {
-    label: 'Performance',
-    icon: '🚀',
-    color: 'orange',
-    border: 'border-orange-500/30',
-    bg: 'bg-orange-500/5',
-    accent: 'text-orange-400',
-  },
+const config = {
+  label: 'Recommended',
+  icon: '⚡',
+  border: 'border-[#D4FF00]/30',
+  bg: 'bg-[#D4FF00]/5',
+  accent: 'text-[#D4FF00]',
 };
-
-const config = tierConfig[tier];
 
 function fpsColor(fps: number): string {
   if (fps >= 60) return 'text-green-400';
