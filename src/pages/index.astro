@@ -28,9 +28,9 @@ const [
   supabaseAdmin
     .from('consensus_ratings')
     .select('fps_avg, overall_verdict, report_count, recommended_preset, estimated_battery, games(name, slug, header_image, metacritic_score, genres, deck_compatibility), devices(name, slug, manufacturer)')
-    .gte('report_count', 2)
+    .gte('report_count', 1)
     .order('weighted_score', { ascending: false })
-    .limit(50),
+    .limit(80),
   // Trending: top games by total report count
   supabaseAdmin
     .from('consensus_ratings')
@@ -103,11 +103,13 @@ for (const r of spotlightCandidatesRes.data ?? []) {
     battery: r.estimated_battery ? `${r.estimated_battery.toFixed(1)}h` : null,
   });
 }
-// Pick the game with the most device entries (minimum 3 devices for a good spread)
-const spotlightCandidates = Object.values(spotlightGameMap)
-  .filter(s => s.entries.length >= 3)
+// Pick the game with the most device entries (prefer 3+, fallback to 2+, then 1+)
+const spotlightAll = Object.values(spotlightGameMap)
   .sort((a, b) => b.entries.length - a.entries.length);
-const spotlight = spotlightCandidates[0] ?? null;
+const spotlight = spotlightAll.find(s => s.entries.length >= 3)
+  ?? spotlightAll.find(s => s.entries.length >= 2)
+  ?? spotlightAll[0]
+  ?? null;
 
 // TRENDING: Top games aggregated, unique
 const trendingGamesMap: Record<string, { game: any; topFps: number; topVerdict: string; totalReports: number; deviceCount: number }> = {};
