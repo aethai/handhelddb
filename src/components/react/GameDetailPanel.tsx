@@ -303,15 +303,15 @@ function GameDetailPanelInner({ dataId, initialData }: { dataId?: string; initia
         )}
 
         {/* — Settings — */}
-        {cons && (cons.recommended_preset || bal) && (
+        {cons && (cons.recommended_preset || recommendedProfile) && (
           <section className="gd-section">
             <h2 className="gd-section-title">Recommended Settings <span className="gd-section-sub">{dev?.name}</span></h2>
             <div className="gd-settings-grid">
               {([
                 [PRESET_LABEL[cons.recommended_preset ?? ""] ?? cons.recommended_preset ?? "—", "PRESET"],
                 [cons.recommended_resolution ?? "—", "RESOLUTION"],
-                [bal?.fsrEnabled ? `FSR ${bal.fsrMode ?? "On"}` : "Off", "UPSCALE"],
-                [bal?.fpsTarget ? `${bal.fpsTarget}` : fps > 0 ? `${fps}` : "—", "FPS CAP"],
+                [recommendedProfile?.fsrEnabled ? `FSR ${recommendedProfile.fsrMode ?? "On"}` : "Off", "UPSCALE"],
+                [recommendedProfile?.fpsTarget ? `${recommendedProfile.fpsTarget}` : fps > 0 ? `${fps}` : "—", "FPS CAP"],
                 [cons.recommended_tdp ? `${Math.round(cons.recommended_tdp)}W` : "—", "TDP"],
                 [dev?.screen_resolution ? dev.screen_resolution.split("x").pop() + " Hz" : "60 Hz", "REFRESH"],
               ] as [string, string][]).map(([v, l]) => (
