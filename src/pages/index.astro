@@ -1,137 +1,162 @@
 ---
 import BaseLayout from '@layouts/BaseLayout.astro';
 import SearchBar from '@components/react/SearchBar';
-import SectionHeader from '@components/astro/SectionHeader.astro';
 import { supabaseAdmin } from '@lib/db/client';
 import { getCached, setCache } from '@lib/cache';
 
 // ─── Cached homepage data (2 min TTL) ───
-const CACHE_KEY = 'homepage:v2';
+const CACHE_KEY = 'homepage:v3';
 let _cached = getCached<any>(CACHE_KEY);
 
 if (!_cached) {
 const [
-  devicesRes, gameCountRes, deviceCountRes,
-  deckCompatCountRes, articlesRes,
-  consensusRes, deckVerifiedRes, deviceGameCountsRes,
+  gameCountRes, deviceCountRes, deckCompatCountRes,
+  latestReportsRes, spotlightCandidatesRes,
+  trendingRes, devicesRes, deviceGameCountsRes, articlesRes,
 ] = await Promise.all([
-  supabaseAdmin
-    .from('devices')
-    .select('id, slug, name, manufacturer, chip, battery_wh, msrp_usd')
-    .eq('is_active', true)
-    .order('name'),
   supabaseAdmin.from('games').select('*', { count: 'exact', head: true }),
   supabaseAdmin.from('devices').select('*', { count: 'exact', head: true }).eq('is_active', true),
   supabaseAdmin.from('games').select('*', { count: 'exact', head: true })
     .in('deck_compatibility', ['verified', 'playable']),
+  // Latest individual reports for the PULSE ticker
   supabaseAdmin
-    .from('articles')
-    .select('slug, title, lead, category, published_at, cover_image')
-    .eq('status', 'published')
-    .not('published_at', 'is', null)
-    .order('published_at', { ascending: false })
-    .limit(4),
-  // Community benchmarks — quality-filtered consensus
+    .from('performance_reports')
+    .select('fps_avg, overall_rating, created_at, games(name, slug), devices(name, slug)')
+    .order('created_at', { ascending: false })
+    .limit(20),
+  // Spotlight: find games with consensus across multiple devices
   supabaseAdmin
     .from('consensus_ratings')
-    .select('fps_avg, overall_verdict, report_count, weighted_score, confidence_level, last_calculated, games(name, slug, header_image), devices(name, slug, manufacturer)')
+    .select('fps_avg, overall_verdict, report_count, recommended_preset, estimated_battery, games(name, slug, header_image, metacritic_score, genres, deck_compatibility), devices(name, slug, manufacturer)')
     .gte('report_count', 2)
     .order('weighted_score', { ascending: false })
-    .limit(6),
-  // Deck Verified — Valve tested games
+    .limit(50),
+  // Trending: top games by total report count
   supabaseAdmin
-    .from('games')
-    .select('name, slug, header_image, deck_compatibility')
-    .eq('deck_compatibility', 'verified')
-    .not('header_image', 'is', null)
-    .not('metacritic_score', 'is', null)
-    .order('metacritic_score', { ascending: false })
-    .limit(8),
+    .from('consensus_ratings')
+    .select('fps_avg, overall_verdict, report_count, weighted_score, games(name, slug, header_image, deck_compatibility), devices(name, slug)')
+    .gte('report_count', 2)
+    .order('report_count', { ascending: false })
+    .limit(30),
+  // Devices for "Your Device"
+  supabaseAdmin
+    .from('devices')
+    .select('id, slug, name, manufacturer, chip, battery_wh, screen_resolution, msrp_usd')
+    .eq('is_active', true)
+    .order('name'),
   // Game counts per device
   supabaseAdmin
     .from('consensus_ratings')
     .select('device_id, game_id'),
+  // Latest article for footer mention
+  supabaseAdmin
+    .from('articles')
+    .select('slug, title, category, published_at')
+    .eq('status', 'published')
+    .not('published_at', 'is', null)
+    .order('published_at', { ascending: false })
+    .limit(3),
 ]);
 
 const gameCount = gameCountRes.count ?? 0;
 const deviceCount = deviceCountRes.count ?? 0;
 const deckCompatCount = deckCompatCountRes.count ?? 0;
 
-const devices = (devicesRes.data ?? []).map(d => ({
-  id: d.id, slug: d.slug, name: d.name, manufacturer: d.manufacturer,
-  chip: d.chip, batteryWh: d.battery_wh, msrpUsd: d.msrp_usd,
-}));
-
-const articles = (articlesRes.data ?? []).map(a => ({
-  slug: a.slug, title: a.title, lead: a.lead, category: a.category,
-  publishedAt: a.published_at ? new Date(a.published_at) : null,
-  coverImage: a.cover_image,
-}));
-
-// Game counts per device
-const deviceGameCounts: Record<string, number> = {};
-for (const row of deviceGameCountsRes.data ?? []) {
-  deviceGameCounts[row.device_id] = (deviceGameCounts[row.device_id] ?? 0) + 1;
-}
-
-// Community benchmarks — high-quality consensus entries
-const seenGames = new Set<string>();
-const communityBenchmarks = (consensusRes.data ?? [])
+// PULSE: Latest reports
+const pulseReports = (latestReportsRes.data ?? [])
   .filter(r => {
     const g = r.games as any;
-    if (!g?.name || !g?.header_image) return false;
-    if (seenGames.has(g.slug)) return false;
-    seenGames.add(g.slug);
-    return true;
+    const d = r.devices as any;
+    return g?.name && d?.name && r.fps_avg;
   })
   .map(r => {
     const g = r.games as any;
     const d = r.devices as any;
-    const fps = Math.round(r.fps_avg ?? 0);
-    const confidence = r.confidence_level ?? (r.report_count >= 5 ? 'high' : r.report_count >= 2 ? 'medium' : 'low');
-    const lastCalc = r.last_calculated ? new Date(r.last_calculated) : null;
-    const daysAgo = lastCalc ? Math.floor((Date.now() - lastCalc.getTime()) / 86400000) : null;
+    const fps = Math.round(r.fps_avg);
     return {
-      game: g.name, gameSlug: g.slug, gameImage: g.header_image,
-      device: d?.name?.replace('ASUS ', '').replace('Lenovo ', '') ?? '',
-      deviceSlug: d?.slug ?? '',
-      fps, verdict: r.overall_verdict ?? 'unknown',
-      reports: r.report_count ?? 0,
-      confidence,
-      freshness: daysAgo !== null ? (daysAgo === 0 ? 'Updated today' : daysAgo === 1 ? 'Updated 1d ago' : `Updated ${daysAgo}d ago`) : null,
+      game: g.name,
+      gameSlug: g.slug,
+      device: d.name.replace('ASUS ', '').replace('Lenovo ', '').replace('MSI ', ''),
+      fps,
+      rating: r.overall_rating ?? 'unknown',
     };
+  })
+  .slice(0, 12);
+
+// SPOTLIGHT: Find one game with data across the most devices
+const spotlightGameMap: Record<string, { game: any; entries: any[] }> = {};
+for (const r of spotlightCandidatesRes.data ?? []) {
+  const g = r.games as any;
+  const d = r.devices as any;
+  if (!g?.name || !g?.header_image || !d?.name) continue;
+  const key = g.slug;
+  if (!spotlightGameMap[key]) {
+    spotlightGameMap[key] = { game: g, entries: [] };
+  }
+  spotlightGameMap[key].entries.push({
+    device: d.name.replace('ASUS ', '').replace('Lenovo ', '').replace('MSI ', ''),
+    deviceSlug: d.slug,
+    fps: Math.round(r.fps_avg ?? 0),
+    verdict: r.overall_verdict ?? 'unknown',
+    reports: r.report_count ?? 0,
+    preset: r.recommended_preset ?? null,
+    battery: r.estimated_battery ? `${r.estimated_battery.toFixed(1)}h` : null,
   });
+}
+// Pick the game with the most device entries (minimum 3 devices for a good spread)
+const spotlightCandidates = Object.values(spotlightGameMap)
+  .filter(s => s.entries.length >= 3)
+  .sort((a, b) => b.entries.length - a.entries.length);
+const spotlight = spotlightCandidates[0] ?? null;
 
-// Deck Verified games — Valve tested
-const deckVerified = (deckVerifiedRes.data ?? [])
-  .filter(g => g.header_image)
-  .slice(0, 8)
-  .map(g => ({
-    name: g.name, slug: g.slug, image: g.header_image ?? '',
-  }));
+// TRENDING: Top games aggregated, unique
+const trendingGamesMap: Record<string, { game: any; topFps: number; topVerdict: string; totalReports: number; deviceCount: number }> = {};
+for (const r of trendingRes.data ?? []) {
+  const g = r.games as any;
+  if (!g?.name || !g?.header_image) continue;
+  const key = g.slug;
+  if (!trendingGamesMap[key]) {
+    trendingGamesMap[key] = { game: g, topFps: 0, topVerdict: 'unknown', totalReports: 0, deviceCount: 0 };
+  }
+  trendingGamesMap[key].totalReports += r.report_count ?? 0;
+  trendingGamesMap[key].deviceCount += 1;
+  if ((r.fps_avg ?? 0) > trendingGamesMap[key].topFps) {
+    trendingGamesMap[key].topFps = Math.round(r.fps_avg ?? 0);
+    trendingGamesMap[key].topVerdict = r.overall_verdict ?? 'unknown';
+  }
+}
+const trendingGames = Object.values(trendingGamesMap)
+  .sort((a, b) => b.totalReports - a.totalReports)
+  .slice(0, 8);
 
-  _cached = { gameCount, deviceCount, deckCompatCount, devices, articles, communityBenchmarks, deckVerified, deviceGameCounts };
+// DEVICES with game counts
+const deviceGameCounts: Record<string, number> = {};
+for (const row of deviceGameCountsRes.data ?? []) {
+  deviceGameCounts[row.device_id] = (deviceGameCounts[row.device_id] ?? 0) + 1;
+}
+const devices = (devicesRes.data ?? []).map(d => ({
+  id: d.id, slug: d.slug, name: d.name, manufacturer: d.manufacturer,
+  chip: d.chip, batteryWh: d.battery_wh, resolution: d.screen_resolution,
+  msrpUsd: d.msrp_usd, gamesTested: deviceGameCounts[d.id] ?? 0,
+})).filter(d => d.gamesTested > 0).sort((a, b) => b.gamesTested - a.gamesTested);
+
+const latestArticles = (articlesRes.data ?? []).map(a => ({
+  slug: a.slug, title: a.title, category: a.category,
+}));
+
+  _cached = { gameCount, deviceCount, deckCompatCount, pulseReports, spotlight, trendingGames, devices, latestArticles };
   setCache(CACHE_KEY, _cached, 120);
 }
 
-const { gameCount, deviceCount, deckCompatCount, devices, articles, communityBenchmarks, deckVerified, deviceGameCounts } = _cached;
+const { gameCount, deviceCount, deckCompatCount, pulseReports, spotlight, trendingGames, devices, latestArticles } = _cached;
 
 // Helpers
-const fmtDate = (d: Date | null) => d ? d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '';
-const categoryTag: Record<string, string> = {
-  game_launch: 'EDITORIAL', game_patch: 'UPDATE', os_update: 'UPDATE',
-  performance_analysis: 'EDITORIAL', device_launch: 'UPDATE',
-  editorial: 'EDITORIAL', sale_event: 'GUIDE',
-};
-
-const featuredDevices = [
-  { name: 'Deck', slug: 'steam-deck-oled' },
-  { name: 'Ally', slug: 'rog-ally' },
-  { name: 'Ally X', slug: 'rog-ally-x' },
-  { name: 'Legion Go', slug: 'legion-go' },
-  { name: 'Legion Go S', slug: 'legion-go-s' },
-  { name: 'Claw 8', slug: 'msi-claw-8-ai-plus' },
-].filter(fd => devices.some(d => d.slug === fd.slug));
+const verdictColor = (v: string) =>
+  v === 'excellent' ? '#4ade80' : v === 'good' ? '#a3e635' : v === 'fair' ? '#facc15' : v === 'poor' ? '#fb923c' : '#ef4444';
+const verdictLabel = (v: string) =>
+  v === 'excellent' ? 'Excellent' : v === 'good' ? 'Good' : v === 'fair' ? 'Fair' : v === 'poor' ? 'Poor' : 'Unplayable';
+const fpsColor = (fps: number) =>
+  fps >= 55 ? '#4ade80' : fps >= 40 ? '#a3e635' : fps >= 30 ? '#facc15' : fps >= 20 ? '#fb923c' : '#ef4444';
 
 // Schema.org
 const siteUrl = import.meta.env.PUBLIC_SITE_URL ?? 'https://handhelddb.com';
@@ -147,169 +172,221 @@ const schemaWebSite = {
 
 <script type="application/ld+json" set:html={JSON.stringify(schemaWebSite)} />
 
-<div class="hp-wrap">
+<div class="hp">
 
-  <!-- ══════ 1. HERO — Centered, search-first ══════ -->
+  <!-- ══════ 1. HERO — Punchy, search-focused ══════ -->
   <section class="hp-hero">
+    <div class="hp-hero-noise" aria-hidden="true"></div>
     <div class="hp-hero-glow" aria-hidden="true"></div>
-    <div class="hp-hero-glow hp-hero-glow-2" aria-hidden="true"></div>
-    <div class="hp-hero-grid-bg" aria-hidden="true"></div>
     <div class="hp-hero-inner">
-      <p class="hp-hero-eyebrow">COMMUNITY-POWERED PERFORMANCE DATABASE</p>
+      <div class="hp-hero-badge">
+        <span class="hp-hero-badge-dot"></span>
+        <span>{gameCount.toLocaleString()} games tracked</span>
+      </div>
       <h1 class="hp-hero-title">
-        DOES IT RUN<br/>ON YOUR<br/><span class="hp-hero-accent">HANDHELD?</span>
+        DOES IT<br/><span class="hp-hero-accent">RUN?</span>
       </h1>
-      <p class="hp-hero-subtitle">Check Deck compatibility, performance data, and optimal settings for thousands of games.</p>
+      <p class="hp-hero-sub">Performance data for every handheld. Community-powered.</p>
 
       <div class="hp-hero-search">
-        <SearchBar client:load variant="hero" placeholder={`Search ${gameCount.toLocaleString()} games...`} />
+        <SearchBar client:load variant="hero" placeholder="Search games..." />
       </div>
 
-      <div class="hp-hero-stats">
-        <div class="hp-hero-stat">
-          <span class="hp-hero-stat-val" data-target={gameCount}>{gameCount.toLocaleString()}</span>
-          <span class="hp-hero-stat-lbl">GAMES</span>
-        </div>
-        <div class="hp-hero-stat-sep"></div>
-        <div class="hp-hero-stat">
-          <span class="hp-hero-stat-val" data-target={deckCompatCount}>{deckCompatCount.toLocaleString()}</span>
-          <span class="hp-hero-stat-lbl">DECK COMPATIBLE</span>
-        </div>
-        <div class="hp-hero-stat-sep"></div>
-        <div class="hp-hero-stat">
-          <span class="hp-hero-stat-val" data-target={deviceCount}>{deviceCount}</span>
-          <span class="hp-hero-stat-lbl">DEVICES</span>
-        </div>
-      </div>
-
-      <div class="hp-hero-devices">
-        {featuredDevices.map(d => (
-          <a href={`/devices/${d.slug}`} class="hp-hero-device">{d.name}</a>
-        ))}
+      <div class="hp-hero-hints">
+        <span class="hp-hero-hint-label">Popular:</span>
+        <a href="/games/elden-ring" class="hp-hero-hint">Elden Ring</a>
+        <a href="/games/cyberpunk-2077" class="hp-hero-hint">Cyberpunk 2077</a>
+        <a href="/games/baldurs-gate-3" class="hp-hero-hint">Baldur's Gate 3</a>
       </div>
     </div>
   </section>
 
+  <!-- ══════ 2. PULSE — Live activity ticker ══════ -->
+  {pulseReports.length > 0 && (
+    <div class="hp-pulse">
+      <div class="hp-pulse-label">
+        <span class="hp-pulse-dot"></span>
+        LIVE
+      </div>
+      <div class="hp-pulse-track">
+        <div class="hp-pulse-scroll">
+          {[...pulseReports, ...pulseReports].map((r) => (
+            <a href={`/games/${r.gameSlug}`} class="hp-pulse-item">
+              <span class="hp-pulse-game">{r.game}</span>
+              <span class="hp-pulse-fps" style={`color: ${fpsColor(r.fps)}`}>{r.fps}fps</span>
+              <span class="hp-pulse-device">{r.device}</span>
+            </a>
+          ))}
+        </div>
+      </div>
+    </div>
+  )}
+
   <div class="hp-main">
 
-    <!-- ══════ 2. VERIFIED FOR STEAM DECK — Valve tested ══════ -->
-    {deckVerified.length > 0 && (
-      <section class="hp-section hp-section-alt hp-section-animate">
-        <SectionHeader title="Verified for Steam Deck" href="/games" linkText={`See all ${deckCompatCount.toLocaleString()}`} editorial="VALVE TESTED" />
-        <div class="hp-catalog-grid">
-          {deckVerified.map((g, i) => (
-            <a href={`/games/${g.slug}`} class={`hp-catalog-card ${i < 2 ? 'hp-catalog-card-lg' : ''}`}>
-              <div class="hp-catalog-card-img">
-                <img src={g.image} alt={g.name} loading={i < 2 ? 'eager' : 'lazy'} />
-                <div class="hp-catalog-card-gradient"></div>
-                <span class="hp-deck-badge">&#10003; VERIFIED</span>
+    <!-- ══════ 3. THE RUNDOWN — Spotlight game ══════ -->
+    {spotlight && (
+      <section class="hp-section hp-section-animate">
+        <div class="hp-rundown">
+          <div class="hp-rundown-visual">
+            <a href={`/games/${spotlight.game.slug}`} class="hp-rundown-img-link">
+              <img src={spotlight.game.header_image} alt={spotlight.game.name} loading="eager" />
+              <div class="hp-rundown-img-overlay"></div>
+            </a>
+          </div>
+          <div class="hp-rundown-data">
+            <p class="hp-rundown-eyebrow">THE RUNDOWN</p>
+            <h2 class="hp-rundown-title">
+              <a href={`/games/${spotlight.game.slug}`}>{spotlight.game.name}</a>
+            </h2>
+            <div class="hp-rundown-meta">
+              {spotlight.game.metacritic_score && (
+                <span class="hp-rundown-mc">{spotlight.game.metacritic_score}</span>
+              )}
+              {spotlight.game.deck_compatibility === 'verified' && (
+                <span class="hp-rundown-deck">DECK VERIFIED</span>
+              )}
+              {spotlight.game.deck_compatibility === 'playable' && (
+                <span class="hp-rundown-deck hp-rundown-deck-playable">DECK PLAYABLE</span>
+              )}
+            </div>
+            <table class="hp-rundown-table">
+              <thead>
+                <tr>
+                  <th>DEVICE</th>
+                  <th>FPS</th>
+                  <th>VERDICT</th>
+                  <th>PRESET</th>
+                </tr>
+              </thead>
+              <tbody>
+                {spotlight.entries.slice(0, 6).map((e: any) => (
+                  <tr>
+                    <td>
+                      <a href={`/devices/${e.deviceSlug}`} class="hp-rundown-device-link">{e.device}</a>
+                    </td>
+                    <td>
+                      <span class="hp-rundown-fps" style={`color: ${fpsColor(e.fps)}`}>{e.fps}<span class="hp-rundown-fps-unit">fps</span></span>
+                    </td>
+                    <td>
+                      <span class="hp-rundown-verdict" style={`color: ${verdictColor(e.verdict)}`}>{verdictLabel(e.verdict)}</span>
+                    </td>
+                    <td class="hp-rundown-preset">{e.preset ?? '—'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <a href={`/games/${spotlight.game.slug}`} class="hp-rundown-cta">
+              Full performance data &rarr;
+            </a>
+          </div>
+        </div>
+      </section>
+    )}
+
+    <!-- ══════ 4. TRENDING — Compact data list ══════ -->
+    {trendingGames.length > 0 && (
+      <section class="hp-section hp-section-animate">
+        <div class="hp-section-head">
+          <div>
+            <p class="hp-section-tag">MOST TESTED</p>
+            <h2 class="hp-section-title">Trending</h2>
+          </div>
+          <a href="/games" class="hp-section-link">All games &rarr;</a>
+        </div>
+        <div class="hp-trending">
+          {trendingGames.map((t, i) => (
+            <a href={`/games/${t.game.slug}`} class="hp-trending-row">
+              <span class="hp-trending-rank">{String(i + 1).padStart(2, '0')}</span>
+              <div class="hp-trending-img">
+                <img src={t.game.header_image} alt="" loading="lazy" />
               </div>
-              <div class="hp-catalog-card-body">
-                <span class="hp-catalog-card-name">{g.name}</span>
+              <div class="hp-trending-info">
+                <span class="hp-trending-name">{t.game.name}</span>
+                <span class="hp-trending-stats">
+                  {t.deviceCount} device{t.deviceCount !== 1 ? 's' : ''} · {t.totalReports} reports
+                </span>
               </div>
+              <div class="hp-trending-perf">
+                <span class="hp-trending-fps" style={`color: ${fpsColor(t.topFps)}`}>{t.topFps}<span class="hp-trending-fps-unit">fps</span></span>
+                <span class="hp-trending-verdict" style={`color: ${verdictColor(t.topVerdict)}`}>{verdictLabel(t.topVerdict)}</span>
+              </div>
+              {t.game.deck_compatibility === 'verified' && (
+                <span class="hp-trending-badge">&#10003;</span>
+              )}
             </a>
           ))}
         </div>
       </section>
     )}
 
-    <!-- ══════ 3. COMMUNITY BENCHMARKS — Performance data ══════ -->
-    {communityBenchmarks.length > 0 && (
+    <!-- ══════ 5. YOUR DEVICE — Horizontal device panels ══════ -->
+    {devices.length > 0 && (
       <section class="hp-section hp-section-animate">
-        <SectionHeader title="Community Benchmarks" href="/games" linkText="View all" editorial="PERFORMANCE DATA" />
-        <div class="hp-tested-grid">
-          {communityBenchmarks.map((r, i) => {
-            const fpsClass = r.fps >= 55 ? 'fps-green' : r.fps >= 40 ? 'fps-yellow' : r.fps >= 30 ? 'fps-orange' : 'fps-red';
-            const verdictLabel = r.verdict === 'excellent' ? 'Excellent' : r.verdict === 'good' ? 'Good' : r.verdict === 'fair' ? 'Fair' : r.verdict === 'poor' ? 'Poor' : 'Unplayable';
-            const confClass = r.confidence === 'high' ? 'hp-confidence-high' : r.confidence === 'medium' ? 'hp-confidence-med' : 'hp-confidence-low';
-            const confLabel = r.confidence === 'high' ? 'Verified' : r.confidence === 'medium' ? 'Community' : 'Estimated';
-            return (
-              <a href={`/games/${r.gameSlug}`} class="hp-tested-card">
-                <div class="hp-tested-card-img">
-                  <img src={r.gameImage} alt={r.game} loading={i < 3 ? 'eager' : 'lazy'} />
-                  <div class="hp-tested-card-gradient"></div>
-                  <span class={`hp-tested-card-fps ${fpsClass}`}>{r.fps}<span class="hp-fps-unit">fps</span></span>
-                  <span class={`hp-tested-card-verdict verdict-${r.verdict}`}>{verdictLabel}</span>
-                </div>
-                <div class="hp-tested-card-body">
-                  <span class="hp-tested-card-name">{r.game}</span>
-                  <div class="hp-tested-card-meta">
-                    <span class="hp-tested-card-device">{r.device}</span>
-                    <span class={`hp-confidence ${confClass}`}>{confLabel}</span>
-                    {r.freshness && <span class="hp-freshness">{r.freshness}</span>}
-                  </div>
-                </div>
-              </a>
-            );
-          })}
+        <div class="hp-section-head">
+          <div>
+            <p class="hp-section-tag">PICK YOUR HANDHELD</p>
+            <h2 class="hp-section-title">Your Device</h2>
+          </div>
+          <a href="/devices" class="hp-section-link">All devices &rarr;</a>
         </div>
-      </section>
-    )}
-
-    <!-- ══════ 4. EDITORIAL — News & Guides ══════ -->
-    {articles.length >= 2 && (
-      <section class="hp-section hp-section-alt hp-section-animate">
-        <SectionHeader title="Editorial" href="/news" linkText="All articles" editorial="NEWS & GUIDES" />
-        <div class="hp-editorial">
-          {articles[0] && (
-            <a href={`/news/${articles[0].slug}`} class="hp-editorial-hero">
-              <div class="hp-editorial-hero-img">
-                {articles[0].coverImage ? (
-                  <img src={articles[0].coverImage} alt={articles[0].title} loading="lazy" />
-                ) : (
-                  <div class="hp-editorial-hero-placeholder"></div>
-                )}
-                <div class="hp-editorial-hero-gradient"></div>
-              </div>
-              <div class="hp-editorial-hero-content">
-                <span class="hp-editorial-tag">{categoryTag[articles[0].category] ?? 'NEWS'}</span>
-                <h3 class="hp-editorial-hero-title">{articles[0].title}</h3>
-                {articles[0].lead && <p class="hp-editorial-hero-lead">{articles[0].lead}</p>}
-                <div class="hp-editorial-hero-footer">
-                  <span class="hp-editorial-date">{fmtDate(articles[0].publishedAt)}</span>
-                  <span class="hp-editorial-read">Read article &rarr;</span>
-                </div>
-              </div>
-            </a>
-          )}
-          <div class="hp-editorial-cards">
-            {articles.slice(1, 3).map(a => {
-              const tag = categoryTag[a.category] ?? 'NEWS';
-              return (
-                <a href={`/news/${a.slug}`} class="hp-editorial-card">
-                  {a.coverImage && (
-                    <div class="hp-editorial-card-img">
-                      <img src={a.coverImage} alt="" loading="lazy" />
+        <div class="hp-devices-scroll">
+          <div class="hp-devices-track">
+            {devices.slice(0, 10).map(d => (
+              <a href={`/devices/${d.slug}`} class="hp-device-panel">
+                <span class="hp-device-mfr">{d.manufacturer}</span>
+                <h3 class="hp-device-name">{d.name.replace(d.manufacturer + ' ', '')}</h3>
+                <div class="hp-device-stats">
+                  <div class="hp-device-stat">
+                    <span class="hp-device-stat-val">{d.gamesTested}</span>
+                    <span class="hp-device-stat-lbl">games tested</span>
+                  </div>
+                  {d.chip && (
+                    <div class="hp-device-stat">
+                      <span class="hp-device-stat-val hp-device-stat-chip">{d.chip}</span>
+                      <span class="hp-device-stat-lbl">chip</span>
                     </div>
                   )}
-                  <div class="hp-editorial-card-body">
-                    <span class="hp-editorial-tag">{tag}</span>
-                    <h4 class="hp-editorial-card-title">{a.title}</h4>
-                    <span class="hp-editorial-date">{fmtDate(a.publishedAt)}</span>
-                  </div>
-                </a>
-              );
-            })}
+                </div>
+                <div class="hp-device-bottom">
+                  {d.batteryWh && <span class="hp-device-spec">{d.batteryWh}Wh</span>}
+                  {d.resolution && <span class="hp-device-spec">{d.resolution}</span>}
+                  {d.msrpUsd && <span class="hp-device-spec">${d.msrpUsd}</span>}
+                </div>
+              </a>
+            ))}
           </div>
         </div>
       </section>
     )}
 
-    <!-- ══════ 5. CTA — Join the Mission ══════ -->
+    <!-- ══════ 6. CONTRIBUTE — Slim CTA ══════ -->
     <section class="hp-section hp-section-animate">
-      <div class="hp-cta">
-        <div class="hp-cta-bg" aria-hidden="true">
-          <div class="hp-cta-orb hp-cta-orb-1"></div>
-          <div class="hp-cta-orb hp-cta-orb-2"></div>
+      <div class="hp-contribute">
+        <div class="hp-contribute-left">
+          <h2 class="hp-contribute-title">The database grows with every report.</h2>
+          <p class="hp-contribute-desc">2 minutes. No account. Help someone pick their next game.</p>
         </div>
-        <div class="hp-cta-content">
-          <p class="hp-cta-eyebrow">JOIN THE MISSION</p>
-          <h2 class="hp-cta-title">HELP BUILD THE MOST COMPLETE<br/>HANDHELD PERFORMANCE DATABASE.</h2>
-          <p class="hp-cta-desc">Every report you submit helps another gamer decide if a game runs on their device.</p>
-          <div class="hp-cta-actions">
-            <a href="/report/new" class="btn-primary hp-cta-btn">SUBMIT A REPORT</a>
-            <span class="hp-cta-hint">Takes ~2 min &middot; No account needed</span>
-          </div>
+        <div class="hp-contribute-right">
+          <a href="/report/new" class="btn-primary hp-contribute-btn">SUBMIT A REPORT</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════ 7. BOTTOM STATS — Quick numbers ══════ -->
+    <section class="hp-section hp-section-animate">
+      <div class="hp-numbers">
+        <div class="hp-number">
+          <span class="hp-number-val" data-target={gameCount}>{gameCount.toLocaleString()}</span>
+          <span class="hp-number-lbl">Games</span>
+        </div>
+        <div class="hp-number">
+          <span class="hp-number-val" data-target={deckCompatCount}>{deckCompatCount.toLocaleString()}</span>
+          <span class="hp-number-lbl">Deck Compatible</span>
+        </div>
+        <div class="hp-number">
+          <span class="hp-number-val" data-target={deviceCount}>{deviceCount}</span>
+          <span class="hp-number-lbl">Devices</span>
         </div>
       </div>
     </section>
@@ -320,9 +397,9 @@ const schemaWebSite = {
 </BaseLayout>
 
 <script>
-  // Animated stat counters with IntersectionObserver
+  // Animated stat counters
   function animateCounters() {
-    const vals = document.querySelectorAll('.hp-hero-stat-val');
+    const vals = document.querySelectorAll('.hp-number-val');
     vals.forEach(el => {
       const raw = (el as HTMLElement).textContent ?? '0';
       const target = parseInt(raw.replace(/,/g, ''), 10);
@@ -341,48 +418,63 @@ const schemaWebSite = {
     });
   }
   if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-    const heroSection = document.querySelector('.hp-hero');
-    if (heroSection) {
+    const section = document.querySelector('.hp-numbers');
+    if (section) {
       const obs = new IntersectionObserver(entries => {
         if (entries[0].isIntersecting) {
           animateCounters();
           obs.disconnect();
         }
       }, { threshold: 0.3 });
-      obs.observe(heroSection);
+      obs.observe(section);
     }
   }
 </script>
 
 <style>
-  /* ─── Page wrap ─── */
-  .hp-wrap { position: relative; }
+  /* ─── Base ─── */
+  .hp { position: relative; }
   .hp-main {
     max-width: 1120px;
     margin: 0 auto;
     padding: 0 24px;
   }
-  .hp-section {
-    margin-bottom: 56px;
-  }
-  .hp-section-alt {
-    position: relative;
-    padding-top: 8px;
-  }
-  .hp-section-alt::before {
-    content: '';
-    position: absolute;
-    top: -28px; bottom: -28px; left: 50%;
-    width: 100vw;
-    transform: translateX(-50%);
-    background: var(--color-raised);
-    border-top: 1px solid var(--color-border-subtle);
-    border-bottom: 1px solid var(--color-border-subtle);
-    z-index: -1;
-    pointer-events: none;
-  }
+  .hp-section { margin-bottom: 64px; }
 
-  /* ─── Entrance animations ─── */
+  /* Shared section header */
+  .hp-section-head {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    margin-bottom: 20px;
+  }
+  .hp-section-tag {
+    font-family: var(--font-mono);
+    font-size: 10px; font-weight: 500;
+    color: var(--color-accent);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  .hp-section-title {
+    font-family: var(--font-heading);
+    font-size: 24px; font-weight: 700;
+    color: var(--color-text);
+    letter-spacing: -0.02em;
+  }
+  .hp-section-link {
+    font-family: var(--font-mono);
+    font-size: 11px; font-weight: 600;
+    color: var(--color-text-3);
+    text-decoration: none;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    flex-shrink: 0;
+    transition: color 0.15s;
+  }
+  .hp-section-link:hover { color: var(--color-accent); }
+
+  /* Entrance animations */
   .hp-section-animate {
     animation: hp-rise 0.5s ease-out both;
   }
@@ -397,697 +489,643 @@ const schemaWebSite = {
   }
 
   /* ═══════════════════════════════════════════
-     1. HERO — Centered, search-first
+     1. HERO
      ═══════════════════════════════════════════ */
   .hp-hero {
     position: relative;
-    padding: 80px 24px 64px;
+    padding: 100px 24px 48px;
     max-width: 1120px;
     margin: 0 auto;
     text-align: center;
+    overflow: hidden;
   }
-  .hp-hero-grid-bg {
+  .hp-hero-noise {
     position: absolute;
     inset: 0;
-    background-image: radial-gradient(circle, rgba(212,255,0,0.06) 1px, transparent 1px);
-    background-size: 32px 32px;
-    mask-image: radial-gradient(ellipse 80% 70% at 50% 40%, black 10%, transparent 70%);
-    -webkit-mask-image: radial-gradient(ellipse 80% 70% at 50% 40%, black 10%, transparent 70%);
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
     pointer-events: none;
     z-index: 0;
   }
   .hp-hero-glow {
     position: absolute;
-    top: -100px; left: 50%;
-    width: 600px; height: 600px;
+    top: -120px; left: 50%;
+    width: 500px; height: 500px;
     transform: translateX(-50%);
-    background: radial-gradient(circle, rgba(212,255,0,0.08) 0%, transparent 60%);
+    background: radial-gradient(circle, rgba(212,255,0,0.07) 0%, transparent 65%);
     pointer-events: none;
     z-index: 0;
-    animation: hp-glow-pulse 4s ease-in-out infinite;
+    animation: hp-glow 6s ease-in-out infinite;
   }
-  .hp-hero-glow-2 {
-    top: -40px;
-    width: 400px; height: 400px;
-    background: radial-gradient(circle, rgba(212,255,0,0.04) 0%, transparent 70%);
-    animation-delay: 2s;
-  }
-  @keyframes hp-glow-pulse {
+  @keyframes hp-glow {
     0%, 100% { opacity: 1; transform: translateX(-50%) scale(1); }
-    50% { opacity: 0.6; transform: translateX(-50%) scale(1.1); }
+    50% { opacity: 0.5; transform: translateX(-50%) scale(1.15); }
   }
   .hp-hero-inner {
     position: relative;
     z-index: 1;
-    max-width: 640px;
+    max-width: 560px;
     margin: 0 auto;
-    animation: hp-hero-enter 0.6s ease-out both;
+    animation: hp-enter 0.6s ease-out both;
   }
-  @keyframes hp-hero-enter {
-    from { opacity: 0; transform: translateY(20px); }
+  @keyframes hp-enter {
+    from { opacity: 0; transform: translateY(24px); }
     to   { opacity: 1; transform: translateY(0); }
   }
-  .hp-hero-eyebrow {
+  .hp-hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
     font-family: var(--font-mono);
     font-size: 11px; font-weight: 500;
-    color: var(--color-accent);
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    margin-bottom: 16px;
+    color: var(--color-text-3);
+    letter-spacing: 0.06em;
+    margin-bottom: 24px;
+    padding: 6px 14px;
+    border: 1px solid var(--color-border);
+    border-radius: 100px;
+  }
+  .hp-hero-badge-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--color-accent);
+    animation: hp-dot-pulse 2s ease-in-out infinite;
+  }
+  @keyframes hp-dot-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
   }
   .hp-hero-title {
     font-family: var(--font-heading);
     font-weight: 700;
-    font-size: clamp(42px, 7vw, 72px);
-    line-height: 0.93;
-    letter-spacing: -0.03em;
+    font-size: clamp(56px, 10vw, 96px);
+    line-height: 0.9;
+    letter-spacing: -0.04em;
     text-transform: uppercase;
     color: var(--color-text);
     margin-bottom: 16px;
   }
   .hp-hero-accent { color: var(--color-accent); }
-  .hp-hero-subtitle {
+  .hp-hero-sub {
     font-size: 16px;
-    color: var(--color-text-2);
+    color: var(--color-text-3);
     line-height: 1.5;
     margin-bottom: 32px;
-    max-width: 440px;
-    margin-left: auto;
-    margin-right: auto;
   }
   .hp-hero-search {
-    margin-bottom: 28px;
-    max-width: 520px;
-    margin-left: auto;
-    margin-right: auto;
+    max-width: 480px;
+    margin: 0 auto 20px;
   }
-  .hp-hero-stats {
+  .hp-hero-hints {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 20px;
+    gap: 8px;
     flex-wrap: wrap;
-    margin-bottom: 24px;
-    padding: 16px 0;
+  }
+  .hp-hero-hint-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--color-text-dim);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .hp-hero-hint {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--color-text-3);
+    text-decoration: none;
+    padding: 4px 10px;
+    border: 1px solid var(--color-border-subtle);
+    border-radius: 4px;
+    transition: border-color 0.15s, color 0.15s;
+  }
+  .hp-hero-hint:hover {
+    border-color: var(--color-accent);
+    color: var(--color-accent);
+  }
+
+  /* ═══════════════════════════════════════════
+     2. PULSE — Live ticker
+     ═══════════════════════════════════════════ */
+  .hp-pulse {
+    display: flex;
+    align-items: center;
     border-top: 1px solid var(--color-border-subtle);
     border-bottom: 1px solid var(--color-border-subtle);
+    background: var(--color-raised);
+    overflow: hidden;
+    margin-bottom: 56px;
   }
-  .hp-hero-stat {
+  .hp-pulse-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--font-mono);
+    font-size: 10px; font-weight: 700;
+    color: var(--color-accent);
+    letter-spacing: 0.1em;
+    padding: 12px 20px;
+    border-right: 1px solid var(--color-border-subtle);
+    flex-shrink: 0;
+  }
+  .hp-pulse-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: #ef4444;
+    animation: hp-dot-pulse 1.5s ease-in-out infinite;
+  }
+  .hp-pulse-track {
+    overflow: hidden;
+    flex: 1;
+    mask-image: linear-gradient(to right, transparent, black 40px, black calc(100% - 40px), transparent);
+    -webkit-mask-image: linear-gradient(to right, transparent, black 40px, black calc(100% - 40px), transparent);
+  }
+  .hp-pulse-scroll {
+    display: flex;
+    gap: 0;
+    animation: hp-ticker 30s linear infinite;
+    width: max-content;
+  }
+  @keyframes hp-ticker {
+    from { transform: translateX(0); }
+    to   { transform: translateX(-50%); }
+  }
+  .hp-pulse-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 24px;
+    text-decoration: none;
+    white-space: nowrap;
+    border-right: 1px solid var(--color-border-subtle);
+    transition: background 0.15s;
+  }
+  .hp-pulse-item:hover { background: rgba(212,255,0,0.03); }
+  .hp-pulse-game {
+    font-size: 12px; font-weight: 600;
+    color: var(--color-text);
+  }
+  .hp-pulse-fps {
+    font-family: var(--font-mono);
+    font-size: 12px; font-weight: 700;
+  }
+  .hp-pulse-device {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--color-text-dim);
+    letter-spacing: 0.04em;
+  }
+
+  /* ═══════════════════════════════════════════
+     3. THE RUNDOWN — Spotlight
+     ═══════════════════════════════════════════ */
+  .hp-rundown {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+    border: 1px solid var(--color-border);
+    border-radius: 16px;
+    overflow: hidden;
+    background: var(--color-base);
+  }
+  .hp-rundown-visual {
+    position: relative;
+  }
+  .hp-rundown-img-link {
+    display: block;
+    height: 100%;
+  }
+  .hp-rundown-img-link img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    min-height: 320px;
+    transition: transform 0.4s;
+  }
+  .hp-rundown-img-link:hover img {
+    transform: scale(1.03);
+  }
+  .hp-rundown-img-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to right, transparent 60%, var(--color-base) 100%);
+    pointer-events: none;
+  }
+  .hp-rundown-data {
+    padding: 32px;
+    display: flex;
+    flex-direction: column;
+  }
+  .hp-rundown-eyebrow {
+    font-family: var(--font-mono);
+    font-size: 10px; font-weight: 600;
+    color: var(--color-accent);
+    letter-spacing: 0.14em;
+    margin-bottom: 8px;
+  }
+  .hp-rundown-title {
+    font-family: var(--font-heading);
+    font-size: 24px; font-weight: 700;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    margin-bottom: 12px;
+  }
+  .hp-rundown-title a {
+    color: var(--color-text);
+    text-decoration: none;
+    transition: color 0.15s;
+  }
+  .hp-rundown-title a:hover { color: var(--color-accent); }
+  .hp-rundown-meta {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  .hp-rundown-mc {
+    font-family: var(--font-mono);
+    font-size: 13px; font-weight: 700;
+    color: #4ade80;
+    background: rgba(34,197,94,0.15);
+    padding: 3px 8px;
+    border-radius: 4px;
+  }
+  .hp-rundown-deck {
+    font-family: var(--font-mono);
+    font-size: 10px; font-weight: 600;
+    color: #4ade80;
+    letter-spacing: 0.06em;
+    padding: 3px 8px;
+    border: 1px solid rgba(34,197,94,0.3);
+    border-radius: 4px;
+  }
+  .hp-rundown-deck-playable {
+    color: #facc15;
+    border-color: rgba(250,204,21,0.3);
+  }
+  .hp-rundown-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 16px;
+    flex: 1;
+  }
+  .hp-rundown-table th {
+    font-family: var(--font-mono);
+    font-size: 9px; font-weight: 600;
+    color: var(--color-text-dim);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    text-align: left;
+    padding: 0 0 8px 0;
+    border-bottom: 1px solid var(--color-border);
+  }
+  .hp-rundown-table td {
+    font-size: 13px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--color-border-subtle);
+    color: var(--color-text-2);
+  }
+  .hp-rundown-table tr:last-child td {
+    border-bottom: none;
+  }
+  .hp-rundown-device-link {
+    color: var(--color-text);
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.12s;
+  }
+  .hp-rundown-device-link:hover { color: var(--color-accent); }
+  .hp-rundown-fps {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: 15px;
+  }
+  .hp-rundown-fps-unit {
+    font-size: 0.65em;
+    font-weight: 500;
+    opacity: 0.6;
+    margin-left: 1px;
+  }
+  .hp-rundown-verdict {
+    font-family: var(--font-mono);
+    font-size: 11px; font-weight: 600;
+    letter-spacing: 0.02em;
+  }
+  .hp-rundown-preset {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--color-text-dim) !important;
+    text-transform: capitalize;
+  }
+  .hp-rundown-cta {
+    font-family: var(--font-mono);
+    font-size: 12px; font-weight: 600;
+    color: var(--color-text-3);
+    text-decoration: none;
+    letter-spacing: 0.02em;
+    transition: color 0.15s;
+    margin-top: auto;
+  }
+  .hp-rundown-cta:hover { color: var(--color-accent); }
+
+  /* ═══════════════════════════════════════════
+     4. TRENDING — Compact list
+     ═══════════════════════════════════════════ */
+  .hp-trending {
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .hp-trending-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 12px 20px;
+    text-decoration: none;
+    border-bottom: 1px solid var(--color-border-subtle);
+    transition: background 0.12s;
+  }
+  .hp-trending-row:last-child { border-bottom: none; }
+  .hp-trending-row:hover {
+    background: var(--color-raised);
+  }
+  .hp-trending-rank {
+    font-family: var(--font-mono);
+    font-size: 12px; font-weight: 700;
+    color: var(--color-text-dim);
+    width: 24px;
+    flex-shrink: 0;
+    text-align: center;
+  }
+  .hp-trending-img {
+    width: 56px; height: 32px;
+    border-radius: 4px;
+    overflow: hidden;
+    flex-shrink: 0;
+    background: var(--color-elevated);
+  }
+  .hp-trending-img img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+  }
+  .hp-trending-info {
+    flex: 1;
+    min-width: 0;
+  }
+  .hp-trending-name {
+    display: block;
+    font-size: 14px; font-weight: 600;
+    color: var(--color-text);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    transition: color 0.12s;
+  }
+  .hp-trending-row:hover .hp-trending-name { color: var(--color-accent); }
+  .hp-trending-stats {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--color-text-dim);
+    letter-spacing: 0.02em;
+  }
+  .hp-trending-perf {
     display: flex;
     align-items: baseline;
-    gap: 6px;
+    gap: 12px;
+    flex-shrink: 0;
   }
-  .hp-hero-stat-val {
+  .hp-trending-fps {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: 16px;
+  }
+  .hp-trending-fps-unit {
+    font-size: 0.6em;
+    font-weight: 500;
+    opacity: 0.6;
+    margin-left: 1px;
+  }
+  .hp-trending-verdict {
+    font-family: var(--font-mono);
+    font-size: 10px; font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .hp-trending-badge {
+    font-size: 12px;
+    color: #4ade80;
+    flex-shrink: 0;
+  }
+
+  /* ═══════════════════════════════════════════
+     5. YOUR DEVICE — Horizontal scroll
+     ═══════════════════════════════════════════ */
+  .hp-devices-scroll {
+    overflow-x: auto;
+    margin: 0 -24px;
+    padding: 0 24px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-border) transparent;
+  }
+  .hp-devices-scroll::-webkit-scrollbar { height: 4px; }
+  .hp-devices-scroll::-webkit-scrollbar-track { background: transparent; }
+  .hp-devices-scroll::-webkit-scrollbar-thumb { background: var(--color-border); border-radius: 2px; }
+  .hp-devices-track {
+    display: flex;
+    gap: 12px;
+    padding-bottom: 8px;
+    width: max-content;
+  }
+  .hp-device-panel {
+    display: flex;
+    flex-direction: column;
+    width: 220px;
+    padding: 20px;
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    text-decoration: none;
+    background: var(--color-base);
+    transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
+    flex-shrink: 0;
+  }
+  .hp-device-panel:hover {
+    border-color: rgba(212,255,0,0.3);
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(212,255,0,0.06);
+  }
+  .hp-device-mfr {
+    font-family: var(--font-mono);
+    font-size: 9px; font-weight: 600;
+    color: var(--color-accent);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  .hp-device-name {
+    font-family: var(--font-heading);
+    font-size: 15px; font-weight: 700;
+    color: var(--color-text);
+    letter-spacing: -0.01em;
+    margin-bottom: 14px;
+    transition: color 0.12s;
+  }
+  .hp-device-panel:hover .hp-device-name { color: var(--color-accent); }
+  .hp-device-stats {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 14px;
+    flex: 1;
+  }
+  .hp-device-stat {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .hp-device-stat-val {
     font-family: var(--font-mono);
     font-weight: 700;
     font-size: 20px;
     color: var(--color-text);
   }
-  .hp-hero-stat-lbl {
-    font-family: var(--font-mono);
-    font-weight: 500;
-    font-size: 10px;
-    color: var(--color-text-3);
-    letter-spacing: 0.1em;
-  }
-  .hp-hero-stat-sep {
-    width: 1px; height: 16px;
-    background: var(--color-border);
-  }
-  .hp-hero-devices {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    justify-content: center;
-  }
-  .hp-hero-device {
-    font-family: var(--font-mono);
-    font-size: 11px; font-weight: 500;
+  .hp-device-stat-chip {
+    font-size: 12px;
     color: var(--color-text-2);
-    text-decoration: none;
-    border: 1px solid var(--color-border);
-    padding: 7px 16px;
-    transition: border-color 0.15s, color 0.15s, background 0.15s;
   }
-  .hp-hero-device:hover {
-    border-color: var(--color-accent);
-    color: var(--color-accent);
-    background: rgba(212,255,0,0.05);
-  }
-
-  /* ═══════════════════════════════════════════
-     2. COMMUNITY TESTED — Visual proof cards
-     ═══════════════════════════════════════════ */
-  .hp-tested-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 16px;
-  }
-  .hp-tested-card {
-    border: 1px solid var(--color-border);
-    border-radius: 12px;
-    overflow: hidden;
-    text-decoration: none;
-    background: var(--color-base);
-    transition: border-color 0.15s, transform 0.2s, box-shadow 0.2s;
-  }
-  .hp-tested-card:hover {
-    border-color: rgba(212,255,0,0.3);
-    transform: translateY(-4px);
-    box-shadow: 0 8px 32px rgba(212,255,0,0.08);
-  }
-  .hp-tested-card-img {
-    position: relative;
-    aspect-ratio: 16/9;
-    overflow: hidden;
-    background: var(--color-elevated);
-  }
-  .hp-tested-card-img img {
-    width: 100%; height: 100%;
-    object-fit: cover;
-    transition: transform 0.4s ease;
-  }
-  .hp-tested-card:hover .hp-tested-card-img img {
-    transform: scale(1.06);
-  }
-  .hp-tested-card-gradient {
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(to top, rgba(10,10,10,0.85) 0%, rgba(10,10,10,0.2) 40%, transparent 60%);
-    pointer-events: none;
-  }
-  .hp-tested-card-fps {
-    position: absolute;
-    bottom: 12px; left: 14px;
-    font-family: var(--font-mono);
-    font-weight: 700;
-    font-size: 24px;
-    display: inline-flex;
-    align-items: baseline;
-    gap: 2px;
-    text-shadow: 0 2px 8px rgba(0,0,0,0.6);
-  }
-  .hp-tested-card-verdict {
-    position: absolute;
-    top: 10px; right: 10px;
-    font-family: var(--font-mono);
-    font-size: 10px;
-    font-weight: 600;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-    padding: 4px 10px;
-    border-radius: 4px;
-    backdrop-filter: blur(8px);
-  }
-  .verdict-excellent { background: rgba(34,197,94,0.2); color: #4ade80; border: 1px solid rgba(34,197,94,0.3); }
-  .verdict-good { background: rgba(163,230,53,0.2); color: #a3e635; border: 1px solid rgba(163,230,53,0.3); }
-  .verdict-fair { background: rgba(250,204,21,0.2); color: #facc15; border: 1px solid rgba(250,204,21,0.3); }
-  .verdict-poor { background: rgba(251,146,60,0.2); color: #fb923c; border: 1px solid rgba(251,146,60,0.3); }
-  .verdict-unplayable { background: rgba(239,68,68,0.2); color: #ef4444; border: 1px solid rgba(239,68,68,0.3); }
-  .hp-tested-card-body {
-    padding: 14px 16px;
-  }
-  .hp-tested-card-name {
-    display: block;
-    font-size: 15px;
-    font-weight: 600;
-    color: var(--color-text);
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    margin-bottom: 6px;
-    transition: color 0.12s;
-  }
-  .hp-tested-card:hover .hp-tested-card-name {
-    color: var(--color-accent);
-  }
-  .hp-tested-card-meta {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    font-family: var(--font-mono);
-    font-size: 11px;
-    color: var(--color-text-3);
-  }
-  .hp-tested-card-device {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-  }
-  .hp-tested-card-reports {
-    opacity: 0.7;
-  }
-  /* Confidence badges */
-  .hp-confidence {
+  .hp-device-stat-lbl {
     font-family: var(--font-mono);
     font-size: 9px;
-    font-weight: 600;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-    padding: 2px 7px;
-    border-radius: 3px;
-  }
-  .hp-confidence-high { background: rgba(34,197,94,0.15); color: #4ade80; }
-  .hp-confidence-med { background: rgba(250,204,21,0.15); color: #facc15; }
-  .hp-confidence-low { background: rgba(255,255,255,0.08); color: var(--color-text-dim); }
-  .hp-freshness {
-    font-family: var(--font-mono);
-    font-size: 10px;
     color: var(--color-text-dim);
-    opacity: 0.7;
-  }
-  /* Deck Verified badge */
-  .hp-deck-badge {
-    position: absolute;
-    top: 8px; right: 10px;
-    font-family: var(--font-mono);
-    font-size: 10px;
-    font-weight: 600;
-    color: #4ade80;
-    background: rgba(34,197,94,0.2);
-    border: 1px solid rgba(34,197,94,0.3);
-    padding: 3px 8px;
-    border-radius: 4px;
-    backdrop-filter: blur(4px);
-    letter-spacing: 0.04em;
-  }
-
-  /* ═══════════════════════════════════════════
-     3. TOP RATED — Catalog bento grid
-     ═══════════════════════════════════════════ */
-  .hp-catalog-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 14px;
-  }
-  .hp-catalog-card {
-    border: 1px solid var(--color-border);
-    border-radius: 10px;
-    overflow: hidden;
-    text-decoration: none;
-    background: var(--color-base);
-    transition: border-color 0.15s, transform 0.2s, box-shadow 0.2s;
-  }
-  .hp-catalog-card:hover {
-    border-color: rgba(212,255,0,0.25);
-    transform: translateY(-3px);
-    box-shadow: 0 6px 24px rgba(212,255,0,0.06);
-  }
-  .hp-catalog-card-lg {
-    grid-column: span 2;
-  }
-  .hp-catalog-card-img {
-    position: relative;
-    aspect-ratio: 16/9;
-    overflow: hidden;
-    background: var(--color-elevated);
-  }
-  .hp-catalog-card-lg .hp-catalog-card-img {
-    aspect-ratio: 16/8;
-  }
-  .hp-catalog-card-img img {
-    width: 100%; height: 100%;
-    object-fit: cover;
-    transition: transform 0.3s ease;
-  }
-  .hp-catalog-card:hover .hp-catalog-card-img img {
-    transform: scale(1.05);
-  }
-  .hp-catalog-card-gradient {
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(to top, rgba(10,10,10,0.7) 0%, transparent 50%);
-    pointer-events: none;
-  }
-  .hp-catalog-mc {
-    position: absolute;
-    top: 8px; left: 10px;
-    font-family: var(--font-mono);
-    font-size: 12px; font-weight: 700;
-    padding: 3px 8px;
-    border-radius: 4px;
-    backdrop-filter: blur(4px);
-  }
-  .mc-high { background: rgba(34,197,94,0.25); color: #4ade80; }
-  .mc-mid { background: rgba(250,204,21,0.25); color: #facc15; }
-  .mc-low { background: rgba(251,146,60,0.25); color: #fb923c; }
-  .hp-catalog-deck {
-    position: absolute;
-    top: 8px; right: 10px;
-    font-family: var(--font-mono);
-    font-size: 10px; font-weight: 600;
-    color: rgba(255,255,255,0.8);
-    background: rgba(0,0,0,0.5);
-    padding: 3px 8px;
-    border-radius: 3px;
-    backdrop-filter: blur(4px);
-    letter-spacing: 0.04em;
-  }
-  .hp-catalog-card-body {
-    padding: 12px 14px;
-  }
-  .hp-catalog-card-name {
-    display: block;
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--color-text);
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    transition: color 0.12s;
-  }
-  .hp-catalog-card-lg .hp-catalog-card-name {
-    font-size: 15px;
-  }
-  .hp-catalog-card:hover .hp-catalog-card-name {
-    color: var(--color-accent);
-  }
-
-  /* ═══════════════════════════════════════════
-     4. PICK YOUR DEVICE — Device entry cards
-     ═══════════════════════════════════════════ */
-  .hp-device-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 14px;
-  }
-  .hp-device-card {
-    text-decoration: none;
-    border: 1px solid var(--color-border);
-    border-radius: 12px;
-    overflow: hidden;
-    background: var(--color-base);
-    transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
-    position: relative;
-  }
-  .hp-device-card::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(135deg, rgba(212,255,0,0.03) 0%, transparent 60%);
-    opacity: 0;
-    transition: opacity 0.3s;
-    pointer-events: none;
-  }
-  .hp-device-card:hover {
-    border-color: rgba(212,255,0,0.3);
-    transform: translateY(-4px);
-    box-shadow: 0 8px 32px rgba(212,255,0,0.06);
-  }
-  .hp-device-card:hover::before { opacity: 1; }
-  .hp-device-card-inner {
-    padding: 20px;
-    position: relative;
-  }
-  .hp-device-mfr {
-    font-family: var(--font-mono);
-    font-size: 10px; font-weight: 500;
-    color: var(--color-accent);
-    letter-spacing: 0.1em;
+    letter-spacing: 0.08em;
     text-transform: uppercase;
-    margin-bottom: 6px;
-    display: block;
   }
-  .hp-device-name {
-    font-family: var(--font-heading);
-    font-size: 18px; font-weight: 700;
-    color: var(--color-text);
-    letter-spacing: -0.01em;
-    margin-bottom: 12px;
-    transition: color 0.12s;
-  }
-  .hp-device-card:hover .hp-device-name { color: var(--color-accent); }
-  .hp-device-specs {
+  .hp-device-bottom {
     display: flex;
     flex-wrap: wrap;
-    gap: 8px;
-    margin-bottom: 16px;
+    gap: 6px;
+    padding-top: 12px;
+    border-top: 1px solid var(--color-border-subtle);
   }
   .hp-device-spec {
     font-family: var(--font-mono);
-    font-size: 11px;
-    color: var(--color-text-3);
+    font-size: 10px;
+    color: var(--color-text-dim);
     background: var(--color-elevated);
-    padding: 4px 10px;
-    border-radius: 4px;
-    border: 1px solid var(--color-border-subtle);
+    padding: 3px 7px;
+    border-radius: 3px;
   }
-  .hp-device-cta {
-    font-family: var(--font-mono);
-    font-size: 11px; font-weight: 500;
-    color: var(--color-text-3);
-    letter-spacing: 0.02em;
-    transition: color 0.12s;
-  }
-  .hp-device-card:hover .hp-device-cta { color: var(--color-accent); }
 
   /* ═══════════════════════════════════════════
-     5. EDITORIAL — News & Guides
+     6. CONTRIBUTE — Slim CTA
      ═══════════════════════════════════════════ */
-  .hp-editorial {
-    display: grid;
-    grid-template-columns: 1.2fr 0.8fr;
-    gap: 16px;
-    align-items: start;
-  }
-  .hp-editorial-hero {
-    text-decoration: none;
+  .hp-contribute {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    padding: 32px;
     border: 1px solid var(--color-border);
     border-radius: 12px;
-    overflow: hidden;
     background: var(--color-base);
-    transition: border-color 0.2s, box-shadow 0.2s;
-  }
-  .hp-editorial-hero:hover {
-    border-color: rgba(212,255,0,0.25);
-    box-shadow: 0 4px 16px rgba(0,0,0,0.15);
-  }
-  .hp-editorial-hero-img {
     position: relative;
-    aspect-ratio: 16/9;
     overflow: hidden;
-    background: var(--color-elevated);
   }
-  .hp-editorial-hero-img img {
-    width: 100%; height: 100%;
-    object-fit: cover;
-    transition: transform 0.3s;
+  .hp-contribute::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; bottom: 0;
+    width: 3px;
+    background: var(--color-accent);
   }
-  .hp-editorial-hero:hover .hp-editorial-hero-img img {
-    transform: scale(1.03);
-  }
-  .hp-editorial-hero-placeholder {
-    width: 100%; height: 100%;
-    background: var(--color-elevated);
-  }
-  .hp-editorial-hero-gradient {
-    position: absolute; inset: 0;
-    background: linear-gradient(to top, rgba(10,10,10,0.6) 0%, transparent 50%);
-    pointer-events: none;
-  }
-  .hp-editorial-hero-content {
-    padding: 18px 20px;
-  }
-  .hp-editorial-tag {
-    font-family: var(--font-mono);
-    font-size: 10px; font-weight: 600;
-    color: var(--color-accent);
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    margin-bottom: 6px;
-    display: inline-block;
-  }
-  .hp-editorial-hero-title {
+  .hp-contribute-title {
     font-family: var(--font-heading);
     font-size: 18px; font-weight: 700;
     color: var(--color-text);
     letter-spacing: -0.01em;
-    line-height: 1.3;
-    margin-bottom: 8px;
-    transition: color 0.12s;
+    margin-bottom: 4px;
   }
-  .hp-editorial-hero:hover .hp-editorial-hero-title { color: var(--color-accent); }
-  .hp-editorial-hero-lead {
+  .hp-contribute-desc {
     font-size: 13px;
     color: var(--color-text-3);
-    line-height: 1.5;
-    margin-bottom: 12px;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
   }
-  .hp-editorial-hero-footer {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-  .hp-editorial-date {
+  .hp-contribute-btn {
     font-family: var(--font-mono);
-    font-size: 11px;
-    color: var(--color-text-dim);
-  }
-  .hp-editorial-read {
-    font-family: var(--font-mono);
-    font-size: 11px; font-weight: 500;
-    color: var(--color-text-3);
-    transition: color 0.12s;
-  }
-  .hp-editorial-hero:hover .hp-editorial-read { color: var(--color-accent); }
-  .hp-editorial-cards {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-  }
-  .hp-editorial-card {
-    text-decoration: none;
-    border: 1px solid var(--color-border);
-    border-radius: 10px;
-    overflow: hidden;
-    background: var(--color-base);
-    display: flex;
-    transition: border-color 0.15s;
-  }
-  .hp-editorial-card:hover {
-    border-color: rgba(212,255,0,0.25);
-  }
-  .hp-editorial-card-img {
-    width: 120px; flex-shrink: 0;
-    overflow: hidden;
-    background: var(--color-elevated);
-  }
-  .hp-editorial-card-img img {
-    width: 100%; height: 100%;
-    object-fit: cover;
-  }
-  .hp-editorial-card-body {
-    padding: 14px 16px;
-    min-width: 0;
-  }
-  .hp-editorial-card-title {
-    font-size: 14px; font-weight: 600;
-    color: var(--color-text);
-    line-height: 1.3;
-    margin-bottom: 6px;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    transition: color 0.12s;
-  }
-  .hp-editorial-card:hover .hp-editorial-card-title { color: var(--color-accent); }
-
-  /* ═══════════════════════════════════════════
-     6. CTA — Join the mission
-     ═══════════════════════════════════════════ */
-  .hp-cta {
-    position: relative;
-    border: 1px solid var(--color-border);
-    border-radius: 16px;
-    overflow: hidden;
-    padding: 48px 40px;
-    text-align: center;
-    background: var(--color-base);
-  }
-  .hp-cta-bg {
-    position: absolute; inset: 0;
-    pointer-events: none;
-    overflow: hidden;
-  }
-  .hp-cta-orb {
-    position: absolute;
-    border-radius: 50%;
-    filter: blur(80px);
-    opacity: 0.5;
-  }
-  .hp-cta-orb-1 {
-    top: -60px; left: -40px;
-    width: 300px; height: 300px;
-    background: rgba(212,255,0,0.06);
-  }
-  .hp-cta-orb-2 {
-    bottom: -60px; right: -40px;
-    width: 250px; height: 250px;
-    background: rgba(212,255,0,0.04);
-  }
-  .hp-cta-content { position: relative; z-index: 1; }
-  .hp-cta-eyebrow {
-    font-family: var(--font-mono);
-    font-size: 11px; font-weight: 500;
-    color: var(--color-accent);
-    letter-spacing: 0.12em;
-    margin-bottom: 12px;
-  }
-  .hp-cta-title {
-    font-family: var(--font-heading);
-    font-weight: 700;
-    font-size: clamp(24px, 4vw, 36px);
-    line-height: 1;
-    letter-spacing: -0.02em;
-    text-transform: uppercase;
-    color: var(--color-text);
-    margin-bottom: 12px;
-  }
-  .hp-cta-desc {
-    font-size: 14px;
-    color: var(--color-text-3);
-    line-height: 1.5;
-    max-width: 420px;
-    margin: 0 auto 24px;
-  }
-  .hp-cta-actions {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 8px;
-  }
-  .hp-cta-btn {
-    font-family: var(--font-mono);
-    font-size: 13px;
-    font-weight: 600;
+    font-size: 12px; font-weight: 700;
     letter-spacing: 0.06em;
-    padding: 12px 32px;
-  }
-  .hp-cta-hint {
-    font-family: var(--font-mono);
-    font-size: 11px;
-    color: var(--color-text-dim);
+    padding: 12px 28px;
+    white-space: nowrap;
   }
 
   /* ═══════════════════════════════════════════
-     FPS color classes (shared)
+     7. BOTTOM STATS
      ═══════════════════════════════════════════ */
-  .fps-green { color: var(--color-fps-green); }
-  .fps-yellow { color: var(--color-fps-yellow); }
-  .fps-orange { color: var(--color-fps-orange); }
-  .fps-red { color: var(--color-fps-red); }
-  .hp-fps-unit {
-    font-size: 0.6em;
-    font-weight: 500;
-    opacity: 0.7;
-    margin-left: 1px;
+  .hp-numbers {
+    display: flex;
+    justify-content: center;
+    gap: 48px;
+    padding: 32px 0;
+    border-top: 1px solid var(--color-border-subtle);
+  }
+  .hp-number {
+    text-align: center;
+  }
+  .hp-number-val {
+    display: block;
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: 32px;
+    color: var(--color-text);
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+  .hp-number-lbl {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--color-text-dim);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
   }
 
   /* ═══════════════════════════════════════════
      Responsive
      ═══════════════════════════════════════════ */
   @media (max-width: 900px) {
-    .hp-catalog-grid { grid-template-columns: repeat(2, 1fr); }
-    .hp-catalog-card-lg { grid-column: span 1; }
-    .hp-device-grid { grid-template-columns: repeat(2, 1fr); }
-    .hp-editorial { grid-template-columns: 1fr; }
+    .hp-rundown {
+      grid-template-columns: 1fr;
+    }
+    .hp-rundown-img-link img {
+      min-height: 200px;
+      max-height: 240px;
+    }
+    .hp-rundown-img-overlay {
+      background: linear-gradient(to top, var(--color-base) 0%, transparent 60%);
+    }
   }
   @media (max-width: 600px) {
-    .hp-hero { padding: 56px 16px 40px; }
+    .hp-hero { padding: 72px 16px 32px; }
+    .hp-hero-title { font-size: clamp(48px, 14vw, 80px); }
     .hp-main { padding: 0 16px; }
-    .hp-hero-title { font-size: clamp(36px, 10vw, 56px); }
-    .hp-hero-stats { gap: 12px; }
-    .hp-hero-stat-val { font-size: 16px; }
-    .hp-tested-grid { grid-template-columns: 1fr; }
-    .hp-catalog-grid { grid-template-columns: repeat(2, 1fr); }
-    .hp-device-grid { grid-template-columns: 1fr; }
-    .hp-editorial-card-img { width: 90px; }
-    .hp-cta { padding: 32px 20px; }
-    .hp-section { margin-bottom: 40px; }
+    .hp-section { margin-bottom: 48px; }
+
+    .hp-pulse-label { padding: 10px 14px; }
+
+    .hp-rundown-data { padding: 20px; }
+    .hp-rundown-title { font-size: 20px; }
+
+    .hp-trending-row { padding: 10px 14px; gap: 10px; }
+    .hp-trending-img { width: 44px; height: 26px; }
+    .hp-trending-perf { flex-direction: column; align-items: flex-end; gap: 2px; }
+    .hp-trending-fps { font-size: 14px; }
+
+    .hp-contribute {
+      flex-direction: column;
+      text-align: center;
+      padding: 24px;
+    }
+    .hp-contribute::before { width: 100%; height: 3px; bottom: auto; }
+
+    .hp-numbers { gap: 24px; flex-wrap: wrap; }
+    .hp-number-val { font-size: 24px; }
   }
 </style>
