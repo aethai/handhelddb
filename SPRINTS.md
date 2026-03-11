@@ -117,6 +117,17 @@ Endpointy czytajace dane z bazy dla frontendu.
 
 ## FAZA 2 — WYSWIETLANIE DANYCH
 
+**Status: COMPLETE (2026-03-11)**
+
+- [x] 2.01-2.06: GameDetailPanel core — consensus fetch, device tabs, verdict, FPS animation, settings, battery (were already built)
+- [x] 2.07: Added thermal/fan noise indicators with colored chips
+- [x] 2.08: Added confidence level indicator (low/medium/high + report count)
+- [x] 2.09: Community reports with sort (already built)
+- [x] 2.10: Added report expand/collapse (click to see full details grid: preset, resolution, FSR, TDP, battery, 1% low, thermal, fan)
+- [x] 2.11-2.13: Empty/loading states (already built)
+- [x] 2.14: Added error state for failed report loads
+- [x] 2.15: Game+Device detail page (already built)
+
 ### 2. Strona gry (GameDetailPanel)
 
 Najwazniejsza strona w serwisie. Tu user widzi odpowiedz na "czy ta gra dziala na moim handheldzie".
@@ -142,6 +153,20 @@ Najwazniejsza strona w serwisie. Tu user widzi odpowiedz na "czy ta gra dziala n
 ---
 
 ## FAZA 3 — ZBIERANIE DANYCH
+
+**Status: COMPLETE (2026-03-11)**
+
+- [x] 3.01-3.04: 4-step wizard with progress bar, game search (debounced), device select, validation
+- [x] 3.05-3.10: FPS, preset, resolution, FSR, TDP, GPU clock inputs with validation
+- [x] 3.11-3.15: Overall rating cards, thermal, fan noise, battery, controller/suspend status
+- [x] 3.16-3.17: Notes (2000 char), game version, OS version, proton version
+- [x] 3.18: Auth gate (login required), no anonymous
+- [x] 3.19: Step 4 summary review before submit
+- [x] 3.20-3.24: POST /api/reports with full server validation, duplicate detection (409), auth check
+- [x] 3.25-3.27: Submit handler with spinner, success redirect, error display
+- [x] 3.28: Duplicate detection (409 "already have a report")
+- [x] 3.29: Rate limiting (20/hour per IP)
+- [x] Custom settings editor (key/value pairs, max 20)
 
 ### 3. Formularz raportu (ReportForm)
 
