@@ -35,6 +35,16 @@ Po kazdym ukonczonym tasku: commit z opisem co zrobiles. Male commity > duze com
 
 ## FAZA 1 — BAZA DANYCH I DANE SEED
 
+**Status: COMPLETE (2026-03-11)**
+
+- [x] 1A: Schema audit — all 3 tables match Drizzle, FKs/indexes verified, enums synced
+- [x] 1.04: DB migration — added `recommended_profile`, dropped legacy 3-bucket columns
+- [x] 1.07-1.09: RLS hardened — INSERT/UPDATE restricted to authenticated owners
+- [x] 1.10: Backup saved (29MB pre-seed)
+- [x] 1B: Seeded 2648 reports for 98 games x 6 devices (3-6 reports per pair)
+- [x] 1C: Consensus calculated — 590 ratings, 0 failures, all with recommended_profile
+- [x] 1D: API endpoints verified — consensus (+ profile/score), reports (+ sort), devices-list all 200
+
 ### 1A. Schemat bazy danych
 
 Zanim cokolwiek zaczniesz budowac, upewnij sie ze fundamenty sa solidne.
