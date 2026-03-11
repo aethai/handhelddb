@@ -516,7 +516,7 @@ import BaseLayout from '@layouts/BaseLayout.astro';
             <tr><td><code>recommended_tdp</code></td><td>real</td><td>Optimal TDP in watts</td></tr>
             <tr><td><code>estimated_battery</code></td><td>real</td><td>Expected battery hours</td></tr>
             <tr><td><code>overall_verdict</code></td><td>enum</td><td>excellent/good/fair/poor/unplayable</td></tr>
-            <tr><td><code>balanced_profile</code></td><td>jsonb (TDPProfile)</td><td>Recommended settings profile</td></tr>
+            <tr><td><code>recommended_profile</code></td><td>jsonb (TDPProfile)</td><td>Recommended settings profile</td></tr>
             <tr><td><code>report_count</code></td><td>int</td><td>Number of reports aggregated</td></tr>
             <tr><td><code>confidence_level</code></td><td>text</td><td>low/medium/high</td></tr>
             <tr><td><code>weighted_score</code></td><td>real</td><td>Quality-weighted FPS score</td></tr>
@@ -547,8 +547,6 @@ import BaseLayout from '@layouts/BaseLayout.astro';
             <tr><td><code>articles</code></td><td>News & editorial</td><td>slug, title, lead, body_html, category, status, published_at, ai_generated</td></tr>
             <tr><td><code>news_sources</code></td><td>RSS/API feed sources</td><td>name, type, url, is_active, check_interval</td></tr>
             <tr><td><code>news_ingested</code></td><td>Raw ingested items</td><td>source_id, external_id, content, processed, discarded</td></tr>
-            <tr><td><code>game_versions</code></td><td>Patch tracking</td><td>game_id, version_string, is_major, performance_impact</td></tr>
-            <tr><td><code>settings_presets</code></td><td>Settings templates</td><td>game_id, device_id, name, settings (jsonb)</td></tr>
           </tbody>
         </table>
       </section>

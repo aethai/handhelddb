@@ -438,11 +438,8 @@ export const consensusRatings = pgTable(
     typicalThermal: thermalEnum('typical_thermal'),
     typicalFanNoise: fanNoiseEnum('typical_fan_noise'),
 
-    // TDP profiles (3 tiers)
-    batterySaverProfile:
-      jsonb('battery_saver_profile').$type<TDPProfile>(),
-    balancedProfile: jsonb('balanced_profile').$type<TDPProfile>(),
-    performanceProfile: jsonb('performance_profile').$type<TDPProfile>(),
+    // Recommended TDP profile (single)
+    recommendedProfile: jsonb('recommended_profile').$type<TDPProfile>(),
 
     // Quality metrics
     reportCount: integer('report_count').default(0),
@@ -491,29 +488,6 @@ export const comments = pgTable(
     index('idx_comments_game').on(table.gameId),
     index('idx_comments_parent').on(table.parentId),
     index('idx_comments_user').on(table.userId),
-  ],
-);
-
-// Comment reactions
-export const commentReactions = pgTable(
-  'comment_reactions',
-  {
-    id: uuid('id').defaultRandom().primaryKey(),
-    commentId: uuid('comment_id')
-      .references(() => comments.id)
-      .notNull(),
-    userId: uuid('user_id')
-      .references(() => users.id)
-      .notNull(),
-    emoji: varchar('emoji', { length: 10 }).notNull(),
-    createdAt: timestamp('created_at').defaultNow().notNull(),
-  },
-  (table) => [
-    uniqueIndex('idx_reaction_unique').on(
-      table.commentId,
-      table.userId,
-      table.emoji,
-    ),
   ],
 );
 
@@ -603,71 +577,6 @@ export const userBadges = pgTable(
     uniqueIndex('idx_user_badge').on(table.userId, table.badgeId),
   ],
 );
-
-// ============ GAME VERSIONS ============
-
-export const gameVersions = pgTable(
-  'game_versions',
-  {
-    id: uuid('id').defaultRandom().primaryKey(),
-    gameId: uuid('game_id')
-      .references(() => games.id, { onDelete: 'cascade' })
-      .notNull(),
-    versionString: text('version_string').notNull(),
-    steamBuildId: text('steam_build_id'),
-    detectedAt: timestamp('detected_at').defaultNow().notNull(),
-    releaseNotesUrl: text('release_notes_url'),
-    isMajor: boolean('is_major').default(false),
-    performanceImpact: integer('performance_impact'), // -2..+2
-  },
-  (table) => [
-    index('idx_game_versions_game').on(table.gameId),
-    uniqueIndex('idx_game_versions_unique').on(
-      table.gameId,
-      table.steamBuildId,
-    ),
-  ],
-);
-
-// ============ DEVICE OS VERSIONS ============
-
-export const deviceOsVersions = pgTable(
-  'device_os_versions',
-  {
-    id: uuid('id').defaultRandom().primaryKey(),
-    deviceId: uuid('device_id')
-      .references(() => devices.id)
-      .notNull(),
-    osName: text('os_name').notNull(),
-    osVersion: text('os_version').notNull(),
-    driverVersion: text('driver_version'),
-    detectedAt: timestamp('detected_at').defaultNow(),
-    notes: text('notes'),
-  },
-  (table) => [
-    uniqueIndex('idx_device_os_unique').on(
-      table.deviceId,
-      table.osVersion,
-      table.driverVersion,
-    ),
-  ],
-);
-
-// ============ SETTINGS PRESETS ============
-
-export const settingsPresets = pgTable('settings_presets', {
-  id: uuid('id').defaultRandom().primaryKey(),
-  gameId: uuid('game_id')
-    .references(() => games.id)
-    .notNull(),
-  deviceId: uuid('device_id').references(() => devices.id),
-  name: text('name').notNull(),
-  settings: jsonb('settings').notNull(),
-  source: text('source'),
-  usageCount: integer('usage_count').default(0),
-  createdBy: uuid('created_by').references(() => users.id),
-  createdAt: timestamp('created_at').defaultNow(),
-});
 
 // ============ NEWS & ARTICLES ============
 

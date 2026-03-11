@@ -42,9 +42,7 @@ interface ConsensusInfo {
   estimated_battery: number | null;
   typical_thermal: string | null;
   typical_fan_noise: string | null;
-  battery_saver_profile: TDPProfile | null;
-  balanced_profile: TDPProfile | null;
-  performance_profile: TDPProfile | null;
+  recommended_profile: TDPProfile | null;
   report_count: number;
   confidence_level: string | null;
   overall_verdict: string | null;
@@ -203,8 +201,7 @@ function GameDetailPanelInner({ dataId, initialData }: { dataId?: string; initia
     .sort((a, b) => (data.consensus[b.id]?.fps_avg ?? 0) - (data.consensus[a.id]?.fps_avg ?? 0));
   const maxFps = Math.max(...devicesWithData.map(d => data.consensus[d.id]?.fps_avg ?? 0), 60);
 
-  // Single recommended profile (balanced_profile holds the recommended profile now)
-  const recommendedProfile = cons?.balanced_profile ?? cons?.battery_saver_profile ?? cons?.performance_profile;
+  const recommendedProfile = cons?.recommended_profile;
   const hasTDP = !!recommendedProfile;
 
   const gi = data.gameInfo;

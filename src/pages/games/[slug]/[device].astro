@@ -76,7 +76,7 @@ if (hasReports) {
 }
 
 // Recommended profile from consensus (single profile replaces old 3-tier system)
-const recommendedProfile = (consensus?.balanced_profile ?? consensus?.battery_saver_profile ?? consensus?.performance_profile) as any;
+const recommendedProfile = consensus?.recommended_profile as any;
 const hasTDPProfiles = !!recommendedProfile;
 
 const deckStatusColors: Record<string, { label: string; class: string }> = {

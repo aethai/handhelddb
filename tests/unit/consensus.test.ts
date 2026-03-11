@@ -174,12 +174,10 @@ describe('calculateConsensus', () => {
     expect(result!.weightedScore).toBeLessThan(50);
   });
 
-  it('includes TDP profiles as null (calculated separately)', () => {
+  it('includes recommendedProfile as null (calculated separately)', () => {
     const reports = [createReport()];
     const result = calculateConsensus(reports);
-    expect(result!.batterySaverProfile).toBeNull();
-    expect(result!.balancedProfile).toBeNull();
-    expect(result!.performanceProfile).toBeNull();
+    expect(result!.recommendedProfile).toBeNull();
   });
 
   it('produces a positive weighted score', () => {

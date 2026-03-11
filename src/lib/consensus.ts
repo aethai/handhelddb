@@ -39,10 +39,6 @@ export interface ConsensusResult {
   overallVerdict: string;
   weightedScore: number;
   recommendedProfile: TDPProfile | null;
-  // Legacy fields (kept for backward compat with DB columns)
-  batterySaverProfile: TDPProfile | null;
-  balancedProfile: TDPProfile | null;
-  performanceProfile: TDPProfile | null;
 }
 
 const QUALITY_WEIGHTS: Record<string, number> = {
@@ -197,10 +193,6 @@ export function calculateConsensus(reports: ReportInput[]): ConsensusResult | nu
     confidenceLevel: getConfidence(activeReports.length),
     overallVerdict: getVerdict(fpsAvg),
     weightedScore,
-    // TDP profiles are calculated separately with clustering
     recommendedProfile: null,
-    batterySaverProfile: null,
-    balancedProfile: null,
-    performanceProfile: null,
   };
 }
