@@ -34,6 +34,7 @@ export const protondbTierEnum = pgEnum('protondb_tier', [
 
 export const qualityTierEnum = pgEnum('quality_tier', [
   'verified',
+  'trusted_benchmark',
   'community_confirmed',
   'reported',
   'ai_estimated',
@@ -417,6 +418,14 @@ export interface TDPProfile {
   confidence: string;
 }
 
+export type TDPTier = 'battery_saver' | 'balanced' | 'performance';
+
+export interface TDPProfiles {
+  battery_saver?: TDPProfile;
+  balanced?: TDPProfile;
+  performance?: TDPProfile;
+}
+
 export const consensusRatings = pgTable(
   'consensus_ratings',
   {
@@ -438,8 +447,11 @@ export const consensusRatings = pgTable(
     typicalThermal: thermalEnum('typical_thermal'),
     typicalFanNoise: fanNoiseEnum('typical_fan_noise'),
 
-    // Recommended TDP profile (single)
+    // Recommended TDP profile (single — backward compat, "balanced" profile)
     recommendedProfile: jsonb('recommended_profile').$type<TDPProfile>(),
+
+    // TDP-binned profiles: battery_saver, balanced, performance
+    tdpProfiles: jsonb('tdp_profiles').$type<TDPProfiles>(),
 
     // Quality metrics
     reportCount: integer('report_count').default(0),

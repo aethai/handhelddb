@@ -1,9 +1,12 @@
 /**
  * Cron: Recalculate consensus ratings for all game-device pairs
  *
- * Fetches all game-device pairs that have 1+ performance reports,
- * calculates consensus using the weighted scoring algorithm, generates
- * a single recommended TDP profile, and upserts to the consensus_ratings table.
+ * Features:
+ *   - Outlier detection via Modified Z-score (MAD)
+ *   - AI weight capped at 30% of total consensus
+ *   - AI-only consensus stays 'low' confidence
+ *   - Conditional recency decay (stable games decay slower)
+ *   - Recency floor of 0.2 (good data never fully expires)
  *
  * Schedule: every 12 hours
  */
@@ -61,28 +64,91 @@ interface TDPProfile {
   confidence: string;
 }
 
+// ── Trust hierarchy: higher = more trusted ──
 const QUALITY_WEIGHTS: Record<string, number> = {
   verified: 5.0,
+  trusted_benchmark: 4.0,
   community_confirmed: 3.0,
+  imported: 2.0,
   reported: 1.0,
-  ai_estimated: 0.5,
-  imported: 0.3,
+  ai_estimated: 0.15,
 };
 
+const AI_WEIGHT_CAP = 0.30;
 const HALF_LIFE_DAYS = 90;
+const HALF_LIFE_STABLE_DAYS = 365;
+const RECENCY_FLOOR = 0.2;
 
-function calculateWeight(report: ReportRow, now: Date): number {
+function isAiReport(qualityTier: string): boolean {
+  return qualityTier === 'ai_estimated';
+}
+
+function calculateWeight(report: ReportRow, now: Date, stableGame: boolean): number {
   const qualityWeight = QUALITY_WEIGHTS[report.quality_tier] ?? 1.0;
 
   const ageMs = now.getTime() - new Date(report.created_at).getTime();
   const ageDays = ageMs / (1000 * 60 * 60 * 24);
-  const recencyWeight = Math.pow(0.5, ageDays / HALF_LIFE_DAYS);
+  const halfLife = stableGame ? HALF_LIFE_STABLE_DAYS : HALF_LIFE_DAYS;
+  const recencyWeight = Math.max(RECENCY_FLOOR, Math.pow(0.5, ageDays / halfLife));
 
   const up = report.upvotes;
   const down = report.downvotes;
   const voteWeight = (up + 1) / (up + down + 2);
 
   return qualityWeight * recencyWeight * voteWeight;
+}
+
+// ── Outlier detection: Modified Z-score using MAD ──
+function medianOf(values: number[]): number {
+  const sorted = [...values].sort((a, b) => a - b);
+  const mid = Math.floor(sorted.length / 2);
+  return sorted.length % 2 !== 0
+    ? sorted[mid]
+    : (sorted[mid - 1] + sorted[mid]) / 2;
+}
+
+interface WeightedRow {
+  report: ReportRow;
+  weight: number;
+}
+
+function removeOutliers(weighted: WeightedRow[]): WeightedRow[] {
+  if (weighted.length < 3) return weighted;
+
+  const fpsValues = weighted.map((w) => w.report.fps_avg);
+  const median = medianOf(fpsValues);
+  const deviations = fpsValues.map((v) => Math.abs(v - median));
+  const mad = medianOf(deviations);
+  const threshold = Math.max(mad, 2.0) * 3.5;
+
+  const filtered = weighted.filter((w) => Math.abs(w.report.fps_avg - median) <= threshold);
+  const removed = weighted.length - filtered.length;
+  if (removed > 0) {
+    console.log(`    Removed ${removed} outlier(s) (median=${median.toFixed(0)}, MAD=${mad.toFixed(1)}, threshold=±${threshold.toFixed(0)})`);
+  }
+  return filtered;
+}
+
+function capAiWeight(weighted: WeightedRow[]): WeightedRow[] {
+  const aiReports = weighted.filter((w) => isAiReport(w.report.quality_tier));
+  const nonAiReports = weighted.filter((w) => !isAiReport(w.report.quality_tier));
+
+  if (aiReports.length === 0 || nonAiReports.length === 0) return weighted;
+
+  const aiTotalWeight = aiReports.reduce((sum, w) => sum + w.weight, 0);
+  const nonAiTotalWeight = nonAiReports.reduce((sum, w) => sum + w.weight, 0);
+  const totalWeight = aiTotalWeight + nonAiTotalWeight;
+  const aiShare = aiTotalWeight / totalWeight;
+
+  if (aiShare <= AI_WEIGHT_CAP) return weighted;
+
+  const targetAiWeight = (nonAiTotalWeight / (1 - AI_WEIGHT_CAP)) * AI_WEIGHT_CAP;
+  const scaleFactor = targetAiWeight / aiTotalWeight;
+
+  return [
+    ...nonAiReports,
+    ...aiReports.map((w) => ({ ...w, weight: w.weight * scaleFactor })),
+  ];
 }
 
 function weightedMedian(values: { value: number; weight: number }[]): number {
@@ -126,7 +192,8 @@ function weightedMode<T>(values: { value: T; weight: number }[]): T | null {
   return best?.value ?? null;
 }
 
-function getConfidence(count: number): 'low' | 'medium' | 'high' {
+function getConfidence(count: number, hasNonAiReport: boolean): 'low' | 'medium' | 'high' {
+  if (!hasNonAiReport) return 'low';
   if (count < 3) return 'low';
   if (count <= 10) return 'medium';
   return 'high';
@@ -140,10 +207,11 @@ function getVerdict(fps: number): string {
   return 'unplayable';
 }
 
-// ====== Single recommended profile generation ======
+// ====== Profile generation from a set of weighted reports ======
 
-function generateRecommendedProfile(
-  reports: { report: ReportRow; weight: number }[],
+function generateProfileFromReports(
+  reports: WeightedRow[],
+  hasNonAiReport: boolean,
 ): TDPProfile | null {
   if (reports.length === 0) return null;
 
@@ -208,7 +276,7 @@ function generateRecommendedProfile(
     thermal: thermal ?? 'warm',
     fanNoise: fanNoise ?? 'audible',
     reportCount: reports.length,
-    confidence: getConfidence(reports.length),
+    confidence: getConfidence(reports.length, hasNonAiReport),
   };
 }
 
@@ -217,10 +285,8 @@ function generateRecommendedProfile(
 async function main() {
   const startTime = Date.now();
   console.log(`[${new Date().toISOString()}] Consensus recalculation starting...`);
+  console.log('Features: outlier detection (MAD), AI cap (30%), conditional decay, recency floor (0.2), single profile per pair\n');
 
-  // Step 1: Find all game-device pairs with 3+ reports
-  // We use an RPC or raw query approach; Supabase doesn't support GROUP BY + HAVING directly.
-  // Instead, fetch all non-flagged, non-stale reports and group in code.
   console.log('Fetching all active performance reports...');
 
   const allReports: ReportRow[] = [];
@@ -252,6 +318,29 @@ async function main() {
 
   console.log(`Fetched ${allReports.length} active reports`);
 
+  // Fetch game patch dates for conditional decay
+  const gameIds = [...new Set(allReports.map((r) => r.game_id))];
+  const stableGames = new Set<string>();
+
+  if (gameIds.length > 0) {
+    // Fetch games to check last_major_update
+    const { data: games } = await supabase
+      .from('games')
+      .select('id, last_major_update, updated_at')
+      .in('id', gameIds.slice(0, 1000)); // Supabase IN limit
+
+    const sixMonthsAgo = new Date();
+    sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+
+    for (const game of games ?? []) {
+      const lastUpdate = game.last_major_update ? new Date(game.last_major_update) : null;
+      if (!lastUpdate || lastUpdate < sixMonthsAgo) {
+        stableGames.add(game.id);
+      }
+    }
+    console.log(`Stable games (no patch in 6+ months): ${stableGames.size} / ${gameIds.length}`);
+  }
+
   // Group by game_id + device_id
   const groups = new Map<string, ReportRow[]>();
   for (const report of allReports) {
@@ -264,22 +353,46 @@ async function main() {
     }
   }
 
-  // Filter to pairs with 1+ reports (lowered from 3 — YouTube data is sparse but high quality)
   const eligiblePairs = [...groups.entries()].filter(([, reports]) => reports.length >= 1);
   console.log(`Found ${eligiblePairs.length} game-device pairs with 1+ reports\n`);
 
   let upserted = 0;
   let failed = 0;
+  let outliersRemoved = 0;
+  let aiCapped = 0;
 
   for (const [key, reports] of eligiblePairs) {
     const [gameId, deviceId] = key.split('::');
+    const isStable = stableGames.has(gameId);
 
     try {
       const now = new Date();
-      const weighted = reports.map((report) => ({
+      let weighted: WeightedRow[] = reports.map((report) => ({
         report,
-        weight: calculateWeight(report, now),
+        weight: calculateWeight(report, now, isStable),
       }));
+
+      // Step 1: Remove outliers
+      const beforeOutlier = weighted.length;
+      weighted = removeOutliers(weighted);
+      if (weighted.length < beforeOutlier) outliersRemoved += (beforeOutlier - weighted.length);
+
+      if (weighted.length === 0) continue;
+
+      // Step 2: Cap AI weight
+      const aiWeightBefore = weighted
+        .filter((w) => isAiReport(w.report.quality_tier))
+        .reduce((sum, w) => sum + w.weight, 0);
+      const totalBefore = weighted.reduce((sum, w) => sum + w.weight, 0);
+
+      weighted = capAiWeight(weighted);
+
+      const aiWeightAfter = weighted
+        .filter((w) => isAiReport(w.report.quality_tier))
+        .reduce((sum, w) => sum + w.weight, 0);
+      if (aiWeightAfter < aiWeightBefore * 0.99) aiCapped++;
+
+      const hasNonAiReport = weighted.some((w) => !isAiReport(w.report.quality_tier));
 
       // Calculate consensus values
       const fpsAvg = weightedMedian(
@@ -329,10 +442,9 @@ async function main() {
       const weightedScore =
         weighted.reduce((sum, w) => sum + w.report.fps_avg * w.weight, 0) / totalWeight;
 
-      // Generate single recommended profile
-      const recommendedProfile = generateRecommendedProfile(weighted);
+      // Generate single profile from all reports (no TDP binning)
+      const recommendedProfile = generateProfileFromReports(weighted, hasNonAiReport);
 
-      // Upsert consensus rating
       const { error: upsertError } = await supabase
         .from('consensus_ratings')
         .upsert(
@@ -348,8 +460,9 @@ async function main() {
             typical_thermal: typicalThermal,
             typical_fan_noise: typicalFanNoise,
             recommended_profile: recommendedProfile,
+            tdp_profiles: null,
             report_count: reports.length,
-            confidence_level: getConfidence(reports.length),
+            confidence_level: getConfidence(weighted.length, hasNonAiReport),
             overall_verdict: getVerdict(fpsAvg),
             weighted_score: Math.round(weightedScore * 10) / 10,
             last_calculated: new Date().toISOString(),
@@ -362,10 +475,12 @@ async function main() {
         console.log(`  FAIL  ${gameId} / ${deviceId} — ${upsertError.message}`);
         failed++;
       } else {
+        const aiOnly = !hasNonAiReport ? ' [AI-only]' : '';
+        const stableTag = isStable ? ' [stable]' : '';
         console.log(
           `  OK    ${gameId.slice(0, 8)}... / ${deviceId.slice(0, 8)}... — ` +
           `${reports.length} reports, ${fpsAvg.toFixed(0)} fps, verdict: ${getVerdict(fpsAvg)}, ` +
-          `profile: ${recommendedProfile ? `${recommendedProfile.tdpWatts}W/${recommendedProfile.fpsAvg}fps` : 'none'}`,
+          `conf: ${getConfidence(weighted.length, hasNonAiReport)}${aiOnly}${stableTag}`,
         );
         upserted++;
       }
@@ -383,7 +498,6 @@ async function main() {
     if (!gameVerdicts.has(gameId)) gameVerdicts.set(gameId, []);
   }
 
-  // Fetch all consensus ratings to get verdicts
   const { data: allConsensus } = await supabase
     .from('consensus_ratings')
     .select('game_id, overall_verdict')
@@ -399,7 +513,6 @@ async function main() {
   let tierUpdated = 0;
   for (const [gameId, verdicts] of gameVerdicts) {
     if (verdicts.length === 0) continue;
-    // Best verdict = highest tier across all devices
     const best = verdicts.sort((a, b) => tierOrder.indexOf(a) - tierOrder.indexOf(b))[0];
     const { error: tierErr } = await supabase
       .from('games')
@@ -411,9 +524,11 @@ async function main() {
 
   const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
   console.log(`\nConsensus recalculation complete in ${elapsed}s`);
-  console.log(`  Pairs processed: ${eligiblePairs.length}`);
-  console.log(`  Upserted: ${upserted}`);
-  console.log(`  Failed:   ${failed}`);
+  console.log(`  Pairs processed:   ${eligiblePairs.length}`);
+  console.log(`  Upserted:          ${upserted}`);
+  console.log(`  Failed:            ${failed}`);
+  console.log(`  Outliers removed:  ${outliersRemoved}`);
+  console.log(`  AI weight capped:  ${aiCapped} pairs`);
 }
 
 main().catch((err) => {

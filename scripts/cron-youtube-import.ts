@@ -48,6 +48,24 @@ function sleep(ms: number): Promise<void> {
   return new Promise((r) => setTimeout(r, ms));
 }
 
+// ─── Game name normalization for YouTube search ───
+function normalizeGameName(name: string): string {
+  return name
+    // Remove trademark/copyright symbols
+    .replace(/[®™©]/g, '')
+    .replace(/\(R\)/gi, '')
+    .replace(/\(TM\)/gi, '')
+    // Remove edition suffixes
+    .replace(/\s*[-–—:]\s*(Game of the Year|GOTY|Definitive|Enhanced|Special|Complete|Ultimate|Legendary|Remastered|Director'?s?\s*Cut|Anniversary|Premium|Deluxe|Gold)\s*(Edition)?/gi, '')
+    // Remove year in parens at end
+    .replace(/\s*\(\d{4}\)\s*$/g, '')
+    // Remove "Edition" standalone at end
+    .replace(/\s+Edition\s*$/i, '')
+    // Collapse multiple spaces
+    .replace(/\s{2,}/g, ' ')
+    .trim();
+}
+
 // ─── Trusted YouTube benchmark channels ───
 const TRUSTED_CHANNELS: Record<string, string> = {
   'UCQkd05iAYed2-LOmhjzDG6g': 'ETA PRIME',
@@ -133,6 +151,121 @@ async function fetchTranscript(videoId: string): Promise<string | null> {
   return content.map((s) => s.text).join(' ');
 }
 
+// ─── yt-dlp: Fetch full description + chapters (FREE, no API cost) ───
+interface VideoMetadata {
+  description: string;
+  chapters: Array<{ title: string; start_time: number }>;
+}
+
+async function fetchVideoMetadata(videoId: string): Promise<VideoMetadata | null> {
+  try {
+    const proc = Bun?.spawn ? null : null; // Use child_process
+    const { execSync } = await import('child_process');
+    const output = execSync(
+      `yt-dlp --skip-download --no-warnings --print-json "https://www.youtube.com/watch?v=${videoId}" 2>/dev/null`,
+      { timeout: 15000, maxBuffer: 1024 * 1024 },
+    ).toString();
+    const data = JSON.parse(output);
+    return {
+      description: data.description ?? '',
+      chapters: (data.chapters ?? []).map((c: any) => ({ title: c.title, start_time: c.start_time })),
+    };
+  } catch {
+    return null;
+  }
+}
+
+// ─── Extract FPS from description/chapters (no LLM, no transcript cost) ───
+function extractFromDescription(
+  description: string,
+  chapters: Array<{ title: string; start_time: number }>,
+  gameName: string,
+): ExtractedReport | null {
+  const text = description + '\n' + chapters.map(c => c.title).join('\n');
+  const lower = text.toLowerCase();
+
+  // Must mention a handheld device
+  let deviceSlug: string | null = null;
+  if (/steam\s*deck/i.test(text)) deviceSlug = 'steam-deck-oled';
+  else if (/rog\s*ally\s*x/i.test(text)) deviceSlug = 'rog-ally-x';
+  else if (/rog\s*ally/i.test(text)) deviceSlug = 'rog-ally';
+  else if (/legion\s*go\s*s/i.test(text)) deviceSlug = 'legion-go-s';
+  else if (/legion\s*go/i.test(text)) deviceSlug = 'legion-go';
+  else if (/msi\s*claw/i.test(text)) deviceSlug = 'msi-claw-8-ai-plus';
+
+  if (!deviceSlug) return null;
+
+  // Extract FPS — look for patterns like "30fps", "30-35 fps", "avg 45fps", "averaging 40 fps"
+  const fpsPatterns = [
+    /(?:avg|average|averaging|locked|stable|steady)[\s:]*(\d{1,3})\s*fps/i,
+    /(\d{1,3})\s*fps\s*(?:avg|average|stable|locked)/i,
+    /(\d{1,3})\s*-\s*(\d{1,3})\s*fps/i,
+    /(\d{1,3})\s*fps/i,
+  ];
+
+  let fpsAvg: number | null = null;
+  let fpsLow: number | null = null;
+
+  for (const pattern of fpsPatterns) {
+    const match = text.match(pattern);
+    if (match) {
+      if (match[2]) {
+        // Range: "30-35 fps"
+        fpsLow = parseInt(match[1]);
+        fpsAvg = Math.round((parseInt(match[1]) + parseInt(match[2])) / 2);
+      } else {
+        fpsAvg = parseInt(match[1]);
+      }
+      break;
+    }
+  }
+
+  if (!fpsAvg || fpsAvg < 5 || fpsAvg > 200) return null;
+
+  // Extract TDP
+  let tdpWatts: number | null = null;
+  const tdpMatch = text.match(/(\d{1,2})\s*[wW](?:att)?(?:s)?\s*(?:TDP|tdp|limit)?/);
+  if (tdpMatch) {
+    const val = parseInt(tdpMatch[1]);
+    if (val >= 3 && val <= 40) tdpWatts = val;
+  }
+
+  // Extract resolution
+  let resolution: string | null = null;
+  const resMatch = text.match(/(\d{3,4})\s*[xX×]\s*(\d{3,4})/);
+  if (resMatch) resolution = `${resMatch[1]}x${resMatch[2]}`;
+
+  // Extract preset
+  let preset: string | null = null;
+  if (/\bultra\b(?!\s*(?:low|performance))/i.test(lower)) preset = 'ultra';
+  else if (/\bhigh\b/i.test(lower) && /setting|preset|quality/i.test(lower)) preset = 'high';
+  else if (/\bmedium\b/i.test(lower) && /setting|preset|quality/i.test(lower)) preset = 'medium';
+  else if (/\blow\b/i.test(lower) && /setting|preset|quality/i.test(lower)) preset = 'low';
+
+  // FSR
+  const fsrEnabled = /\bfsr\b|\bfidelity\s*fx/i.test(text);
+
+  // Rating from FPS
+  const overallRating = fpsAvg >= 55 ? 'excellent' : fpsAvg >= 40 ? 'good' : fpsAvg >= 30 ? 'fair' : fpsAvg >= 20 ? 'poor' : 'unplayable';
+
+  return {
+    device_slug: deviceSlug,
+    fps_avg: fpsAvg,
+    fps_low: fpsLow,
+    resolution,
+    preset,
+    fsr_enabled: fsrEnabled,
+    fsr_mode: null,
+    tdp_watts: tdpWatts,
+    battery_hours: null,
+    thermal: null,
+    fan_noise: null,
+    overall_rating: overallRating,
+    notes_summary: 'Extracted from video description/chapters',
+    proton_version: null,
+  };
+}
+
 // ─── Claude AI extraction ───
 interface ExtractedReport {
   device_slug: string;
@@ -211,10 +344,15 @@ async function extractWithClaude(
   transcript: string,
   gameName: string,
 ): Promise<ExtractedReport | null> {
-  // Trim transcript to ~4000 chars to save tokens
-  const trimmedTranscript = transcript.length > 4000
-    ? transcript.slice(0, 4000) + '... [transcript truncated]'
-    : transcript;
+  // Trim transcript — keep first 3000 + last 5000 chars (summary usually at end)
+  let trimmedTranscript: string;
+  if (transcript.length > 8000) {
+    const head = transcript.slice(0, 3000);
+    const tail = transcript.slice(-5000);
+    trimmedTranscript = head + '\n\n... [middle section omitted] ...\n\n' + tail;
+  } else {
+    trimmedTranscript = transcript;
+  }
 
   const userMessage = `Video title: "${videoTitle}"
 Game being tested: ${gameName}
@@ -291,7 +429,7 @@ const VIDEO_REJECT_PATTERNS: Array<{ pattern: RegExp; reason: string }> = [
   { pattern: /\biphone\b/i, reason: 'iPhone video' },
   { pattern: /\bps5\b/i, reason: 'PS5 video' },
   { pattern: /\bplaystation\b/i, reason: 'PlayStation video' },
-  { pattern: /\bxbox\b(?!.*\bally\b)/i, reason: 'Xbox video' },
+  { pattern: /\bxbox\b(?!.*\b(?:ally|rog)\b)/i, reason: 'Xbox video' },
   // Laptops/desktops (not handhelds)
   { pattern: /\blaptop\b/i, reason: 'Laptop video' },
   { pattern: /\bdesktop\b/i, reason: 'Desktop video' },
@@ -312,8 +450,9 @@ const VIDEO_REJECT_PATTERNS: Array<{ pattern: RegExp; reason: string }> = [
   // Non-benchmark content
   { pattern: /\bunboxing\b/i, reason: 'Unboxing video, not benchmark' },
   { pattern: /\breview\b(?!.*\b(?:fps|performance|benchmark|test)\b)/i, reason: 'Review without benchmarks' },
-  { pattern: /\bvs\.?\s/i, reason: 'Comparison video (multi-device, unreliable match)' },
-  { pattern: /\bcomparison\b/i, reason: 'Comparison video' },
+  // Only reject "vs" when comparing devices, not settings (e.g. "medium vs low" is fine)
+  { pattern: /\b(?:steam\s*deck|rog\s*ally|legion\s*go|msi\s*claw|switch)\s+vs\.?\s/i, reason: 'Device comparison video' },
+  { pattern: /\bcomparison\b.*\b(?:device|handheld|console)/i, reason: 'Device comparison video' },
 ];
 
 function preFilterVideo(title: string, description: string): { pass: boolean; reason?: string } {
@@ -488,7 +627,7 @@ async function main() {
       if (searchesUsed >= MAX_SEARCHES_PER_RUN) break;
       if (transcriptsFetched >= MAX_TRANSCRIPTS_PER_RUN) break;
 
-      const query = `${deviceSearch.name} ${game.name} FPS test settings`;
+      const query = `${deviceSearch.name} ${normalizeGameName(game.name)} FPS test`;
 
       try {
         const results = await supadataSearch(query, 3);
@@ -516,38 +655,52 @@ async function main() {
             continue;
           }
 
-          // Fetch transcript via Supadata
-          let transcript: string | null = null;
-          try {
-            transcript = await fetchTranscript(video.videoId);
-            transcriptsFetched++;
-            await sleep(DELAY_MS);
-          } catch (e) {
-            console.log(`    Transcript error ${video.videoId}: ${(e as Error).message.slice(0, 80)}`);
-            errors++;
-            continue;
-          }
-
-          if (!transcript || transcript.length < 50) {
-            skippedNoTranscript++;
-            continue;
-          }
-
-          // === QUALITY LAYER 2: Claude extraction (with enhanced rejection prompt) ===
+          // === TRY DESCRIPTION/CHAPTERS FIRST (free, no API cost) ===
           let extracted: ExtractedReport | null = null;
-          try {
-            extracted = await extractWithClaude(video.title, transcript, game.name);
-            claudeCalls++;
-            await sleep(2000); // Rate limit Claude
-          } catch (e) {
-            console.log(`    Claude error: ${(e as Error).message.slice(0, 80)}`);
-            errors++;
-            continue;
+          let extractionMethod = 'transcript';
+
+          const metadata = await fetchVideoMetadata(video.videoId);
+          if (metadata) {
+            extracted = extractFromDescription(metadata.description, metadata.chapters, game.name);
+            if (extracted) {
+              extractionMethod = 'description';
+              // Still validate against Layer 3 below
+            }
           }
 
+          // Fall back to transcript if description didn't yield data
           if (!extracted) {
-            skippedNoData++;
-            continue;
+            let transcript: string | null = null;
+            try {
+              transcript = await fetchTranscript(video.videoId);
+              transcriptsFetched++;
+              await sleep(DELAY_MS);
+            } catch (e) {
+              console.log(`    Transcript error ${video.videoId}: ${(e as Error).message.slice(0, 80)}`);
+              errors++;
+              continue;
+            }
+
+            if (!transcript || transcript.length < 50) {
+              skippedNoTranscript++;
+              continue;
+            }
+
+            // === QUALITY LAYER 2: Claude extraction (with enhanced rejection prompt) ===
+            try {
+              extracted = await extractWithClaude(video.title, transcript, game.name);
+              claudeCalls++;
+              await sleep(2000); // Rate limit Claude
+            } catch (e) {
+              console.log(`    Claude error: ${(e as Error).message.slice(0, 80)}`);
+              errors++;
+              continue;
+            }
+
+            if (!extracted) {
+              skippedNoData++;
+              continue;
+            }
           }
 
           // Resolve device: prefer Claude's detection, fallback to search context
@@ -586,12 +739,28 @@ async function main() {
             overall_rating: extracted.overall_rating,
             proton_version: extracted.proton_version ?? null,
             notes: `From YouTube: "${video.title}" by ${video.channelTitle}. ${extracted.notes_summary} Video: https://youtu.be/${video.videoId}`,
-            quality_tier: 'imported',  // YouTube data is our primary real data source
+            quality_tier: isTrusted ? 'trusted_benchmark' : 'imported',
             import_source: 'youtube',
             import_source_id: importId,
             source: 'manual' as const,
             moderation_status: 'approved',
           };
+
+          // Cross-source validation: flag outliers vs existing consensus
+          const { data: existingConsensus } = await supabase
+            .from('consensus_ratings')
+            .select('fps_avg, report_count')
+            .eq('game_id', game.id)
+            .eq('device_id', dbDevice.id)
+            .single();
+
+          if (existingConsensus && existingConsensus.fps_avg && existingConsensus.report_count >= 3) {
+            const deviation = Math.abs(extracted.fps_avg - existingConsensus.fps_avg);
+            if (deviation > 15) {
+              report.moderation_status = 'pending';
+              report.notes += ` [Auto-flagged: ${extracted.fps_avg}fps vs ${existingConsensus.fps_avg.toFixed(0)} consensus]`;
+            }
+          }
 
           const { error: insertErr } = await supabase
             .from('performance_reports')
@@ -607,9 +776,10 @@ async function main() {
             reportsInserted++;
             const src = isTrusted ? 'TRUSTED' : 'community';
             const tdpStr = extracted.tdp_watts ? `${extracted.tdp_watts}W` : '?W';
+            const method = extractionMethod === 'description' ? 'DESC' : 'TRANSCRIPT';
             console.log(
               `  OK: ${game.name} on ${dbDevice.name} — ${extracted.fps_avg}fps @ ${tdpStr}, ` +
-              `${extracted.preset ?? '?'} ${extracted.resolution ?? '?'} (${src}) [${video.channelTitle}]`,
+              `${extracted.preset ?? '?'} ${extracted.resolution ?? '?'} (${src}/${method}) [${video.channelTitle}]`,
             );
           }
         }

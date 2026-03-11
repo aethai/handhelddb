@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 
 /* ───── Types ───── */
 
@@ -54,6 +54,7 @@ interface ReportData {
   gameVersion: string;
   osVersion: string;
   protonVersion: string;
+  screenshots: string[];
 }
 
 interface Props {
@@ -72,6 +73,7 @@ const INITIAL: ReportData = {
   overallRating: '', thermal: '', fanNoise: '',
   batteryLifeHours: '', controllerStatus: '', suspendStatus: '',
   notes: '', gameVersion: '', osVersion: '', protonVersion: '',
+  screenshots: [],
 };
 
 /* ───── Component ───── */
@@ -88,6 +90,41 @@ export default function ReportForm({ devices, isLoggedIn, preselectedGameId, pre
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  const turnstileRef = useRef<HTMLDivElement>(null);
+
+  // Load Turnstile widget on step 4
+  useEffect(() => {
+    if (step !== 4 || !turnstileRef.current) return;
+    const siteKey = (import.meta as any).env?.PUBLIC_TURNSTILE_SITE_KEY;
+    if (!siteKey) return;
+
+    // Load script if not loaded
+    if (!document.querySelector('script[src*="turnstile"]')) {
+      const script = document.createElement('script');
+      script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?onload=onTurnstileLoad';
+      script.async = true;
+      document.head.appendChild(script);
+    }
+
+    const render = () => {
+      if ((window as any).turnstile && turnstileRef.current) {
+        turnstileRef.current.innerHTML = '';
+        (window as any).turnstile.render(turnstileRef.current, {
+          sitekey: siteKey,
+          theme: 'dark',
+          callback: (token: string) => setTurnstileToken(token),
+          'expired-callback': () => setTurnstileToken(null),
+        });
+      }
+    };
+
+    if ((window as any).turnstile) {
+      render();
+    } else {
+      (window as any).onTurnstileLoad = render;
+    }
+  }, [step]);
 
   const update = useCallback((patch: Partial<ReportData>) => {
     setData(prev => ({ ...prev, ...patch }));
@@ -108,6 +145,7 @@ export default function ReportForm({ devices, isLoggedIn, preselectedGameId, pre
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          turnstileToken: turnstileToken || undefined,
           gameId: data.gameId,
           deviceId: data.deviceId,
           fpsAvg: Number(data.fpsAvg),
@@ -137,6 +175,7 @@ export default function ReportForm({ devices, isLoggedIn, preselectedGameId, pre
                   .map(s => [s.key.trim(), s.value.trim()])
               )
             : undefined,
+          screenshots: data.screenshots.length > 0 ? data.screenshots : undefined,
         }),
       });
       const result = await res.json();
@@ -221,6 +260,9 @@ export default function ReportForm({ devices, isLoggedIn, preselectedGameId, pre
       {step === 2 && <Step2 data={data} update={update} />}
       {step === 3 && <Step3 data={data} update={update} />}
       {step === 4 && <Step4 data={data} update={update} />}
+      {step === 4 && (
+        <div ref={turnstileRef} className="mt-4 flex justify-center" />
+      )}
 
       {/* Navigation */}
       <div className="mt-8 flex justify-between">
@@ -242,7 +284,7 @@ export default function ReportForm({ devices, isLoggedIn, preselectedGameId, pre
         ) : (
           <button
             onClick={handleSubmit}
-            disabled={submitting || !canAdvance()}
+            disabled={submitting || !canAdvance() || (step === 4 && !turnstileToken && !!(import.meta as any).env?.PUBLIC_TURNSTILE_SITE_KEY)}
             className="rounded-lg bg-[#D4FF00] px-6 py-2 text-sm font-medium text-[#0a0a0a] hover:bg-[#D4FF00] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
           >
             {submitting && (
@@ -557,6 +599,9 @@ function Step4({ data, update }: { data: ReportData; update: (p: Partial<ReportD
         <Field label="OS Version" value={data.osVersion} onChange={v => update({ osVersion: v })} placeholder="SteamOS 3.5" />
         <Field label="Proton / Compat Tool" value={data.protonVersion} onChange={v => update({ protonVersion: v })} placeholder="GE-Proton9-11" />
       </div>
+
+      {/* Screenshots */}
+      <ScreenshotUrlEditor urls={data.screenshots} onChange={urls => update({ screenshots: urls })} />
     </div>
   );
 }
@@ -639,6 +684,101 @@ function CustomSettingsEditor({ settings, onChange }: {
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
               </svg>
               Add setting
+            </button>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ───── Screenshot URL Editor ───── */
+
+function ScreenshotUrlEditor({ urls, onChange }: {
+  urls: string[];
+  onChange: (urls: string[]) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const MAX = 3;
+  const validCount = urls.filter(u => u.trim()).length;
+
+  const isValidUrl = (url: string): boolean => {
+    try {
+      const u = new URL(url);
+      return u.protocol === 'https:' || u.protocol === 'http:';
+    } catch { return false; }
+  };
+
+  const addUrl = () => {
+    if (urls.length >= MAX) return;
+    onChange([...urls, '']);
+    if (!open) setOpen(true);
+  };
+
+  const removeUrl = (i: number) => {
+    onChange(urls.filter((_, idx) => idx !== i));
+  };
+
+  const updateUrl = (i: number, val: string) => {
+    const next = [...urls];
+    next[i] = val;
+    onChange(next);
+  };
+
+  return (
+    <div className="mt-2">
+      <button
+        type="button"
+        onClick={() => { setOpen(!open); if (!open && urls.length === 0) addUrl(); }}
+        className="flex items-center gap-2 text-sm text-[var(--color-text-2)] hover:text-white transition-colors"
+      >
+        <svg className={`h-4 w-4 transition-transform ${open ? 'rotate-90' : ''}`} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+        </svg>
+        Screenshots (paste image URLs)
+        {validCount > 0 && (
+          <span className="rounded-full bg-[#D4FF00]/20 px-2 py-0.5 text-xs text-[#D4FF00]">{validCount}</span>
+        )}
+      </button>
+
+      {open && (
+        <div className="mt-3 space-y-2">
+          <p className="text-xs text-[var(--color-text-dim)]">
+            Paste links to MangoHUD/overlay screenshots (Imgur, Steam, etc.) — max {MAX}
+          </p>
+          {urls.map((url, i) => (
+            <div key={i} className="space-y-1">
+              <div className="flex items-center gap-2">
+                <input
+                  type="url"
+                  value={url}
+                  onChange={e => updateUrl(i, e.target.value)}
+                  placeholder="https://i.imgur.com/example.png"
+                  className={`flex-1 rounded-lg border bg-[var(--color-elevated)] py-2 px-3 text-sm text-white placeholder-[var(--color-text-dim)] focus:outline-none focus:ring-1 focus:ring-[#D4FF00] ${
+                    url.trim() && !isValidUrl(url) ? 'border-red-500/50 focus:border-red-500' : 'border-[var(--color-border)] focus:border-[#D4FF00]'
+                  }`}
+                />
+                <button type="button" onClick={() => removeUrl(i)} className="text-[var(--color-text-dim)] hover:text-red-400 transition-colors p-1">
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              {url.trim() && isValidUrl(url) && /\.(png|jpg|jpeg|gif|webp)(\?|$)/i.test(url) && (
+                <img src={url} alt="Preview" className="h-16 rounded border border-[var(--color-border)] object-cover" onError={e => (e.currentTarget.style.display = 'none')} />
+              )}
+            </div>
+          ))}
+          {urls.length < MAX && (
+            <button
+              type="button"
+              onClick={addUrl}
+              className="flex items-center gap-1 rounded-lg border border-dashed border-[var(--color-border)] px-3 py-2 text-xs text-[var(--color-text-dim)] hover:border-[#D4FF00] hover:text-[#D4FF00] transition-colors w-full justify-center"
+            >
+              <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+              </svg>
+              Add screenshot URL
             </button>
           )}
         </div>

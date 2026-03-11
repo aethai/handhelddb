@@ -5,6 +5,55 @@ import { requireAdminApi } from '@lib/admin/auth';
 const JSON_HEADERS = { 'Content-Type': 'application/json' };
 
 /**
+ * GET /api/admin/reports?status=pending&limit=50&offset=0
+ * List reports filtered by moderation status.
+ */
+export const GET: APIRoute = async ({ cookies, url }) => {
+  const authResult = await requireAdminApi(cookies);
+  if ('error' in authResult) {
+    return new Response(JSON.stringify({ error: authResult.error }), {
+      status: authResult.status,
+      headers: JSON_HEADERS,
+    });
+  }
+
+  const status = url.searchParams.get('status') ?? 'pending';
+  const limit = Math.min(Number(url.searchParams.get('limit') ?? 50), 100);
+  const offset = Number(url.searchParams.get('offset') ?? 0);
+
+  let query = supabaseAdmin
+    .from('performance_reports')
+    .select(
+      '*, games(name, slug), devices(name, slug), user:users(display_name, username)',
+      { count: 'exact' }
+    )
+    .order('created_at', { ascending: false })
+    .range(offset, offset + limit - 1);
+
+  if (status === 'all') {
+    // no filter
+  } else if (status === 'flagged') {
+    query = query.eq('is_flagged', true);
+  } else {
+    query = query.eq('moderation_status', status);
+  }
+
+  const { data, count, error } = await query;
+
+  if (error) {
+    return new Response(JSON.stringify({ error: 'Failed to fetch reports' }), {
+      status: 500,
+      headers: JSON_HEADERS,
+    });
+  }
+
+  return new Response(JSON.stringify({ data, total: count }), {
+    status: 200,
+    headers: JSON_HEADERS,
+  });
+};
+
+/**
  * PATCH /api/admin/reports
  * Update moderation_status of a performance report.
  * Body: { reportId: string, moderation_status: 'approved' | 'rejected' }

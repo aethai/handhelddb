@@ -72,6 +72,36 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     });
   }
 
+  // Verify Turnstile CAPTCHA if configured
+  const turnstileSecret = import.meta.env.TURNSTILE_SECRET_KEY;
+  if (turnstileSecret) {
+    const turnstileToken = body.turnstileToken as string | undefined;
+    if (!turnstileToken) {
+      return new Response(JSON.stringify({ error: 'CAPTCHA verification required' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
+    const verifyRes = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        secret: turnstileSecret,
+        response: turnstileToken,
+        remoteip: ip,
+      }),
+    });
+
+    const verifyData = await verifyRes.json() as { success: boolean };
+    if (!verifyData.success) {
+      return new Response(JSON.stringify({ error: 'CAPTCHA verification failed. Please try again.' }), {
+        status: 403,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+  }
+
   // Validate required fields
   const { gameId, deviceId, fpsAvg, overallRating } = body;
   if (!gameId || !deviceId || !fpsAvg || !overallRating) {
@@ -200,6 +230,43 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     if (Object.keys(sanitized).length > 0) report.custom_settings = sanitized;
   }
 
+  // Screenshot URLs (max 3, must be valid HTTPS URLs)
+  if (body.screenshots && Array.isArray(body.screenshots)) {
+    const validUrls: string[] = [];
+    for (const s of body.screenshots as unknown[]) {
+      if (typeof s !== 'string' || validUrls.length >= 3) break;
+      const trimmed = s.trim();
+      if (!trimmed) continue;
+      try {
+        const u = new URL(trimmed);
+        if (u.protocol === 'https:' || u.protocol === 'http:') {
+          validUrls.push(trimmed.slice(0, 500));
+        }
+      } catch { /* skip invalid URLs */ }
+    }
+    if (validUrls.length > 0) report.screenshots = validUrls;
+  }
+
+  // Cross-source validation: flag outliers vs existing consensus
+  let flagged = false;
+  const { data: consensus } = await supabaseAdmin
+    .from('consensus_ratings')
+    .select('fps_avg, report_count')
+    .eq('game_id', gameId as string)
+    .eq('device_id', deviceId as string)
+    .single();
+
+  if (consensus && consensus.fps_avg && consensus.report_count >= 3) {
+    const deviation = Math.abs(fpsAvgNum - consensus.fps_avg);
+    if (deviation > 15) {
+      // Auto-flag outlier for moderation review
+      report.moderation_status = 'pending';
+      report.notes = (report.notes ? report.notes + ' ' : '') +
+        `[Auto-flagged: ${fpsAvgNum} fps vs ${consensus.fps_avg.toFixed(0)} consensus, deviation ${deviation.toFixed(0)})`;
+      flagged = true;
+    }
+  }
+
   const { data: inserted, error } = await supabaseAdmin
     .from('performance_reports')
     .insert(report)
@@ -214,7 +281,11 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     });
   }
 
-  return new Response(JSON.stringify({ id: inserted.id, success: true }), {
+  return new Response(JSON.stringify({
+    id: inserted.id,
+    success: true,
+    ...(flagged && { flagged: true, message: 'Your FPS differs significantly from existing data. It will be reviewed before appearing publicly.' }),
+  }), {
     status: 201,
     headers: { 'Content-Type': 'application/json' },
   });

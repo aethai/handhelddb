@@ -54,9 +54,10 @@ const resolvedCanonical = canonicalUrl ?? new URL(Astro.url.pathname, siteUrl).h
     <meta name="twitter:description" content={description} />
     <meta name="twitter:image" content={resolvedOgImage} />
 
-    <!-- Favicon -->
+    <!-- Favicon & Manifest -->
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
 
     <!-- RSS -->
     <link rel="alternate" type="application/rss+xml" title="HandheldDB News" href="/rss.xml" />
@@ -108,7 +109,8 @@ const resolvedCanonical = canonicalUrl ?? new URL(Astro.url.pathname, siteUrl).h
           }
         }, { passive: true });
         btn.addEventListener('click', () => {
-          window.scrollTo({ top: 0, behavior: 'smooth' });
+          const smooth = !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+          window.scrollTo({ top: 0, behavior: smooth ? 'smooth' : 'auto' });
         });
       }
 

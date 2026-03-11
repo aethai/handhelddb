@@ -209,6 +209,19 @@ User musi moc latwo zglosic jak gra chodzi na jego handheldzie.
 
 ## FAZA 4 — KONTA UZYTKOWNIKOW
 
+**Status: COMPLETE (2026-03-11)**
+
+- [x] 4.01-4.02: Supabase Auth configured, users table synced with auth trigger
+- [x] 4.03-4.06: Register page with email/password, server validation, success redirect
+- [x] 4.07-4.09: Login page with redirect support, cookie session
+- [x] 4.10: Auth middleware (Astro.locals.user)
+- [x] 4.11: Header login/logout state
+- [x] 4.12: Logout endpoint
+- [x] 4.13-4.14: Protected /profile with user reports
+- [x] 4.15-4.17: Google OAuth (button, callback, user sync)
+- [x] 4.18: ReportForm auto-fills user_id from session
+- [x] 4.19: Security headers configured in nginx
+
 ### 4. Autentykacja
 
 Konta potrzebne do votowania, profili i powiazania raportow.
@@ -240,6 +253,17 @@ Konta potrzebne do votowania, profili i powiazania raportow.
 
 ## FAZA 5 — WERYFIKACJA DANYCH
 
+**Status: COMPLETE (2026-03-11)**
+
+- [x] 5.01: VoteButtons component with thumbs up/down, score, colors
+- [x] 5.02: POST /api/votes with auth + rate limiting (60/15min)
+- [x] 5.03: Toggle logic (insert/delete/update)
+- [x] 5.04: Updates upvotes/downvotes counts on performance_reports
+- [x] 5.05: Fetches user's existing vote state
+- [x] 5.06: Optimistic UI update with rollback on failure
+- [x] 5.07: Unauthenticated users redirected to login
+- [x] 5.08: Consensus uses Wilson score weighting from votes
+
 ### 5. System glosowania
 
 Glosy pozwalaja community weryfikowac jakosc raportow.
@@ -259,6 +283,41 @@ Glosy pozwalaja community weryfikowac jakosc raportow.
 ---
 
 ## FAZA 6 — STRONY PUBLICZNE
+
+**Status: COMPLETE (2026-03-11)**
+
+**Homepage (6.01-6.07):**
+- [x] 6.01: Hero search with SearchBar component, live dropdown
+- [x] 6.02: Community Tested — top consensus entries by report count, deduped by game
+- [x] 6.03: Top Rated — metacritic showcase with Deck compat badges
+- [x] 6.04: Device cards with chip, battery specs, links to device pages
+- [x] 6.05: Real stat counters (games, reports, devices, users) with animation
+- [x] 6.06: CTA section with progress bar and milestone tracker
+- [x] 6.07: Cached data (2min TTL), graceful handling
+
+**Games Browser (7.01-7.08):**
+- [x] 7.01: Search with MeiliSearch + debounce
+- [x] 7.02: Genre filter chips (multi-select)
+- [x] 7.03: Deck compatibility filter (verified/playable/unsupported)
+- [x] 7.04: 6 sort options (name, metacritic, release date)
+- [x] 7.05: Grid/list view toggle
+- [x] 7.06: Load more pagination (60 per page)
+- [x] 7.07: PerformanceBadge with FPS color coding
+- [x] 7.08: Empty state with clear filters
+
+**Device Pages (8.01-8.05):**
+- [x] 8.01: /devices list grouped by manufacturer
+- [x] 8.02: /devices/[slug] full specs bento grid
+- [x] 8.03: PerformanceHeatmap with search, sort, FPS bars
+- [x] 8.04: Summary stats (excellent/good/fair/poor counts)
+- [x] 8.05: Empty heatmap with CTA
+
+**Compare Tool (9.01-9.05):**
+- [x] 9.01: /compare with device picker (up to 3)
+- [x] 9.02: Side-by-side specs with winner highlighting
+- [x] 9.03: Shared games FPS comparison
+- [x] 9.04: Battery estimator (battery_wh / TDP × 0.85)
+- [x] 9.05: Max 3 devices enforced
 
 ### 6. Homepage
 
@@ -309,6 +368,15 @@ Glosy pozwalaja community weryfikowac jakosc raportow.
 
 ## FAZA 7 — WYSZUKIWARKA
 
+**Status: COMPLETE (2026-03-11)**
+
+- [x] 10.01: MeiliSearch index 'games' with 9,811 docs
+- [x] 10.02: Searchable: name, genres, developers, tags, publishers, short_description
+- [x] 10.03: Typo tolerance enabled (1 typo @ 4+ chars, 2 typos @ 8+ chars)
+- [x] 10.04: Supabase ilike fallback in /api/search and /api/games-search
+- [x] 10.05: Ctrl+K / Cmd+K opens search, Escape closes, Arrow keys navigate
+- [x] 10.06: Cron reindex every 6h, verified working
+
 ### 10. Search system
 
 | ID | Task | Szczegoly | Priorytet | Czas |
@@ -323,6 +391,19 @@ Glosy pozwalaja community weryfikowac jakosc raportow.
 ---
 
 ## FAZA 8 — SEO I META
+
+**Status: COMPLETE (2026-03-11)**
+
+- [x] 11.01-11.02: Dynamic title + description on game pages
+- [x] 11.03: OG tags (title, description, image, url, site_name) in BaseLayout
+- [x] 11.04: Twitter Card (summary_large_image)
+- [x] 11.05: Schema.org JSON-LD (VideoGame + BreadcrumbList) via GameJsonLd.astro
+- [x] 11.06: Canonical URLs on all pages
+- [x] 11.07: /sitemap.xml dynamic (games, devices, news, combos)
+- [x] 11.08: /robots.txt (allow /, disallow /api/ /auth/ /profile)
+- [x] 11.09: OG image generation at /api/og/[slug] (1200x630 SVG, device param support)
+- [x] 11.10: Device page meta tags + Product JSON-LD
+- [x] 11.11: /rss.xml with Atom extensions, 30 articles
 
 ### 11. SEO i meta tagi
 
@@ -343,6 +424,22 @@ Glosy pozwalaja community weryfikowac jakosc raportow.
 ---
 
 ## FAZA 9 — INFRASTRUKTURA
+
+**Status: COMPLETE (2026-03-11)**
+
+- [x] 12.01: Astro build clean (Astro 5.5.0 + Node adapter)
+- [x] 12.02: All env vars set (SUPABASE, MEILISEARCH, STEAM_API_KEY)
+- [x] 12.03: Nginx with upstream, proxy_cache, gzip, SSL, www redirect
+- [x] 12.04: Let's Encrypt SSL with auto-renewal
+- [x] 12.05: systemd service (handhelddb.service) with security hardening
+- [x] 12.06: Deploy procedure: build → restart → cache refresh
+- [x] 12.07: Nginx cache bypass for authenticated users
+- [x] 12.08: Static /_astro/* immutable (31536000s)
+- [x] 12.09: Gzip level 6 for CSS/JS/JSON/XML/SVG
+- [x] 12.10: 404 + 500 error pages (noindex)
+- [x] 12.11: Consensus cron every 12h
+- [x] 12.12: MeiliSearch reindex every 6h
+- [x] 12.13-12.15: 10 cron jobs total, logging to /logs/, daily backup
 
 ### 12. Deploy i infrastructure
 
@@ -412,15 +509,15 @@ Glosy pozwalaja community weryfikowac jakosc raportow.
 | Faza | Obszar | Taskow | Priorytet |
 |------|--------|--------|-----------|
 | Pre-0 | Schema cleanup | 7 | **DONE** |
-| 1 | Baza danych i seed | 40 | KRYTYCZNE |
-| 2 | Wyswietlanie danych | 15 | KRYTYCZNE |
-| 3 | Zbieranie danych | 30 | KRYTYCZNE |
-| 4 | Konta uzytkownikow | 20 | KRYTYCZNE |
-| 5 | Weryfikacja danych | 9 | WYSOKIE |
-| 6 | Strony publiczne | 25 | WYSOKIE |
-| 7 | Wyszukiwarka | 6 | WYSOKIE |
-| 8 | SEO i meta | 11 | NORMALNE |
-| 9 | Infrastruktura | 15 | WYSOKIE |
+| 1 | Baza danych i seed | 40 | **DONE** |
+| 2 | Wyswietlanie danych | 15 | **DONE** |
+| 3 | Zbieranie danych | 30 | **DONE** |
+| 4 | Konta uzytkownikow | 20 | **DONE** |
+| 5 | Weryfikacja danych | 9 | **DONE** |
+| 6 | Strony publiczne | 25 | **DONE** |
+| 7 | Wyszukiwarka | 6 | **DONE** |
+| 8 | SEO i meta | 11 | **DONE** |
+| 9 | Infrastruktura | 15 | **DONE** |
 | 10 | Polish i QA | 27 | WYSOKIE |
 | **Total** | | **~205** | |
 

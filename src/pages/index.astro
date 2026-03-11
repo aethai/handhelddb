@@ -12,8 +12,8 @@ let _cached = getCached<any>(CACHE_KEY);
 if (!_cached) {
 const [
   devicesRes, gameCountRes, deviceCountRes,
-  reportCountRes, userCountRes, articlesRes,
-  consensusRes, topGamesRes,
+  deckCompatCountRes, articlesRes,
+  consensusRes, deckVerifiedRes, deviceGameCountsRes,
 ] = await Promise.all([
   supabaseAdmin
     .from('devices')
@@ -22,8 +22,8 @@ const [
     .order('name'),
   supabaseAdmin.from('games').select('*', { count: 'exact', head: true }),
   supabaseAdmin.from('devices').select('*', { count: 'exact', head: true }).eq('is_active', true),
-  supabaseAdmin.from('performance_reports').select('*', { count: 'exact', head: true }),
-  supabaseAdmin.from('users').select('*', { count: 'exact', head: true }),
+  supabaseAdmin.from('games').select('*', { count: 'exact', head: true })
+    .in('deck_compatibility', ['verified', 'playable']),
   supabaseAdmin
     .from('articles')
     .select('slug, title, lead, category, published_at, cover_image')
@@ -31,29 +31,34 @@ const [
     .not('published_at', 'is', null)
     .order('published_at', { ascending: false })
     .limit(4),
-  // Consensus ratings — all tested game+device combos
+  // Community benchmarks — quality-filtered consensus
   supabaseAdmin
     .from('consensus_ratings')
-    .select('fps_avg, overall_verdict, report_count, weighted_score, games(name, slug, header_image), devices(name, slug, manufacturer)')
-    .order('report_count', { ascending: false })
-    .limit(20),
-  // Top games by metacritic — catalog showcase
+    .select('fps_avg, overall_verdict, report_count, weighted_score, confidence_level, last_calculated, games(name, slug, header_image), devices(name, slug, manufacturer)')
+    .gte('report_count', 2)
+    .order('weighted_score', { ascending: false })
+    .limit(6),
+  // Deck Verified — Valve tested games
   supabaseAdmin
     .from('games')
-    .select('name, slug, header_image, metacritic_score, deck_compatibility')
+    .select('name, slug, header_image, deck_compatibility')
+    .eq('deck_compatibility', 'verified')
     .not('header_image', 'is', null)
     .not('metacritic_score', 'is', null)
     .order('metacritic_score', { ascending: false })
-    .limit(12),
+    .limit(8),
+  // Game counts per device
+  supabaseAdmin
+    .from('consensus_ratings')
+    .select('device_id, game_id'),
 ]);
 
 const gameCount = gameCountRes.count ?? 0;
 const deviceCount = deviceCountRes.count ?? 0;
-const reportCount = reportCountRes.count ?? 0;
-const userCount = userCountRes.count ?? 0;
+const deckCompatCount = deckCompatCountRes.count ?? 0;
 
 const devices = (devicesRes.data ?? []).map(d => ({
-  slug: d.slug, name: d.name, manufacturer: d.manufacturer,
+  id: d.id, slug: d.slug, name: d.name, manufacturer: d.manufacturer,
   chip: d.chip, batteryWh: d.battery_wh, msrpUsd: d.msrp_usd,
 }));
 
@@ -63,9 +68,15 @@ const articles = (articlesRes.data ?? []).map(a => ({
   coverImage: a.cover_image,
 }));
 
-// Community tested — consensus entries with dedup by game
+// Game counts per device
+const deviceGameCounts: Record<string, number> = {};
+for (const row of deviceGameCountsRes.data ?? []) {
+  deviceGameCounts[row.device_id] = (deviceGameCounts[row.device_id] ?? 0) + 1;
+}
+
+// Community benchmarks — high-quality consensus entries
 const seenGames = new Set<string>();
-const communityTested = (consensusRes.data ?? [])
+const communityBenchmarks = (consensusRes.data ?? [])
   .filter(r => {
     const g = r.games as any;
     if (!g?.name || !g?.header_image) return false;
@@ -77,30 +88,33 @@ const communityTested = (consensusRes.data ?? [])
     const g = r.games as any;
     const d = r.devices as any;
     const fps = Math.round(r.fps_avg ?? 0);
+    const confidence = r.confidence_level ?? (r.report_count >= 5 ? 'high' : r.report_count >= 2 ? 'medium' : 'low');
+    const lastCalc = r.last_calculated ? new Date(r.last_calculated) : null;
+    const daysAgo = lastCalc ? Math.floor((Date.now() - lastCalc.getTime()) / 86400000) : null;
     return {
       game: g.name, gameSlug: g.slug, gameImage: g.header_image,
       device: d?.name?.replace('ASUS ', '').replace('Lenovo ', '') ?? '',
       deviceSlug: d?.slug ?? '',
       fps, verdict: r.overall_verdict ?? 'unknown',
       reports: r.report_count ?? 0,
+      confidence,
+      freshness: daysAgo !== null ? (daysAgo === 0 ? 'Updated today' : daysAgo === 1 ? 'Updated 1d ago' : `Updated ${daysAgo}d ago`) : null,
     };
   });
 
-// Top metacritic games — catalog showcase
-const topGames = (topGamesRes.data ?? [])
+// Deck Verified games — Valve tested
+const deckVerified = (deckVerifiedRes.data ?? [])
   .filter(g => g.header_image)
   .slice(0, 8)
   .map(g => ({
     name: g.name, slug: g.slug, image: g.header_image ?? '',
-    metacritic: g.metacritic_score,
-    deckCompat: g.deck_compatibility === 'verified' ? 'Verified' : g.deck_compatibility === 'playable' ? 'Playable' : null,
   }));
 
-  _cached = { gameCount, deviceCount, reportCount, userCount, devices, articles, communityTested, topGames };
+  _cached = { gameCount, deviceCount, deckCompatCount, devices, articles, communityBenchmarks, deckVerified, deviceGameCounts };
   setCache(CACHE_KEY, _cached, 120);
 }
 
-const { gameCount, deviceCount, reportCount, userCount, devices, articles, communityTested, topGames } = _cached;
+const { gameCount, deviceCount, deckCompatCount, devices, articles, communityBenchmarks, deckVerified, deviceGameCounts } = _cached;
 
 // Helpers
 const fmtDate = (d: Date | null) => d ? d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '';
@@ -119,23 +133,17 @@ const featuredDevices = [
   { name: 'Claw 8', slug: 'msi-claw-8-ai-plus' },
 ].filter(fd => devices.some(d => d.slug === fd.slug));
 
-// Milestone for CTA
-const milestones = [50, 100, 250, 500, 1000, 2000, 5000, 10000, 25000, 50000];
-const nextMilestone = milestones.find(m => m > reportCount) ?? milestones[milestones.length - 1];
-const prevMilestone = milestones[milestones.indexOf(nextMilestone) - 1] ?? 0;
-const ctaPct = Math.min(((reportCount - prevMilestone) / (nextMilestone - prevMilestone)) * 100, 100);
-
 // Schema.org
 const siteUrl = import.meta.env.PUBLIC_SITE_URL ?? 'https://handhelddb.com';
 const schemaWebSite = {
   '@context': 'https://schema.org', '@type': 'WebSite',
   name: 'HandheldDB', url: siteUrl,
-  description: `Performance database for handheld gaming. ${gameCount.toLocaleString()} games, ${deviceCount} devices, ${reportCount.toLocaleString()} community reports.`,
+  description: `Performance database for handheld gaming. ${gameCount.toLocaleString()} games, ${deckCompatCount.toLocaleString()} Deck compatible, ${deviceCount} devices.`,
   potentialAction: { '@type': 'SearchAction', target: `${siteUrl}/games?q={search_term_string}`, 'query-input': 'required name=search_term_string' },
 };
 ---
 
-<BaseLayout title="HandheldDB — Does it run on your handheld?" description={`The handheld gaming performance database. ${gameCount.toLocaleString()} games tested across ${deviceCount} devices with ${reportCount.toLocaleString()} community reports.`}>
+<BaseLayout title="HandheldDB — Does it run on your handheld?" description={`The handheld gaming performance database. ${gameCount.toLocaleString()} games, ${deckCompatCount.toLocaleString()} Deck compatible across ${deviceCount} devices.`}>
 
 <script type="application/ld+json" set:html={JSON.stringify(schemaWebSite)} />
 
@@ -151,7 +159,7 @@ const schemaWebSite = {
       <h1 class="hp-hero-title">
         DOES IT RUN<br/>ON YOUR<br/><span class="hp-hero-accent">HANDHELD?</span>
       </h1>
-      <p class="hp-hero-subtitle">Real FPS data from real devices. Find out before you buy.</p>
+      <p class="hp-hero-subtitle">Check Deck compatibility, performance data, and optimal settings for thousands of games.</p>
 
       <div class="hp-hero-search">
         <SearchBar client:load variant="hero" placeholder={`Search ${gameCount.toLocaleString()} games...`} />
@@ -164,23 +172,14 @@ const schemaWebSite = {
         </div>
         <div class="hp-hero-stat-sep"></div>
         <div class="hp-hero-stat">
-          <span class="hp-hero-stat-val" data-target={reportCount}>{reportCount.toLocaleString()}</span>
-          <span class="hp-hero-stat-lbl">REPORTS</span>
+          <span class="hp-hero-stat-val" data-target={deckCompatCount}>{deckCompatCount.toLocaleString()}</span>
+          <span class="hp-hero-stat-lbl">DECK COMPATIBLE</span>
         </div>
         <div class="hp-hero-stat-sep"></div>
         <div class="hp-hero-stat">
           <span class="hp-hero-stat-val" data-target={deviceCount}>{deviceCount}</span>
           <span class="hp-hero-stat-lbl">DEVICES</span>
         </div>
-        {userCount > 0 && (
-          <>
-            <div class="hp-hero-stat-sep"></div>
-            <div class="hp-hero-stat">
-              <span class="hp-hero-stat-val" data-target={userCount}>{userCount.toLocaleString()}</span>
-              <span class="hp-hero-stat-lbl">USERS</span>
-            </div>
-          </>
-        )}
       </div>
 
       <div class="hp-hero-devices">
@@ -193,14 +192,37 @@ const schemaWebSite = {
 
   <div class="hp-main">
 
-    <!-- ══════ 2. COMMUNITY TESTED — Visual proof the DB is real ══════ -->
-    {communityTested.length > 0 && (
+    <!-- ══════ 2. VERIFIED FOR STEAM DECK — Valve tested ══════ -->
+    {deckVerified.length > 0 && (
+      <section class="hp-section hp-section-alt hp-section-animate">
+        <SectionHeader title="Verified for Steam Deck" href="/games" linkText={`See all ${deckCompatCount.toLocaleString()}`} editorial="VALVE TESTED" />
+        <div class="hp-catalog-grid">
+          {deckVerified.map((g, i) => (
+            <a href={`/games/${g.slug}`} class={`hp-catalog-card ${i < 2 ? 'hp-catalog-card-lg' : ''}`}>
+              <div class="hp-catalog-card-img">
+                <img src={g.image} alt={g.name} loading={i < 2 ? 'eager' : 'lazy'} />
+                <div class="hp-catalog-card-gradient"></div>
+                <span class="hp-deck-badge">&#10003; VERIFIED</span>
+              </div>
+              <div class="hp-catalog-card-body">
+                <span class="hp-catalog-card-name">{g.name}</span>
+              </div>
+            </a>
+          ))}
+        </div>
+      </section>
+    )}
+
+    <!-- ══════ 3. COMMUNITY BENCHMARKS — Performance data ══════ -->
+    {communityBenchmarks.length > 0 && (
       <section class="hp-section hp-section-animate">
-        <SectionHeader title="Community Tested" href="/games" linkText="View all" editorial="REAL DATA" />
+        <SectionHeader title="Community Benchmarks" href="/games" linkText="View all" editorial="PERFORMANCE DATA" />
         <div class="hp-tested-grid">
-          {communityTested.map((r, i) => {
+          {communityBenchmarks.map((r, i) => {
             const fpsClass = r.fps >= 55 ? 'fps-green' : r.fps >= 40 ? 'fps-yellow' : r.fps >= 30 ? 'fps-orange' : 'fps-red';
             const verdictLabel = r.verdict === 'excellent' ? 'Excellent' : r.verdict === 'good' ? 'Good' : r.verdict === 'fair' ? 'Fair' : r.verdict === 'poor' ? 'Poor' : 'Unplayable';
+            const confClass = r.confidence === 'high' ? 'hp-confidence-high' : r.confidence === 'medium' ? 'hp-confidence-med' : 'hp-confidence-low';
+            const confLabel = r.confidence === 'high' ? 'Verified' : r.confidence === 'medium' ? 'Community' : 'Estimated';
             return (
               <a href={`/games/${r.gameSlug}`} class="hp-tested-card">
                 <div class="hp-tested-card-img">
@@ -213,7 +235,8 @@ const schemaWebSite = {
                   <span class="hp-tested-card-name">{r.game}</span>
                   <div class="hp-tested-card-meta">
                     <span class="hp-tested-card-device">{r.device}</span>
-                    {r.reports > 0 && <span class="hp-tested-card-reports">{r.reports} report{r.reports !== 1 ? 's' : ''}</span>}
+                    <span class={`hp-confidence ${confClass}`}>{confLabel}</span>
+                    {r.freshness && <span class="hp-freshness">{r.freshness}</span>}
                   </div>
                 </div>
               </a>
@@ -223,52 +246,7 @@ const schemaWebSite = {
       </section>
     )}
 
-    <!-- ══════ 3. TOP RATED — Catalog showcase ══════ -->
-    {topGames.length > 0 && (
-      <section class="hp-section hp-section-alt hp-section-animate">
-        <SectionHeader title="Top Rated" href="/games" linkText="Browse all" editorial="FROM THE CATALOG" />
-        <div class="hp-catalog-grid">
-          {topGames.map((g, i) => (
-            <a href={`/games/${g.slug}`} class={`hp-catalog-card ${i < 2 ? 'hp-catalog-card-lg' : ''}`}>
-              <div class="hp-catalog-card-img">
-                <img src={g.image} alt={g.name} loading="lazy" />
-                <div class="hp-catalog-card-gradient"></div>
-                {g.metacritic && <span class={`hp-catalog-mc ${g.metacritic >= 90 ? 'mc-high' : g.metacritic >= 75 ? 'mc-mid' : 'mc-low'}`}>{g.metacritic}</span>}
-                {g.deckCompat && <span class="hp-catalog-deck">{g.deckCompat}</span>}
-              </div>
-              <div class="hp-catalog-card-body">
-                <span class="hp-catalog-card-name">{g.name}</span>
-              </div>
-            </a>
-          ))}
-        </div>
-      </section>
-    )}
-
-    <!-- ══════ 4. PICK YOUR DEVICE — Entry points ══════ -->
-    <section class="hp-section hp-section-animate">
-      <SectionHeader title="Pick Your Device" href="/devices" linkText="All devices" editorial="HANDHELDS" />
-      <div class="hp-device-grid">
-        {devices.map(d => {
-          const displayName = d.name.replace('ASUS ', '').replace('Lenovo ', '').replace('MSI ', '');
-          return (
-            <a href={`/devices/${d.slug}`} class="hp-device-card">
-              <div class="hp-device-card-inner">
-                <span class="hp-device-mfr">{d.manufacturer}</span>
-                <h3 class="hp-device-name">{displayName}</h3>
-                <div class="hp-device-specs">
-                  <span class="hp-device-spec">{d.chip}</span>
-                  {d.batteryWh && <span class="hp-device-spec">{d.batteryWh} Wh</span>}
-                </div>
-                <span class="hp-device-cta">View benchmarks →</span>
-              </div>
-            </a>
-          );
-        })}
-      </div>
-    </section>
-
-    <!-- ══════ 5. EDITORIAL — News & Guides ══════ -->
+    <!-- ══════ 4. EDITORIAL — News & Guides ══════ -->
     {articles.length >= 2 && (
       <section class="hp-section hp-section-alt hp-section-animate">
         <SectionHeader title="Editorial" href="/news" linkText="All articles" editorial="NEWS & GUIDES" />
@@ -289,13 +267,13 @@ const schemaWebSite = {
                 {articles[0].lead && <p class="hp-editorial-hero-lead">{articles[0].lead}</p>}
                 <div class="hp-editorial-hero-footer">
                   <span class="hp-editorial-date">{fmtDate(articles[0].publishedAt)}</span>
-                  <span class="hp-editorial-read">Read article →</span>
+                  <span class="hp-editorial-read">Read article &rarr;</span>
                 </div>
               </div>
             </a>
           )}
           <div class="hp-editorial-cards">
-            {articles.slice(1).map(a => {
+            {articles.slice(1, 3).map(a => {
               const tag = categoryTag[a.category] ?? 'NEWS';
               return (
                 <a href={`/news/${a.slug}`} class="hp-editorial-card">
@@ -317,7 +295,7 @@ const schemaWebSite = {
       </section>
     )}
 
-    <!-- ══════ 6. CTA — Join the Mission ══════ -->
+    <!-- ══════ 5. CTA — Join the Mission ══════ -->
     <section class="hp-section hp-section-animate">
       <div class="hp-cta">
         <div class="hp-cta-bg" aria-hidden="true">
@@ -326,21 +304,11 @@ const schemaWebSite = {
         </div>
         <div class="hp-cta-content">
           <p class="hp-cta-eyebrow">JOIN THE MISSION</p>
-          <h2 class="hp-cta-title">YOUR BENCHMARKS<br/>HELP EVERYONE.</h2>
+          <h2 class="hp-cta-title">HELP BUILD THE MOST COMPLETE<br/>HANDHELD PERFORMANCE DATABASE.</h2>
           <p class="hp-cta-desc">Every report you submit helps another gamer decide if a game runs on their device.</p>
-
-          <div class="hp-cta-progress-wrap">
-            <div class="hp-cta-progress">
-              <div class="hp-cta-progress-fill" style={`width:${ctaPct}%;`}></div>
-            </div>
-            <span class="hp-cta-milestone">
-              <strong>{reportCount.toLocaleString()}</strong> / {nextMilestone.toLocaleString()} reports — next milestone
-            </span>
-          </div>
-
           <div class="hp-cta-actions">
             <a href="/report/new" class="btn-primary hp-cta-btn">SUBMIT A REPORT</a>
-            <span class="hp-cta-hint">Takes ~2 min · No account needed</span>
+            <span class="hp-cta-hint">Takes ~2 min &middot; No account needed</span>
           </div>
         </div>
       </div>
@@ -668,6 +636,40 @@ const schemaWebSite = {
   }
   .hp-tested-card-reports {
     opacity: 0.7;
+  }
+  /* Confidence badges */
+  .hp-confidence {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    padding: 2px 7px;
+    border-radius: 3px;
+  }
+  .hp-confidence-high { background: rgba(34,197,94,0.15); color: #4ade80; }
+  .hp-confidence-med { background: rgba(250,204,21,0.15); color: #facc15; }
+  .hp-confidence-low { background: rgba(255,255,255,0.08); color: var(--color-text-dim); }
+  .hp-freshness {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--color-text-dim);
+    opacity: 0.7;
+  }
+  /* Deck Verified badge */
+  .hp-deck-badge {
+    position: absolute;
+    top: 8px; right: 10px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    color: #4ade80;
+    background: rgba(34,197,94,0.2);
+    border: 1px solid rgba(34,197,94,0.3);
+    padding: 3px 8px;
+    border-radius: 4px;
+    backdrop-filter: blur(4px);
+    letter-spacing: 0.04em;
   }
 
   /* ═══════════════════════════════════════════
@@ -1032,31 +1034,6 @@ const schemaWebSite = {
     line-height: 1.5;
     max-width: 420px;
     margin: 0 auto 24px;
-  }
-  .hp-cta-progress-wrap {
-    max-width: 400px;
-    margin: 0 auto 24px;
-  }
-  .hp-cta-progress {
-    height: 6px;
-    background: var(--color-elevated);
-    border-radius: 3px;
-    overflow: hidden;
-    margin-bottom: 8px;
-  }
-  .hp-cta-progress-fill {
-    height: 100%;
-    background: var(--color-accent);
-    border-radius: 3px;
-    transition: width 0.8s ease;
-  }
-  .hp-cta-milestone {
-    font-family: var(--font-mono);
-    font-size: 11px;
-    color: var(--color-text-3);
-  }
-  .hp-cta-milestone strong {
-    color: var(--color-accent);
   }
   .hp-cta-actions {
     display: flex;

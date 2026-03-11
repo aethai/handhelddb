@@ -18,7 +18,7 @@ const filter = Astro.url.searchParams.get('filter') ?? ''; // 'pending', 'approv
 // ─── Fetch reports ───
 let query = supabaseAdmin
   .from('performance_reports')
-  .select('id, game_id, device_id, user_id, fps_avg, tdp_limit_watts, preset, resolution, overall_rating, moderation_status, created_at', { count: 'exact' })
+  .select('id, game_id, device_id, user_id, fps_avg, tdp_limit_watts, preset, resolution, overall_rating, moderation_status, notes, source, import_source, quality_tier, screenshots, created_at', { count: 'exact' })
   .order('created_at', { ascending: false })
   .range(offset, offset + PER_PAGE - 1);
 
@@ -49,6 +49,11 @@ let enrichedReports: Array<{
   resolution: string | null;
   overallRating: string;
   moderationStatus: string;
+  notes: string | null;
+  source: string | null;
+  importSource: string | null;
+  qualityTier: string | null;
+  screenshots: string[] | null;
   createdAt: string;
 }> = [];
 
@@ -88,6 +93,11 @@ if (reports && reports.length > 0) {
     resolution: r.resolution,
     overallRating: r.overall_rating,
     moderationStatus: r.moderation_status ?? 'approved',
+    notes: r.notes,
+    source: r.source,
+    importSource: r.import_source,
+    qualityTier: r.quality_tier,
+    screenshots: r.screenshots,
     createdAt: r.created_at,
   }));
 }
@@ -233,8 +243,20 @@ function statusBadgeColor(status: string): string {
                       </span>
                     </div>
 
-                    <!-- Submitter -->
-                    <p class="text-xs text-[#55555e] mb-2">Submitted by {report.submitterName}</p>
+                    <!-- Submitter + Source -->
+                    <div class="flex flex-wrap items-center gap-2 text-xs text-[#55555e] mb-2">
+                      <span>Submitted by {report.submitterName}</span>
+                      {report.source && (
+                        <span class="rounded-md bg-[#1a1a22] px-1.5 py-0.5 text-[#55555e]">
+                          {report.importSource ?? report.source}
+                        </span>
+                      )}
+                      {report.qualityTier && (
+                        <span class="rounded-md bg-[#1a1a22] px-1.5 py-0.5 text-[#55555e]">
+                          {report.qualityTier}
+                        </span>
+                      )}
+                    </div>
 
                     <!-- Stats Row -->
                     <div class="flex flex-wrap items-center gap-4 text-xs text-[#8a8a94]">
@@ -262,6 +284,27 @@ function statusBadgeColor(status: string): string {
                       )}
                       <span class="text-[#35353e]">{formatDate(report.createdAt)}</span>
                     </div>
+
+                    {/* Notes / flag reason */}
+                    {report.notes && (
+                      <p class:list={[
+                        'mt-2 text-xs rounded-md px-2 py-1',
+                        report.notes.includes('[Auto-flagged') ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20' : 'bg-[#1a1a22] text-[#8a8a94]',
+                      ]}>
+                        {report.notes.length > 200 ? report.notes.slice(0, 200) + '...' : report.notes}
+                      </p>
+                    )}
+
+                    {/* Screenshot links */}
+                    {report.screenshots && report.screenshots.length > 0 && (
+                      <div class="mt-2 flex gap-2">
+                        {(report.screenshots as string[]).map((url: string, i: number) => (
+                          <a href={url} target="_blank" rel="noopener" class="text-xs text-blue-400 hover:text-blue-300 underline">
+                            Screenshot {i + 1}
+                          </a>
+                        ))}
+                      </div>
+                    )}
                   </div>
 
                   <!-- Action Buttons -->

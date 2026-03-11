@@ -41,22 +41,34 @@ export interface ConsensusResult {
   recommendedProfile: TDPProfile | null;
 }
 
+// ── Trust hierarchy: higher = more trusted ──
 const QUALITY_WEIGHTS: Record<string, number> = {
   verified: 5.0,
+  trusted_benchmark: 4.0,
   community_confirmed: 3.0,
+  imported: 2.0,
   reported: 1.0,
-  ai_estimated: 0.5,
-  imported: 0.3,
+  ai_estimated: 0.15,
 };
 
-const HALF_LIFE_DAYS = 90;
+// AI reports can never exceed this fraction of total consensus weight
+const AI_WEIGHT_CAP = 0.30;
 
-function calculateWeight(report: ReportInput, now: Date): number {
+const HALF_LIFE_DAYS = 90;
+const HALF_LIFE_STABLE_DAYS = 365; // For games not patched in 6+ months
+const RECENCY_FLOOR = 0.2; // Never fully expire good data
+
+function isAiReport(qualityTier: string): boolean {
+  return qualityTier === 'ai_estimated';
+}
+
+function calculateWeight(report: ReportInput, now: Date, stableGame: boolean): number {
   const qualityWeight = QUALITY_WEIGHTS[report.qualityTier] ?? 1.0;
 
   const ageMs = now.getTime() - report.createdAt.getTime();
   const ageDays = ageMs / (1000 * 60 * 60 * 24);
-  const recencyWeight = Math.pow(0.5, ageDays / HALF_LIFE_DAYS);
+  const halfLife = stableGame ? HALF_LIFE_STABLE_DAYS : HALF_LIFE_DAYS;
+  const recencyWeight = Math.max(RECENCY_FLOOR, Math.pow(0.5, ageDays / halfLife));
 
   const up = report.upvotes;
   const down = report.downvotes;
@@ -65,7 +77,57 @@ function calculateWeight(report: ReportInput, now: Date): number {
   return qualityWeight * recencyWeight * voteWeight;
 }
 
+// ── Outlier detection: Modified Z-score using MAD ──
+function medianOf(values: number[]): number {
+  const sorted = [...values].sort((a, b) => a - b);
+  const mid = Math.floor(sorted.length / 2);
+  return sorted.length % 2 !== 0
+    ? sorted[mid]
+    : (sorted[mid - 1] + sorted[mid]) / 2;
+}
+
+function removeOutliers(weighted: WeightedReport[]): WeightedReport[] {
+  if (weighted.length < 3) return weighted;
+
+  const fpsValues = weighted.map((w) => w.report.fpsAvg);
+  const median = medianOf(fpsValues);
+  const deviations = fpsValues.map((v) => Math.abs(v - median));
+  const mad = medianOf(deviations);
+
+  // MAD threshold: 3.5 (standard for modified Z-score)
+  // If MAD is very small (< 2), use a minimum to avoid rejecting minor variance
+  const threshold = Math.max(mad, 2.0) * 3.5;
+
+  return weighted.filter((w) => Math.abs(w.report.fpsAvg - median) <= threshold);
+}
+
+// ── AI weight capping ──
+function capAiWeight(weighted: WeightedReport[]): WeightedReport[] {
+  const aiReports = weighted.filter((w) => isAiReport(w.report.qualityTier));
+  const nonAiReports = weighted.filter((w) => !isAiReport(w.report.qualityTier));
+
+  if (aiReports.length === 0 || nonAiReports.length === 0) return weighted;
+
+  const aiTotalWeight = aiReports.reduce((sum, w) => sum + w.weight, 0);
+  const nonAiTotalWeight = nonAiReports.reduce((sum, w) => sum + w.weight, 0);
+  const totalWeight = aiTotalWeight + nonAiTotalWeight;
+
+  const aiShare = aiTotalWeight / totalWeight;
+
+  if (aiShare <= AI_WEIGHT_CAP) return weighted;
+
+  // Scale down AI weights so they equal exactly AI_WEIGHT_CAP of total
+  const targetAiWeight = (nonAiTotalWeight / (1 - AI_WEIGHT_CAP)) * AI_WEIGHT_CAP;
+  const scaleFactor = targetAiWeight / aiTotalWeight;
+
+  return [
+    ...nonAiReports,
+    ...aiReports.map((w) => ({ ...w, weight: w.weight * scaleFactor })),
+  ];
+}
+
 function weightedMedian(values: { value: number; weight: number }[]): number {
+  if (values.length === 0) return 0;
   const sorted = [...values].sort((a, b) => a.value - b.value);
   const totalWeight = sorted.reduce((sum, v) => sum + v.weight, 0);
   let accumulated = 0;
@@ -105,7 +167,12 @@ function weightedMode<T>(values: { value: T; weight: number }[]): T | null {
   return best?.value ?? null;
 }
 
-function getConfidence(count: number): 'low' | 'medium' | 'high' {
+function getConfidence(
+  count: number,
+  hasNonAiReport: boolean,
+): 'low' | 'medium' | 'high' {
+  // AI-only consensus can never be higher than 'low'
+  if (!hasNonAiReport) return 'low';
   if (count < 3) return 'low';
   if (count <= 10) return 'medium';
   return 'high';
@@ -119,16 +186,36 @@ function getVerdict(fps: number): string {
   return 'unplayable';
 }
 
-export function calculateConsensus(reports: ReportInput[]): ConsensusResult | null {
+export interface CalculateConsensusOptions {
+  stableGame?: boolean; // true = no patches in 6+ months → slower decay
+}
+
+export function calculateConsensus(
+  reports: ReportInput[],
+  options: CalculateConsensusOptions = {},
+): ConsensusResult | null {
   const activeReports = reports.filter((r) => !r.isFlagged && !r.isStale);
 
   if (activeReports.length === 0) return null;
 
+  const stableGame = options.stableGame ?? false;
   const now = new Date();
-  const weighted: WeightedReport[] = activeReports.map((report) => ({
+
+  let weighted: WeightedReport[] = activeReports.map((report) => ({
     report,
-    weight: calculateWeight(report, now),
+    weight: calculateWeight(report, now, stableGame),
   }));
+
+  // Step 1: Remove statistical outliers (Modified Z-score via MAD)
+  weighted = removeOutliers(weighted);
+
+  if (weighted.length === 0) return null;
+
+  // Step 2: Cap AI weight at 30% of total
+  weighted = capAiWeight(weighted);
+
+  // Check if any non-AI reports exist (for confidence)
+  const hasNonAiReport = weighted.some((w) => !isAiReport(w.report.qualityTier));
 
   const fpsAvg = weightedMedian(
     weighted.map((w) => ({ value: w.report.fpsAvg, weight: w.weight })),
@@ -190,7 +277,7 @@ export function calculateConsensus(reports: ReportInput[]): ConsensusResult | nu
     typicalThermal,
     typicalFanNoise,
     reportCount: activeReports.length,
-    confidenceLevel: getConfidence(activeReports.length),
+    confidenceLevel: getConfidence(weighted.length, hasNonAiReport),
     overallVerdict: getVerdict(fpsAvg),
     weightedScore,
     recommendedProfile: null,

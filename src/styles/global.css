@@ -8,7 +8,7 @@
    Neon Lime #D4FF00 accent
    ══════════════════════════════════════ */
 
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+/* Fonts loaded via <link> in BaseLayout.astro — no CSS @import needed */
 
 @theme {
   /* Typography */
@@ -1501,4 +1501,21 @@ img[loading="lazy"][complete] {
   .cta-card { padding: 24px 18px; }
   .hp-stats { flex-wrap: wrap; justify-content: center; gap: 8px 0; }
   .hp-stat-divider:nth-child(4) { display: none; }
+}
+
+/* ══════════════════════════════════════
+   REDUCED MOTION
+   ══════════════════════════════════════ */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  img[loading="lazy"] { opacity: 1; }
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation: none !important;
+  }
 }
