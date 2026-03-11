@@ -34,3 +34,4 @@ backups/
 # debug
 npm-debug.log*
 pnpm-debug.log*
+data/
