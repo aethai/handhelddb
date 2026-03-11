@@ -1,10 +1,9 @@
 /**
  * Cron: Recalculate consensus ratings for all game-device pairs
  *
- * Fetches all game-device pairs that have 3+ performance reports,
+ * Fetches all game-device pairs that have 1+ performance reports,
  * calculates consensus using the weighted scoring algorithm, generates
- * TDP profiles (battery_saver, balanced, performance), and upserts
- * to the consensus_ratings table.
+ * a single recommended TDP profile, and upserts to the consensus_ratings table.
  *
  * Schedule: every 12 hours
  */
@@ -141,110 +140,75 @@ function getVerdict(fps: number): string {
   return 'unplayable';
 }
 
-// ====== TDP Profile generation ======
+// ====== Single recommended profile generation ======
 
-function generateTDPProfiles(
+function generateRecommendedProfile(
   reports: { report: ReportRow; weight: number }[],
-): { batterySaver: TDPProfile | null; balanced: TDPProfile | null; performance: TDPProfile | null } {
-  // Only use reports that have TDP data
-  const withTdp = reports.filter((r) => r.report.tdp_limit_watts != null);
+): TDPProfile | null {
+  if (reports.length === 0) return null;
 
-  if (withTdp.length < 2) {
-    return { batterySaver: null, balanced: null, performance: null };
-  }
+  const tdpValues = reports
+    .filter((r) => r.report.tdp_limit_watts != null)
+    .map((r) => ({ value: r.report.tdp_limit_watts!, weight: r.weight }));
+  const fpsValues = reports.map((r) => ({ value: r.report.fps_avg, weight: r.weight }));
+  const batteryValues = reports
+    .filter((r) => r.report.battery_life_hours != null)
+    .map((r) => ({ value: r.report.battery_life_hours!, weight: r.weight }));
 
-  // Sort by TDP
-  const sorted = [...withTdp].sort(
-    (a, b) => a.report.tdp_limit_watts! - b.report.tdp_limit_watts!,
+  const tdp = tdpValues.length > 0 ? weightedMedian(tdpValues) : 0;
+  const fps = weightedMedian(fpsValues);
+  const battery = batteryValues.length > 0 ? weightedMedian(batteryValues) : 0;
+
+  const resolution = weightedMode(
+    reports
+      .filter((r) => r.report.resolution != null)
+      .map((r) => ({ value: r.report.resolution!, weight: r.weight })),
   );
 
-  // Split into 3 buckets: lower third, middle third, upper third
-  const thirdLen = Math.max(1, Math.floor(sorted.length / 3));
-  const lowBucket = sorted.slice(0, thirdLen);
-  const midBucket = sorted.slice(thirdLen, thirdLen * 2);
-  const highBucket = sorted.slice(thirdLen * 2);
+  const preset = weightedMode(
+    reports
+      .filter((r) => r.report.preset != null)
+      .map((r) => ({ value: r.report.preset!, weight: r.weight })),
+  );
 
-  function buildProfile(bucket: typeof sorted): TDPProfile | null {
-    if (bucket.length === 0) return null;
+  const thermal = weightedMode(
+    reports
+      .filter((r) => r.report.thermal != null)
+      .map((r) => ({ value: r.report.thermal!, weight: r.weight })),
+  );
 
-    const tdpValues = bucket.map((r) => ({
-      value: r.report.tdp_limit_watts!,
-      weight: r.weight,
-    }));
-    const fpsValues = bucket.map((r) => ({
-      value: r.report.fps_avg,
-      weight: r.weight,
-    }));
-    const batteryValues = bucket
-      .filter((r) => r.report.battery_life_hours != null)
-      .map((r) => ({
-        value: r.report.battery_life_hours!,
-        weight: r.weight,
-      }));
+  const fanNoise = weightedMode(
+    reports
+      .filter((r) => r.report.fan_noise != null)
+      .map((r) => ({ value: r.report.fan_noise!, weight: r.weight })),
+  );
 
-    const tdp = weightedMedian(tdpValues);
-    const fps = weightedMedian(fpsValues);
-    const battery = batteryValues.length > 0 ? weightedMedian(batteryValues) : 0;
+  const fsrEnabled = reports.filter((r) => r.report.fsr_enabled).length > reports.length / 2;
+  const fsrMode = fsrEnabled
+    ? weightedMode(
+        reports
+          .filter((r) => r.report.fsr_mode != null)
+          .map((r) => ({ value: r.report.fsr_mode!, weight: r.weight })),
+      )
+    : undefined;
 
-    const resolution = weightedMode(
-      bucket
-        .filter((r) => r.report.resolution != null)
-        .map((r) => ({ value: r.report.resolution!, weight: r.weight })),
-    );
-
-    const preset = weightedMode(
-      bucket
-        .filter((r) => r.report.preset != null)
-        .map((r) => ({ value: r.report.preset!, weight: r.weight })),
-    );
-
-    const thermal = weightedMode(
-      bucket
-        .filter((r) => r.report.thermal != null)
-        .map((r) => ({ value: r.report.thermal!, weight: r.weight })),
-    );
-
-    const fanNoise = weightedMode(
-      bucket
-        .filter((r) => r.report.fan_noise != null)
-        .map((r) => ({ value: r.report.fan_noise!, weight: r.weight })),
-    );
-
-    const fsrEnabled = bucket.filter((r) => r.report.fsr_enabled).length > bucket.length / 2;
-
-    const fsrMode = fsrEnabled
-      ? weightedMode(
-          bucket
-            .filter((r) => r.report.fsr_mode != null)
-            .map((r) => ({ value: r.report.fsr_mode!, weight: r.weight })),
-        )
-      : undefined;
-
-    // Determine FPS target bucket
-    let fpsTarget = 30;
-    if (fps >= 55) fpsTarget = 60;
-    else if (fps >= 35) fpsTarget = 40;
-
-    return {
-      tdpWatts: Math.round(tdp * 10) / 10,
-      fpsTarget,
-      fpsAvg: Math.round(fps * 10) / 10,
-      resolution: resolution ?? '1280x800',
-      preset: preset ?? 'medium',
-      fsrEnabled,
-      fsrMode: fsrMode ?? undefined,
-      estimatedBatteryHours: Math.round(battery * 10) / 10,
-      thermal: thermal ?? 'warm',
-      fanNoise: fanNoise ?? 'audible',
-      reportCount: bucket.length,
-      confidence: getConfidence(bucket.length),
-    };
-  }
+  let fpsTarget = 30;
+  if (fps >= 55) fpsTarget = 60;
+  else if (fps >= 35) fpsTarget = 40;
 
   return {
-    batterySaver: buildProfile(lowBucket),
-    balanced: buildProfile(midBucket),
-    performance: buildProfile(highBucket),
+    tdpWatts: Math.round(tdp * 10) / 10,
+    fpsTarget,
+    fpsAvg: Math.round(fps * 10) / 10,
+    resolution: resolution ?? '1280x800',
+    preset: preset ?? 'medium',
+    fsrEnabled,
+    fsrMode: fsrMode ?? undefined,
+    estimatedBatteryHours: Math.round(battery * 10) / 10,
+    thermal: thermal ?? 'warm',
+    fanNoise: fanNoise ?? 'audible',
+    reportCount: reports.length,
+    confidence: getConfidence(reports.length),
   };
 }
 
@@ -300,9 +264,9 @@ async function main() {
     }
   }
 
-  // Filter to pairs with 3+ reports
-  const eligiblePairs = [...groups.entries()].filter(([, reports]) => reports.length >= 3);
-  console.log(`Found ${eligiblePairs.length} game-device pairs with 3+ reports\n`);
+  // Filter to pairs with 1+ reports (lowered from 3 — YouTube data is sparse but high quality)
+  const eligiblePairs = [...groups.entries()].filter(([, reports]) => reports.length >= 1);
+  console.log(`Found ${eligiblePairs.length} game-device pairs with 1+ reports\n`);
 
   let upserted = 0;
   let failed = 0;
@@ -365,8 +329,8 @@ async function main() {
       const weightedScore =
         weighted.reduce((sum, w) => sum + w.report.fps_avg * w.weight, 0) / totalWeight;
 
-      // Generate TDP profiles
-      const { batterySaver, balanced, performance } = generateTDPProfiles(weighted);
+      // Generate single recommended profile
+      const recommendedProfile = generateRecommendedProfile(weighted);
 
       // Upsert consensus rating
       const { error: upsertError } = await supabase
@@ -383,9 +347,9 @@ async function main() {
             estimated_battery: estimatedBattery != null ? Math.round(estimatedBattery * 10) / 10 : null,
             typical_thermal: typicalThermal,
             typical_fan_noise: typicalFanNoise,
-            battery_saver_profile: batterySaver,
-            balanced_profile: balanced,
-            performance_profile: performance,
+            battery_saver_profile: null,
+            balanced_profile: recommendedProfile,
+            performance_profile: null,
             report_count: reports.length,
             confidence_level: getConfidence(reports.length),
             overall_verdict: getVerdict(fpsAvg),
@@ -400,18 +364,10 @@ async function main() {
         console.log(`  FAIL  ${gameId} / ${deviceId} — ${upsertError.message}`);
         failed++;
       } else {
-        const profiles = [
-          batterySaver ? 'BS' : null,
-          balanced ? 'BAL' : null,
-          performance ? 'PERF' : null,
-        ]
-          .filter(Boolean)
-          .join('+');
-
         console.log(
           `  OK    ${gameId.slice(0, 8)}... / ${deviceId.slice(0, 8)}... — ` +
           `${reports.length} reports, ${fpsAvg.toFixed(0)} fps, verdict: ${getVerdict(fpsAvg)}, ` +
-          `profiles: ${profiles || 'none'}`,
+          `profile: ${recommendedProfile ? `${recommendedProfile.tdpWatts}W/${recommendedProfile.fpsAvg}fps` : 'none'}`,
         );
         upserted++;
       }
