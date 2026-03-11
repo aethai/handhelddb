@@ -12,13 +12,23 @@ export const GET: APIRoute = async ({ url, request }) => {
   const deviceId = url.searchParams.get('deviceId');
   const limit = Math.min(Number(url.searchParams.get('limit') ?? 50), 100);
   const offset = Number(url.searchParams.get('offset') ?? 0);
+  const sort = url.searchParams.get('sort') ?? 'newest';
 
   let query = supabaseAdmin
     .from('performance_reports')
     .select('*, games(name, slug), devices(name, slug), user:users(display_name, avatar_url, username)', { count: 'exact' })
-    .eq('moderation_status', 'approved')
-    .order('created_at', { ascending: false })
-    .range(offset, offset + limit - 1);
+    .eq('moderation_status', 'approved');
+
+  // Apply sort
+  if (sort === 'oldest') {
+    query = query.order('created_at', { ascending: true });
+  } else if (sort === 'highest_rated') {
+    query = query.order('fps_avg', { ascending: false });
+  } else {
+    query = query.order('created_at', { ascending: false });
+  }
+
+  query = query.range(offset, offset + limit - 1);
 
   if (gameId) query = query.eq('game_id', gameId);
   if (deviceId) query = query.eq('device_id', deviceId);

@@ -34,7 +34,7 @@ export const GET: APIRoute = async ({ url, request }) => {
   // Build query
   let query = supabaseAdmin
     .from('consensus_ratings')
-    .select('fps_avg, fps_low, recommended_preset, recommended_tdp, estimated_battery, overall_verdict, report_count, confidence_level, devices(slug, name)')
+    .select('fps_avg, fps_low, recommended_preset, recommended_resolution, recommended_tdp, estimated_battery, typical_thermal, typical_fan_noise, overall_verdict, report_count, confidence_level, weighted_score, recommended_profile, devices(slug, name)')
     .eq('game_id', game.id);
 
   if (deviceSlug) {
