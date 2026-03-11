@@ -48,14 +48,15 @@ const [
   supabaseAdmin
     .from('consensus_ratings')
     .select('device_id, game_id'),
-  // Editorial — News & Guides
+  // Editorial — News & Guides (only articles with cover images, extra for dedup)
   supabaseAdmin
     .from('articles')
     .select('slug, title, lead, category, published_at, cover_image')
     .eq('status', 'published')
     .not('published_at', 'is', null)
+    .not('cover_image', 'is', null)
     .order('published_at', { ascending: false })
-    .limit(4),
+    .limit(12),
 ]);
 
 const gameCount = gameCountRes.count ?? 0;
@@ -142,11 +143,21 @@ const devices = (devicesRes.data ?? []).map(d => ({
   msrpUsd: d.msrp_usd, gamesTested: deviceGameCounts[d.id] ?? 0,
 })).filter(d => d.gamesTested > 0).sort((a, b) => b.gamesTested - a.gamesTested);
 
-const articles = (articlesRes.data ?? []).map(a => ({
-  slug: a.slug, title: a.title, lead: a.lead, category: a.category,
-  publishedAt: a.published_at ? new Date(a.published_at) : null,
-  coverImage: a.cover_image,
-}));
+const articles = (() => {
+  const all = (articlesRes.data ?? []).map(a => ({
+    slug: a.slug, title: a.title, lead: a.lead, category: a.category,
+    publishedAt: a.published_at ? new Date(a.published_at) : null,
+    coverImage: a.cover_image,
+  }));
+  // Deduplicate by cover_image to avoid showing 3x the same game
+  const seen = new Set<string>();
+  return all.filter(a => {
+    if (!a.coverImage) return true;
+    if (seen.has(a.coverImage)) return false;
+    seen.add(a.coverImage);
+    return true;
+  });
+})();
 
   _cached = { gameCount, deviceCount, deckCompatCount, pulseReports, spotlight, trendingGames, devices, articles };
   setCache(CACHE_KEY, _cached, 120);
@@ -363,7 +374,7 @@ const schemaWebSite = {
                 <div class="hp-device-bottom">
                   {d.batteryWh && <span class="hp-device-spec">{d.batteryWh}Wh</span>}
                   {d.resolution && <span class="hp-device-spec">{d.resolution}</span>}
-                  {d.msrpUsd && <span class="hp-device-spec">${d.msrpUsd}</span>}
+                  {d.msrpUsd && <span class="hp-device-spec">{'$'}{d.msrpUsd}</span>}
                 </div>
               </a>
             ))}
@@ -1194,13 +1205,15 @@ const schemaWebSite = {
     border-color: rgba(212,255,0,0.25);
   }
   .hp-editorial-card-img {
-    width: 120px; flex-shrink: 0;
+    width: 160px; flex-shrink: 0;
+    aspect-ratio: 16/9;
     overflow: hidden;
     background: var(--color-elevated);
   }
   .hp-editorial-card-img img {
     width: 100%; height: 100%;
     object-fit: cover;
+    object-position: center;
   }
   .hp-editorial-card-body {
     padding: 14px 16px;
@@ -1329,7 +1342,8 @@ const schemaWebSite = {
     }
     .hp-contribute::before { width: 100%; height: 3px; bottom: auto; }
 
-    .hp-editorial-card-img { width: 90px; }
+    .hp-editorial-card { flex-direction: column; }
+    .hp-editorial-card-img { width: 100%; aspect-ratio: 16/9; }
 
     .hp-numbers { gap: 24px; flex-wrap: wrap; }
     .hp-number-val { font-size: 24px; }
