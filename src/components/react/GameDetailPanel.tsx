@@ -51,12 +51,15 @@ interface ConsensusInfo {
 interface ReportInfo {
   id: string;
   fps_avg: number;
+  fps_low: number | null;
   preset: string | null;
   resolution: string | null;
   fsr_enabled: boolean;
   fsr_mode: string | null;
   tdp_limit_watts: number | null;
   battery_life_hours: number | null;
+  thermal: string | null;
+  fan_noise: string | null;
   overall_rating: string;
   notes: string | null;
   upvotes: number;
@@ -105,6 +108,15 @@ const VERDICT_LABEL: Record<string, string> = {
 const PRESET_LABEL: Record<string, string> = {
   ultra_low: "Ultra Low", low: "Low", medium: "Medium",
   high: "High", ultra: "Ultra", custom: "Custom",
+};
+
+const THERMAL_LABEL: Record<string, string> = { cool: "Cool", warm: "Warm", hot: "Hot" };
+const FAN_LABEL: Record<string, string> = { silent: "Silent", quiet: "Quiet", audible: "Audible", loud: "Loud" };
+
+const CONFIDENCE_LABEL: Record<string, { text: string; cls: string }> = {
+  low: { text: "Few reports", cls: "gd-conf-low" },
+  medium: { text: "Based on reports", cls: "gd-conf-med" },
+  high: { text: "Well tested", cls: "gd-conf-high" },
 };
 
 function timeAgo(dateStr: string): string {
@@ -164,6 +176,8 @@ function GameDetailPanelInner({ dataId, initialData }: { dataId?: string; initia
   });
   const [sort, setSort] = useState<"recent" | "helpful" | "best">("helpful");
   const [reportsLoading, setReportsLoading] = useState(false);
+  const [reportsError, setReportsError] = useState(false);
+  const [expandedReports, setExpandedReports] = useState<Set<string>>(new Set());
 
   const cons = data.consensus?.[selectedDeviceId];
   const dev = data.devices?.find(d => d.id === selectedDeviceId);
@@ -175,19 +189,30 @@ function GameDetailPanelInner({ dataId, initialData }: { dataId?: string; initia
 
   const switchDevice = useCallback(async (deviceId: string) => {
     setSelectedDeviceId(deviceId);
+    setReportsError(false);
     if (!reportsByDevice[deviceId]) {
       setReportsLoading(true);
       try {
         const res = await fetch(`/api/reports?gameId=${data.gameId}&deviceId=${deviceId}&limit=10`);
+        if (!res.ok) throw new Error('Failed');
         const json = await res.json();
         setReportsByDevice(prev => ({ ...prev, [deviceId]: json.data ?? [] }));
       } catch {
+        setReportsError(true);
         setReportsByDevice(prev => ({ ...prev, [deviceId]: [] }));
       } finally {
         setReportsLoading(false);
       }
     }
   }, [data.gameId, reportsByDevice]);
+
+  const toggleReport = useCallback((id: string) => {
+    setExpandedReports(prev => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  }, []);
 
   const currentReports = reportsByDevice[selectedDeviceId] ?? [];
   const sortedReports = [...currentReports].sort((a, b) => {
@@ -321,6 +346,29 @@ function GameDetailPanelInner({ dataId, initialData }: { dataId?: string; initia
           </section>
         )}
 
+        {/* — Thermal, Fan, Confidence — */}
+        {cons && (cons.typical_thermal || cons.typical_fan_noise || cons.confidence_level) && (
+          <section className="gd-section">
+            <div className="gd-info-row">
+              {cons.typical_thermal && (
+                <div className={`gd-info-chip gd-thermal-${cons.typical_thermal}`}>
+                  {cons.typical_thermal === 'cool' ? '❄' : cons.typical_thermal === 'warm' ? '🌡' : '🔥'} {THERMAL_LABEL[cons.typical_thermal] ?? cons.typical_thermal}
+                </div>
+              )}
+              {cons.typical_fan_noise && (
+                <div className="gd-info-chip">
+                  {cons.typical_fan_noise === 'silent' ? '🔇' : cons.typical_fan_noise === 'quiet' ? '🔈' : cons.typical_fan_noise === 'audible' ? '🔉' : '🔊'} {FAN_LABEL[cons.typical_fan_noise] ?? cons.typical_fan_noise}
+                </div>
+              )}
+              {cons.confidence_level && (
+                <div className={`gd-info-chip ${CONFIDENCE_LABEL[cons.confidence_level]?.cls ?? ''}`}>
+                  {CONFIDENCE_LABEL[cons.confidence_level]?.text ?? cons.confidence_level} ({cons.report_count})
+                </div>
+              )}
+            </div>
+          </section>
+        )}
+
         {/* — Recommended Profile — */}
         {hasTDP && recommendedProfile && (
           <section className="gd-section">
@@ -386,6 +434,11 @@ function GameDetailPanelInner({ dataId, initialData }: { dataId?: string; initia
 
           {reportsLoading ? (
             <div className="gd-empty">Loading reports...</div>
+          ) : reportsError ? (
+            <div className="gd-empty">
+              <div className="gd-empty-title">Failed to load reports</div>
+              <div className="gd-empty-sub">Try refreshing the page</div>
+            </div>
           ) : sortedReports.length > 0 ? (
             <div className="gd-reports-grid">
               {sortedReports.map((r) => {
@@ -396,9 +449,10 @@ function GameDetailPanelInner({ dataId, initialData }: { dataId?: string; initia
                   r.resolution,
                 ].filter(Boolean).join(" · ");
                 const batStr = r.battery_life_hours ? `${r.battery_life_hours.toFixed(1)}h` : null;
+                const isExpanded = expandedReports.has(r.id);
 
                 return (
-                  <div key={r.id} className="gd-report-card">
+                  <div key={r.id} className={`gd-report-card ${isExpanded ? 'gd-report-expanded' : ''}`} onClick={() => toggleReport(r.id)} style={{ cursor: 'pointer' }}>
                     <div className="gd-report-header">
                       <div className="gd-report-user">
                         <div className="gd-report-avatar">{displayName.charAt(0).toUpperCase()}</div>
@@ -410,8 +464,27 @@ function GameDetailPanelInner({ dataId, initialData }: { dataId?: string; initia
                       <div className={`gd-report-fps ${fpsClass(r.fps_avg)}`}>{Math.round(r.fps_avg)}</div>
                     </div>
 
-                    {r.notes && (
+                    {isExpanded && (
+                      <div className="gd-report-details">
+                        <div className="gd-report-detail-grid">
+                          {r.preset && <div className="gd-report-detail"><span className="gd-report-detail-lbl">Preset</span><span>{PRESET_LABEL[r.preset] ?? r.preset}</span></div>}
+                          {r.resolution && <div className="gd-report-detail"><span className="gd-report-detail-lbl">Resolution</span><span>{r.resolution}</span></div>}
+                          {r.fsr_enabled && <div className="gd-report-detail"><span className="gd-report-detail-lbl">FSR</span><span>{r.fsr_mode ?? 'On'}</span></div>}
+                          {r.tdp_limit_watts != null && <div className="gd-report-detail"><span className="gd-report-detail-lbl">TDP</span><span>{r.tdp_limit_watts}W</span></div>}
+                          {r.battery_life_hours != null && <div className="gd-report-detail"><span className="gd-report-detail-lbl">Battery</span><span>{r.battery_life_hours.toFixed(1)}h</span></div>}
+                          {r.fps_low != null && <div className="gd-report-detail"><span className="gd-report-detail-lbl">1% Low</span><span>{Math.round(r.fps_low)} FPS</span></div>}
+                          {r.thermal && <div className="gd-report-detail"><span className="gd-report-detail-lbl">Thermal</span><span>{THERMAL_LABEL[r.thermal] ?? r.thermal}</span></div>}
+                          {r.fan_noise && <div className="gd-report-detail"><span className="gd-report-detail-lbl">Fan</span><span>{FAN_LABEL[r.fan_noise] ?? r.fan_noise}</span></div>}
+                          <div className="gd-report-detail"><span className="gd-report-detail-lbl">Rating</span><span>{VERDICT_LABEL[r.overall_rating] ?? r.overall_rating}</span></div>
+                        </div>
+                      </div>
+                    )}
+
+                    {!isExpanded && r.notes && (
                       <div className="gd-report-notes">{r.notes.length > 200 ? r.notes.slice(0, 200) + "..." : r.notes}</div>
+                    )}
+                    {isExpanded && r.notes && (
+                      <div className="gd-report-notes">{r.notes}</div>
                     )}
 
                     <div className="gd-report-footer">
