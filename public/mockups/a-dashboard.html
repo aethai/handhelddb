@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mockup A: Dashboard / Terminal — HandheldDB</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --bg: #0a0a0a; --raised: #111111; --elevated: #171717;
+    --accent: #D4FF00; --accent-muted: rgba(212,255,0,0.12);
+    --border: rgba(255,255,255,0.08); --border-subtle: rgba(255,255,255,0.04);
+    --text: #fafafa; --text-2: #a3a3a3; --text-3: #737373; --text-dim: #525252;
+    --font-h: 'Space Grotesk', sans-serif;
+    --font-b: 'Inter', sans-serif;
+    --font-m: 'JetBrains Mono', monospace;
+  }
+  body { background: var(--bg); color: var(--text); font-family: var(--font-b); }
+
+  /* ── HEADER ── */
+  .hdr { display: flex; align-items: center; height: 52px; max-width: 1120px; margin: 0 auto; padding: 0 24px; border-bottom: 1px solid var(--border); }
+  .hdr-logo { font-family: var(--font-h); font-weight: 700; font-size: 18px; text-transform: uppercase; color: var(--text); text-decoration: none; letter-spacing: -0.02em; }
+  .hdr-nav { display: flex; gap: 24px; margin-left: 32px; }
+  .hdr-nav a { font-size: 13px; color: var(--text-3); text-decoration: none; font-weight: 500; }
+  .hdr-nav a:hover { color: var(--text); }
+
+  /* ── HERO ── */
+  .hero { text-align: center; padding: 80px 24px 48px; max-width: 600px; margin: 0 auto; }
+  .hero-badge { display: inline-flex; align-items: center; gap: 8px; font-family: var(--font-m); font-size: 11px; color: var(--text-3); padding: 6px 14px; border: 1px solid var(--border); border-radius: 100px; margin-bottom: 24px; }
+  .hero-badge-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+  .hero h1 { font-family: var(--font-h); font-size: clamp(56px, 10vw, 96px); font-weight: 700; line-height: 0.9; letter-spacing: -0.04em; text-transform: uppercase; margin-bottom: 16px; }
+  .hero h1 span { color: var(--accent); }
+  .hero p { font-size: 16px; color: var(--text-3); margin-bottom: 32px; }
+  .hero-search { max-width: 480px; margin: 0 auto 20px; position: relative; }
+  .hero-search input { width: 100%; padding: 14px 20px; background: var(--raised); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-size: 15px; outline: none; }
+  .hero-search input::placeholder { color: var(--text-dim); }
+  .hero-search input:focus { border-color: var(--accent); }
+  .hero-hints { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; }
+  .hero-hints span { font-family: var(--font-m); font-size: 10px; color: var(--text-dim); letter-spacing: 0.08em; text-transform: uppercase; }
+  .hero-hints a { font-family: var(--font-m); font-size: 11px; color: var(--text-3); text-decoration: none; padding: 4px 10px; border: 1px solid var(--border-subtle); border-radius: 4px; }
+  .hero-hints a:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* ── CONTAINER ── */
+  .main { max-width: 1120px; margin: 0 auto; padding: 0 24px; }
+  .section { margin-bottom: 56px; }
+
+  /* ── SECTION HEADER ── */
+  .sh { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 16px; }
+  .sh-tag { font-family: var(--font-m); font-size: 10px; font-weight: 500; color: var(--accent); letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 4px; }
+  .sh-title { font-family: var(--font-h); font-size: 22px; font-weight: 700; letter-spacing: -0.02em; }
+  .sh-link { font-family: var(--font-m); font-size: 11px; color: var(--text-3); text-decoration: none; letter-spacing: 0.04em; text-transform: uppercase; }
+  .sh-link:hover { color: var(--accent); }
+
+  /* ── DEALS TABLE ── */
+  .deals-tbl { width: 100%; border-collapse: collapse; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+  .deals-tbl th { font-family: var(--font-m); font-size: 10px; font-weight: 600; color: var(--text-dim); letter-spacing: 0.1em; text-transform: uppercase; text-align: left; padding: 12px 16px; background: var(--raised); border-bottom: 1px solid var(--border); }
+  .deals-tbl td { font-size: 13px; padding: 12px 16px; border-bottom: 1px solid var(--border-subtle); }
+  .deals-tbl tr:last-child td { border-bottom: none; }
+  .deals-tbl tr:hover { background: var(--raised); }
+  .deals-tbl .game-name { font-weight: 600; color: var(--text); }
+  .deals-tbl .price-now { font-family: var(--font-m); font-weight: 700; color: #4ade80; }
+  .deals-tbl .price-was { font-family: var(--font-m); color: var(--text-dim); text-decoration: line-through; font-size: 12px; }
+  .deals-tbl .discount { font-family: var(--font-m); font-weight: 800; color: #22c55e; }
+  .deals-tbl .store { font-family: var(--font-m); font-size: 11px; color: var(--text-3); }
+  .deals-tbl .badge-low { font-family: var(--font-m); font-size: 9px; font-weight: 700; color: #facc15; background: rgba(250,204,21,0.12); padding: 2px 6px; border-radius: 3px; margin-left: 8px; letter-spacing: 0.06em; }
+
+  /* ── DEVICE CHIPS ── */
+  .device-chips { display: flex; gap: 8px; flex-wrap: wrap; padding: 16px 0; }
+  .device-chip { display: flex; align-items: center; gap: 10px; padding: 10px 16px; border: 1px solid var(--border); border-radius: 8px; text-decoration: none; transition: all 0.15s; cursor: pointer; }
+  .device-chip:hover { border-color: var(--accent); background: var(--accent-muted); }
+  .device-chip-name { font-family: var(--font-h); font-size: 14px; font-weight: 600; color: var(--text); }
+  .device-chip-count { font-family: var(--font-m); font-size: 11px; color: var(--text-dim); }
+  .device-chip-mfr { font-family: var(--font-m); font-size: 9px; color: var(--accent); letter-spacing: 0.08em; text-transform: uppercase; }
+
+  /* ── TOP GAMES TABLE ── */
+  .games-tbl { width: 100%; border-collapse: collapse; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+  .games-tbl th { font-family: var(--font-m); font-size: 10px; font-weight: 600; color: var(--text-dim); letter-spacing: 0.1em; text-transform: uppercase; text-align: left; padding: 12px 16px; background: var(--raised); border-bottom: 1px solid var(--border); }
+  .games-tbl td { font-size: 13px; padding: 12px 16px; border-bottom: 1px solid var(--border-subtle); }
+  .games-tbl tr:last-child td { border-bottom: none; }
+  .games-tbl tr:hover { background: var(--raised); }
+  .games-tbl .rank { font-family: var(--font-m); font-weight: 700; color: var(--text-dim); width: 40px; }
+  .games-tbl .g-name { font-weight: 600; }
+  .fps { font-family: var(--font-m); font-weight: 700; }
+  .fps-unit { font-size: 0.65em; font-weight: 500; opacity: 0.6; }
+  .verdict { font-family: var(--font-m); font-size: 11px; font-weight: 600; letter-spacing: 0.02em; }
+  .bat { font-family: var(--font-m); font-size: 12px; color: var(--text-3); }
+  .preset { font-family: var(--font-m); font-size: 11px; color: var(--text-dim); text-transform: capitalize; }
+
+  /* ── CURATOR PICKS ── */
+  .picks-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .pick-card { padding: 16px; border: 1px solid var(--border); border-radius: 10px; transition: border-color 0.15s; }
+  .pick-card:hover { border-color: var(--accent); }
+  .pick-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+  .pick-name { font-family: var(--font-h); font-size: 15px; font-weight: 700; }
+  .pick-verdict { font-family: var(--font-m); font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 4px; letter-spacing: 0.06em; }
+  .pick-verdict-buy { background: rgba(74,222,128,0.15); color: #4ade80; }
+  .pick-verdict-wait { background: rgba(250,204,21,0.15); color: #facc15; }
+  .pick-verdict-skip { background: rgba(239,68,68,0.15); color: #ef4444; }
+  .pick-score { font-family: var(--font-m); font-size: 22px; font-weight: 800; color: var(--text); margin-bottom: 8px; }
+  .pick-score span { font-size: 12px; color: var(--text-dim); font-weight: 500; }
+  .pick-meta { font-family: var(--font-m); font-size: 11px; color: var(--text-3); margin-bottom: 8px; }
+  .pick-note { font-size: 12px; color: var(--text-3); line-height: 1.5; }
+
+  /* ── ACTIVITY LOG ── */
+  .activity { border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+  .activity-row { display: flex; align-items: center; gap: 12px; padding: 10px 16px; border-bottom: 1px solid var(--border-subtle); font-size: 12px; }
+  .activity-row:last-child { border-bottom: none; }
+  .activity-game { font-weight: 600; color: var(--text); }
+  .activity-device { font-family: var(--font-m); font-size: 10px; color: var(--text-dim); }
+  .activity-time { font-family: var(--font-m); font-size: 10px; color: var(--text-dim); margin-left: auto; }
+
+  /* ── CTA + STATS ── */
+  .bottom { display: flex; align-items: center; justify-content: space-between; padding: 24px 32px; border: 1px solid var(--border); border-radius: 12px; margin-bottom: 48px; position: relative; }
+  .bottom::before { content: ''; position: absolute; top: 0; left: 0; bottom: 0; width: 3px; background: var(--accent); border-radius: 12px 0 0 12px; }
+  .bottom-left h3 { font-family: var(--font-h); font-size: 16px; font-weight: 700; margin-bottom: 4px; }
+  .bottom-left p { font-size: 13px; color: var(--text-3); }
+  .bottom-right { display: flex; align-items: center; gap: 32px; }
+  .stat { text-align: center; }
+  .stat-val { display: block; font-family: var(--font-m); font-weight: 700; font-size: 24px; }
+  .stat-lbl { font-family: var(--font-m); font-size: 9px; color: var(--text-dim); letter-spacing: 0.1em; text-transform: uppercase; }
+  .btn-primary { display: inline-block; padding: 10px 24px; background: var(--accent); color: #0a0a0a; font-family: var(--font-m); font-size: 12px; font-weight: 700; letter-spacing: 0.06em; text-decoration: none; border-radius: 6px; text-transform: uppercase; }
+
+  /* ── LABEL ── */
+  .mockup-label { position: fixed; top: 12px; right: 12px; background: var(--accent); color: #0a0a0a; font-family: var(--font-m); font-size: 11px; font-weight: 700; padding: 6px 12px; border-radius: 6px; z-index: 100; letter-spacing: 0.04em; }
+
+  @media (max-width: 768px) {
+    .picks-grid { grid-template-columns: 1fr; }
+    .bottom { flex-direction: column; gap: 20px; text-align: center; }
+    .bottom::before { width: 100%; height: 3px; bottom: auto; left: 0; right: 0; }
+  }
+</style>
+</head>
+<body>
+<div class="mockup-label">A: DASHBOARD / TERMINAL</div>
+
+<!-- HEADER -->
+<header class="hdr">
+  <a href="#" class="hdr-logo">HDB</a>
+  <nav class="hdr-nav">
+    <a href="#">Games</a>
+    <a href="#">Devices</a>
+    <a href="#">Discover</a>
+    <a href="#">Compare</a>
+    <a href="#">News</a>
+  </nav>
+</header>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-badge">
+    <span class="hero-badge-dot"></span>
+    <span>6,220 games tracked</span>
+  </div>
+  <h1>DOES IT<br><span>RUN?</span></h1>
+  <p>Performance data for every handheld. Community-powered.</p>
+  <div class="hero-search">
+    <input type="text" placeholder="Search games...">
+  </div>
+  <div class="hero-hints">
+    <span>Popular:</span>
+    <a href="#">Elden Ring</a>
+    <a href="#">Cyberpunk 2077</a>
+    <a href="#">Baldur's Gate 3</a>
+  </div>
+</section>
+
+<div class="main">
+
+  <!-- DEALS -->
+  <section class="section">
+    <div class="sh">
+      <div>
+        <p class="sh-tag">SAVE BIG</p>
+        <h2 class="sh-title">Hot Deals</h2>
+      </div>
+    </div>
+    <table class="deals-tbl">
+      <thead>
+        <tr><th>Game</th><th>Price</th><th>Was</th><th>Discount</th><th>Store</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="game-name">Cyberpunk 2077</span><span class="badge-low">LOWEST EVER</span></td>
+          <td><span class="price-now">$14.99</span></td>
+          <td><span class="price-was">$59.99</span></td>
+          <td><span class="discount">-75%</span></td>
+          <td><span class="store">GOG</span></td>
+        </tr>
+        <tr>
+          <td><span class="game-name">Elden Ring</span></td>
+          <td><span class="price-now">$23.99</span></td>
+          <td><span class="price-was">$59.99</span></td>
+          <td><span class="discount">-60%</span></td>
+          <td><span class="store">Steam</span></td>
+        </tr>
+        <tr>
+          <td><span class="game-name">Hades II</span><span class="badge-low">LOWEST EVER</span></td>
+          <td><span class="price-now">$11.99</span></td>
+          <td><span class="price-was">$29.99</span></td>
+          <td><span class="discount">-60%</span></td>
+          <td><span class="store">Steam</span></td>
+        </tr>
+        <tr>
+          <td><span class="game-name">Stardew Valley</span></td>
+          <td><span class="price-now">$7.49</span></td>
+          <td><span class="price-was">$14.99</span></td>
+          <td><span class="discount">-50%</span></td>
+          <td><span class="store">Steam</span></td>
+        </tr>
+        <tr>
+          <td><span class="game-name">Baldur's Gate 3</span></td>
+          <td><span class="price-now">$35.99</span></td>
+          <td><span class="price-was">$59.99</span></td>
+          <td><span class="discount">-40%</span></td>
+          <td><span class="store">Steam</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- DEVICES -->
+  <section class="section">
+    <div class="sh">
+      <div>
+        <p class="sh-tag">PICK YOUR HANDHELD</p>
+        <h2 class="sh-title">Your Device</h2>
+      </div>
+      <a href="#" class="sh-link">All devices &rarr;</a>
+    </div>
+    <div class="device-chips">
+      <a class="device-chip">
+        <div>
+          <div class="device-chip-mfr">Valve</div>
+          <div class="device-chip-name">Steam Deck</div>
+        </div>
+        <div class="device-chip-count">138 games</div>
+      </a>
+      <a class="device-chip">
+        <div>
+          <div class="device-chip-mfr">ASUS</div>
+          <div class="device-chip-name">ROG Ally</div>
+        </div>
+        <div class="device-chip-count">31 games</div>
+      </a>
+      <a class="device-chip">
+        <div>
+          <div class="device-chip-mfr">Lenovo</div>
+          <div class="device-chip-name">Legion Go S</div>
+        </div>
+        <div class="device-chip-count">15 games</div>
+      </a>
+      <a class="device-chip">
+        <div>
+          <div class="device-chip-mfr">Lenovo</div>
+          <div class="device-chip-name">Legion Go</div>
+        </div>
+        <div class="device-chip-count">12 games</div>
+      </a>
+      <a class="device-chip">
+        <div>
+          <div class="device-chip-mfr">ASUS</div>
+          <div class="device-chip-name">ROG Ally X</div>
+        </div>
+        <div class="device-chip-count">3 games</div>
+      </a>
+    </div>
+  </section>
+
+  <!-- TOP GAMES -->
+  <section class="section">
+    <div class="sh">
+      <div>
+        <p class="sh-tag">PERFORMANCE DATA</p>
+        <h2 class="sh-title">Top Games &middot; Steam Deck</h2>
+      </div>
+      <a href="#" class="sh-link">All games &rarr;</a>
+    </div>
+    <table class="games-tbl">
+      <thead>
+        <tr><th>#</th><th>Game</th><th>FPS</th><th>Verdict</th><th>Battery</th><th>Preset</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="rank">01</td>
+          <td class="g-name">Disco Elysium - The Final Cut</td>
+          <td><span class="fps" style="color:#4ade80">138<span class="fps-unit">fps</span></span></td>
+          <td><span class="verdict" style="color:#4ade80">Excellent</span></td>
+          <td class="bat">4.2h</td>
+          <td class="preset">High</td>
+        </tr>
+        <tr>
+          <td class="rank">02</td>
+          <td class="g-name">Hades</td>
+          <td><span class="fps" style="color:#4ade80">98<span class="fps-unit">fps</span></span></td>
+          <td><span class="verdict" style="color:#4ade80">Excellent</span></td>
+          <td class="bat">3.8h</td>
+          <td class="preset">Ultra</td>
+        </tr>
+        <tr>
+          <td class="rank">03</td>
+          <td class="g-name">Stardew Valley</td>
+          <td><span class="fps" style="color:#4ade80">144<span class="fps-unit">fps</span></span></td>
+          <td><span class="verdict" style="color:#4ade80">Excellent</span></td>
+          <td class="bat">5.1h</td>
+          <td class="preset">Ultra</td>
+        </tr>
+        <tr>
+          <td class="rank">04</td>
+          <td class="g-name">Elden Ring</td>
+          <td><span class="fps" style="color:#facc15">38<span class="fps-unit">fps</span></span></td>
+          <td><span class="verdict" style="color:#a3e635">Good</span></td>
+          <td class="bat">2.1h</td>
+          <td class="preset">Medium</td>
+        </tr>
+        <tr>
+          <td class="rank">05</td>
+          <td class="g-name">Cyberpunk 2077</td>
+          <td><span class="fps" style="color:#facc15">33<span class="fps-unit">fps</span></span></td>
+          <td><span class="verdict" style="color:#facc15">Fair</span></td>
+          <td class="bat">1.8h</td>
+          <td class="preset">Low</td>
+        </tr>
+        <tr>
+          <td class="rank">06</td>
+          <td class="g-name">Baldur's Gate 3</td>
+          <td><span class="fps" style="color:#a3e635">42<span class="fps-unit">fps</span></span></td>
+          <td><span class="verdict" style="color:#a3e635">Good</span></td>
+          <td class="bat">2.4h</td>
+          <td class="preset">Medium</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- CURATOR PICKS -->
+  <section class="section">
+    <div class="sh">
+      <div>
+        <p class="sh-tag">HAND-TESTED</p>
+        <h2 class="sh-title">Curator Picks &middot; Week 11</h2>
+      </div>
+      <a href="#" class="sh-link">All picks &rarr;</a>
+    </div>
+    <div class="picks-grid">
+      <div class="pick-card">
+        <div class="pick-head">
+          <span class="pick-name">Hades II</span>
+          <span class="pick-verdict pick-verdict-buy">BUY</span>
+        </div>
+        <div class="pick-score">92<span>/100</span></div>
+        <div class="pick-meta">Steam Deck &middot; 60fps &middot; 3.2h battery</div>
+        <p class="pick-note">Supergiant delivers again. Runs flawlessly at locked 60fps on Deck with medium settings and FSR on.</p>
+      </div>
+      <div class="pick-card">
+        <div class="pick-head">
+          <span class="pick-name">Balatro</span>
+          <span class="pick-verdict pick-verdict-buy">BUY</span>
+        </div>
+        <div class="pick-score">88<span>/100</span></div>
+        <div class="pick-meta">Steam Deck &middot; 120fps &middot; 5.1h battery</div>
+        <p class="pick-note">The perfect handheld roguelike. Light on resources, heavy on addiction. Battery lasts forever.</p>
+      </div>
+      <div class="pick-card">
+        <div class="pick-head">
+          <span class="pick-name">Celeste</span>
+          <span class="pick-verdict pick-verdict-buy">BUY</span>
+        </div>
+        <div class="pick-score">95<span>/100</span></div>
+        <div class="pick-meta">ROG Ally &middot; 60fps &middot; 4.8h battery</div>
+        <p class="pick-note">Precision platforming at its finest. D-pad controls are tight and battery impact is minimal.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- LIVE ACTIVITY -->
+  <section class="section">
+    <div class="sh">
+      <div>
+        <p class="sh-tag">LIVE</p>
+        <h2 class="sh-title">Activity</h2>
+      </div>
+    </div>
+    <div class="activity">
+      <div class="activity-row">
+        <span class="fps" style="color:#facc15">38<span class="fps-unit">fps</span></span>
+        <span class="activity-game">Elden Ring</span>
+        <span class="activity-device">Steam Deck</span>
+        <span class="activity-time">2m ago</span>
+      </div>
+      <div class="activity-row">
+        <span class="fps" style="color:#4ade80">60<span class="fps-unit">fps</span></span>
+        <span class="activity-game">Hades II</span>
+        <span class="activity-device">ROG Ally</span>
+        <span class="activity-time">5m ago</span>
+      </div>
+      <div class="activity-row">
+        <span class="fps" style="color:#a3e635">42<span class="fps-unit">fps</span></span>
+        <span class="activity-game">Baldur's Gate 3</span>
+        <span class="activity-device">Legion Go</span>
+        <span class="activity-time">8m ago</span>
+      </div>
+      <div class="activity-row">
+        <span class="fps" style="color:#4ade80">144<span class="fps-unit">fps</span></span>
+        <span class="activity-game">Stardew Valley</span>
+        <span class="activity-device">Steam Deck</span>
+        <span class="activity-time">12m ago</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- BOTTOM -->
+  <div class="bottom">
+    <div class="bottom-left">
+      <h3>The database grows with every report.</h3>
+      <p>2 minutes. No account. Help someone pick their next game.</p>
+    </div>
+    <div class="bottom-right">
+      <div class="stat"><span class="stat-val">6,220</span><span class="stat-lbl">Games</span></div>
+      <div class="stat"><span class="stat-val">5,514</span><span class="stat-lbl">Deck Compatible</span></div>
+      <div class="stat"><span class="stat-val">6</span><span class="stat-lbl">Devices</span></div>
+      <a href="#" class="btn-primary">SUBMIT A REPORT</a>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mockup C: Gaming Magazine — HandheldDB</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --bg: #0a0a0a; --raised: #111111; --elevated: #171717;
+    --accent: #D4FF00; --accent-muted: rgba(212,255,0,0.12);
+    --border: rgba(255,255,255,0.08); --border-subtle: rgba(255,255,255,0.04);
+    --text: #fafafa; --text-2: #a3a3a3; --text-3: #737373; --text-dim: #525252;
+    --font-h: 'Space Grotesk', sans-serif;
+    --font-b: 'Inter', sans-serif;
+    --font-m: 'JetBrains Mono', monospace;
+  }
+  body { background: var(--bg); color: var(--text); font-family: var(--font-b); }
+
+  /* ── LABEL ── */
+  .mockup-label { position: fixed; top: 12px; right: 12px; background: var(--accent); color: #0a0a0a; font-family: var(--font-m); font-size: 11px; font-weight: 700; padding: 6px 12px; border-radius: 6px; z-index: 100; letter-spacing: 0.04em; }
+
+  /* ── HEADER ── */
+  .hdr { display: flex; align-items: center; height: 52px; max-width: 1120px; margin: 0 auto; padding: 0 24px; border-bottom: 1px solid var(--border); }
+  .hdr-logo { font-family: var(--font-h); font-weight: 700; font-size: 18px; text-transform: uppercase; color: var(--text); text-decoration: none; letter-spacing: -0.02em; }
+  .hdr-nav { display: flex; gap: 24px; margin-left: 32px; }
+  .hdr-nav a { font-size: 13px; color: var(--text-3); text-decoration: none; font-weight: 500; }
+  .hdr-nav a:hover { color: var(--text); }
+
+  /* ── HERO ── */
+  .hero { text-align: center; padding: 80px 24px 48px; max-width: 600px; margin: 0 auto; }
+  .hero-badge { display: inline-flex; align-items: center; gap: 8px; font-family: var(--font-m); font-size: 11px; color: var(--text-3); padding: 6px 14px; border: 1px solid var(--border); border-radius: 100px; margin-bottom: 24px; }
+  .hero-badge-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+  .hero h1 { font-family: var(--font-h); font-size: clamp(56px, 10vw, 96px); font-weight: 700; line-height: 0.9; letter-spacing: -0.04em; text-transform: uppercase; margin-bottom: 16px; }
+  .hero h1 span { color: var(--accent); }
+  .hero p { font-size: 16px; color: var(--text-3); margin-bottom: 32px; }
+  .hero-search { max-width: 480px; margin: 0 auto 20px; position: relative; }
+  .hero-search input { width: 100%; padding: 14px 20px; background: var(--raised); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-size: 15px; outline: none; }
+  .hero-search input::placeholder { color: var(--text-dim); }
+  .hero-search input:focus { border-color: var(--accent); }
+  .hero-hints { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; }
+  .hero-hints span { font-family: var(--font-m); font-size: 10px; color: var(--text-dim); letter-spacing: 0.08em; text-transform: uppercase; }
+  .hero-hints a { font-family: var(--font-m); font-size: 11px; color: var(--text-3); text-decoration: none; padding: 4px 10px; border: 1px solid var(--border-subtle); border-radius: 4px; }
+  .hero-hints a:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* ── CONTAINER ── */
+  .main { max-width: 1120px; margin: 0 auto; padding: 0 24px; }
+  .section { margin-bottom: 56px; }
+
+  /* ── SECTION HEADER ── */
+  .sh { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 16px; }
+  .sh-tag { font-family: var(--font-m); font-size: 10px; font-weight: 500; color: var(--accent); letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 4px; }
+  .sh-title { font-family: var(--font-h); font-size: 22px; font-weight: 700; letter-spacing: -0.02em; }
+  .sh-link { font-family: var(--font-m); font-size: 11px; color: var(--text-3); text-decoration: none; letter-spacing: 0.04em; text-transform: uppercase; }
+  .sh-link:hover { color: var(--accent); }
+
+  /* ── MAGAZINE HERO CARD ── */
+  .mag-hero {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 2.5 / 1;
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 12px;
+  }
+  .mag-hero img {
+    width: 100%; height: 100%; object-fit: cover;
+    display: block;
+  }
+  .mag-hero-overlay {
+    position: absolute; inset: 0;
+    background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.4) 40%, rgba(0,0,0,0.1) 100%);
+    display: flex; flex-direction: column; justify-content: flex-end;
+    padding: 32px 36px;
+  }
+  .mag-tag {
+    font-family: var(--font-m); font-size: 10px; font-weight: 700;
+    color: #0a0a0a; background: var(--accent);
+    padding: 4px 10px; border-radius: 4px;
+    display: inline-block; width: fit-content;
+    letter-spacing: 0.08em; text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+  .mag-hero-title {
+    font-family: var(--font-h); font-size: 36px; font-weight: 800;
+    letter-spacing: -0.03em; text-transform: uppercase;
+    line-height: 1; margin-bottom: 8px;
+  }
+  .mag-hero-sub {
+    font-family: var(--font-m); font-size: 14px; font-weight: 700;
+    color: #4ade80; margin-bottom: 6px;
+  }
+  .mag-hero-meta {
+    font-family: var(--font-m); font-size: 12px; color: var(--text-3);
+  }
+
+  /* ── DEAL PAIR ── */
+  .deal-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .deal-card {
+    position: relative; border-radius: 10px; overflow: hidden;
+    aspect-ratio: 2.2 / 1;
+  }
+  .deal-card img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .deal-card-overlay {
+    position: absolute; inset: 0;
+    background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.3) 60%, rgba(0,0,0,0.05) 100%);
+    display: flex; flex-direction: column; justify-content: flex-end;
+    padding: 20px 22px;
+  }
+  .deal-card-title {
+    font-family: var(--font-h); font-size: 20px; font-weight: 700;
+    letter-spacing: -0.02em; text-transform: uppercase;
+    line-height: 1.1; margin-bottom: 4px;
+  }
+  .deal-card-price {
+    font-family: var(--font-m); font-size: 13px; font-weight: 700; color: #4ade80;
+  }
+
+  /* ── EDITOR PICKS FEATURE ── */
+  .pick-hero {
+    position: relative; width: 100%; aspect-ratio: 2.5 / 1;
+    border-radius: 12px; overflow: hidden; margin-bottom: 12px;
+  }
+  .pick-hero img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .pick-hero-overlay {
+    position: absolute; inset: 0;
+    background: linear-gradient(to top, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.35) 50%, rgba(0,0,0,0.05) 100%);
+    display: flex; flex-direction: column; justify-content: flex-end;
+    padding: 32px 36px;
+  }
+  .pick-hero-head {
+    display: flex; align-items: center; gap: 14px; margin-bottom: 8px;
+  }
+  .pick-hero-title {
+    font-family: var(--font-h); font-size: 32px; font-weight: 800;
+    letter-spacing: -0.03em; text-transform: uppercase; line-height: 1;
+  }
+  .pick-badge {
+    font-family: var(--font-m); font-size: 10px; font-weight: 700;
+    padding: 4px 10px; border-radius: 4px;
+    letter-spacing: 0.06em; text-transform: uppercase;
+  }
+  .pick-badge-buy { background: rgba(74,222,128,0.15); color: #4ade80; }
+  .pick-score-big {
+    font-family: var(--font-m); font-size: 28px; font-weight: 800;
+    color: var(--accent);
+  }
+  .pick-score-big small { font-size: 14px; color: var(--text-3); font-weight: 500; }
+  .pick-quote {
+    font-family: var(--font-b); font-size: 15px; color: var(--text-2);
+    font-style: italic; line-height: 1.5;
+    border-left: 3px solid var(--accent); padding-left: 16px;
+    margin: 12px 0 8px;
+  }
+  .pick-perf {
+    font-family: var(--font-m); font-size: 12px; color: var(--text-3);
+  }
+
+  /* ── HORIZONTAL PICK CARDS ── */
+  .pick-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .pick-hcard {
+    display: flex; border: 1px solid var(--border); border-radius: 10px;
+    overflow: hidden; transition: border-color 0.15s;
+  }
+  .pick-hcard:hover { border-color: var(--accent); }
+  .pick-hcard-img {
+    width: 40%; min-height: 140px; overflow: hidden; flex-shrink: 0;
+  }
+  .pick-hcard-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .pick-hcard-body {
+    padding: 18px 20px; display: flex; flex-direction: column; justify-content: center;
+  }
+  .pick-hcard-head {
+    display: flex; align-items: center; gap: 10px; margin-bottom: 6px;
+  }
+  .pick-hcard-name {
+    font-family: var(--font-h); font-size: 17px; font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+  .pick-hcard-score {
+    font-family: var(--font-m); font-size: 18px; font-weight: 800;
+    color: var(--accent); margin-bottom: 6px;
+  }
+  .pick-hcard-score small { font-size: 11px; color: var(--text-3); font-weight: 500; }
+  .pick-hcard-note {
+    font-size: 12px; color: var(--text-3); line-height: 1.5;
+  }
+  .pick-hcard-perf {
+    font-family: var(--font-m); font-size: 11px; color: var(--text-dim); margin-top: 6px;
+  }
+
+  /* ── DEVICE CHIPS ── */
+  .device-scroll {
+    display: flex; gap: 10px; overflow-x: auto; padding: 8px 0 12px;
+    scrollbar-width: thin; scrollbar-color: var(--elevated) transparent;
+  }
+  .device-scroll::-webkit-scrollbar { height: 4px; }
+  .device-scroll::-webkit-scrollbar-track { background: transparent; }
+  .device-scroll::-webkit-scrollbar-thumb { background: var(--elevated); border-radius: 4px; }
+  .device-pill {
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 18px; border: 1px solid var(--border); border-radius: 8px;
+    white-space: nowrap; flex-shrink: 0;
+    transition: all 0.15s; cursor: pointer; text-decoration: none;
+  }
+  .device-pill:hover { border-color: var(--accent); background: var(--accent-muted); }
+  .device-pill-mfr { font-family: var(--font-m); font-size: 9px; color: var(--accent); letter-spacing: 0.08em; text-transform: uppercase; }
+  .device-pill-name { font-family: var(--font-h); font-size: 14px; font-weight: 600; color: var(--text); }
+  .device-pill-count { font-family: var(--font-m); font-size: 11px; color: var(--text-dim); }
+
+  /* ── NEWS GRID ── */
+  .news-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .news-card {
+    border: 1px solid var(--border); border-radius: 10px; overflow: hidden;
+    transition: border-color 0.15s;
+  }
+  .news-card:hover { border-color: var(--accent); }
+  .news-card-img {
+    position: relative; aspect-ratio: 16 / 9; overflow: hidden;
+    background: linear-gradient(135deg, var(--elevated) 0%, #1a1a2e 50%, var(--elevated) 100%);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .news-card-img-text {
+    font-family: var(--font-h); font-size: 14px; font-weight: 600;
+    color: var(--text-dim); text-align: center; padding: 20px;
+    text-transform: uppercase; letter-spacing: 0.02em; line-height: 1.4;
+  }
+  .news-badge {
+    position: absolute; top: 12px; left: 12px;
+    font-family: var(--font-m); font-size: 9px; font-weight: 700;
+    padding: 4px 8px; border-radius: 4px;
+    letter-spacing: 0.08em; text-transform: uppercase;
+  }
+  .news-badge-editorial { background: rgba(212,255,0,0.15); color: var(--accent); }
+  .news-badge-update { background: rgba(96,165,250,0.15); color: #60a5fa; }
+  .news-card-body { padding: 16px 18px; }
+  .news-card-title {
+    font-family: var(--font-h); font-size: 16px; font-weight: 700;
+    letter-spacing: -0.01em; line-height: 1.3; margin-bottom: 8px;
+  }
+  .news-card-date {
+    font-family: var(--font-m); font-size: 11px; color: var(--text-dim);
+  }
+
+  /* ── CTA + STATS ── */
+  .bottom {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 28px 36px; border: 1px solid var(--border); border-radius: 12px;
+    margin-bottom: 48px; position: relative;
+  }
+  .bottom::before {
+    content: ''; position: absolute; top: 0; left: 0; bottom: 0; width: 4px;
+    background: var(--accent); border-radius: 12px 0 0 12px;
+  }
+  .bottom-left h3 {
+    font-family: var(--font-h); font-size: 20px; font-weight: 800;
+    letter-spacing: -0.02em; margin-bottom: 4px;
+  }
+  .bottom-left p { font-size: 14px; color: var(--text-3); }
+  .bottom-right { display: flex; align-items: center; gap: 32px; }
+  .stat { text-align: center; }
+  .stat-val { display: block; font-family: var(--font-m); font-weight: 700; font-size: 24px; }
+  .stat-lbl { font-family: var(--font-m); font-size: 9px; color: var(--text-dim); letter-spacing: 0.1em; text-transform: uppercase; }
+  .btn-primary {
+    display: inline-block; padding: 12px 28px;
+    background: var(--accent); color: #0a0a0a;
+    font-family: var(--font-m); font-size: 12px; font-weight: 700;
+    letter-spacing: 0.06em; text-decoration: none; border-radius: 6px;
+    text-transform: uppercase;
+  }
+
+  @media (max-width: 768px) {
+    .deal-pair { grid-template-columns: 1fr; }
+    .pick-row { grid-template-columns: 1fr; }
+    .news-grid { grid-template-columns: 1fr; }
+    .pick-hcard { flex-direction: column; }
+    .pick-hcard-img { width: 100%; min-height: 160px; }
+    .mag-hero-title { font-size: 24px; }
+    .pick-hero-title { font-size: 22px; }
+    .bottom { flex-direction: column; gap: 20px; text-align: center; }
+    .bottom::before { width: 100%; height: 4px; bottom: auto; left: 0; right: 0; }
+  }
+</style>
+</head>
+<body>
+<div class="mockup-label">C: GAMING MAGAZINE</div>
+
+<!-- HEADER -->
+<header class="hdr">
+  <a href="#" class="hdr-logo">HDB</a>
+  <nav class="hdr-nav">
+    <a href="#">Games</a>
+    <a href="#">Devices</a>
+    <a href="#">Discover</a>
+    <a href="#">Compare</a>
+    <a href="#">News</a>
+  </nav>
+</header>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-badge">
+    <span class="hero-badge-dot"></span>
+    <span>6,220 games tracked</span>
+  </div>
+  <h1>DOES IT<br><span>RUN?</span></h1>
+  <p>Performance data for every handheld. Community-powered.</p>
+  <div class="hero-search">
+    <input type="text" placeholder="Search games...">
+  </div>
+  <div class="hero-hints">
+    <span>Popular:</span>
+    <a href="#">Elden Ring</a>
+    <a href="#">Cyberpunk 2077</a>
+    <a href="#">Baldur's Gate 3</a>
+  </div>
+</section>
+
+<div class="main">
+
+  <!-- HOT DEALS — MAGAZINE HERO -->
+  <section class="section">
+    <div class="sh">
+      <div>
+        <p class="sh-tag">SAVE BIG</p>
+        <h2 class="sh-title">Hot Deals</h2>
+      </div>
+      <a href="#" class="sh-link">All deals &rarr;</a>
+    </div>
+
+    <!-- Featured deal — full-width hero -->
+    <div class="mag-hero">
+      <img src="https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/1091500/header.jpg" alt="Cyberpunk 2077">
+      <div class="mag-hero-overlay">
+        <span class="mag-tag">SAVE BIG</span>
+        <h3 class="mag-hero-title">CYBERPUNK 2077</h3>
+        <div class="mag-hero-sub">-75% &middot; $14.99 &middot; LOWEST EVER</div>
+        <div class="mag-hero-meta">Steam Deck: 33fps Good &middot; 1.8h battery</div>
+      </div>
+    </div>
+
+    <!-- Two side-by-side deal cards -->
+    <div class="deal-pair">
+      <div class="deal-card">
+        <img src="https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/1245620/header.jpg" alt="Elden Ring">
+        <div class="deal-card-overlay">
+          <span class="mag-tag" style="margin-bottom:6px">DEAL</span>
+          <h4 class="deal-card-title">Elden Ring</h4>
+          <div class="deal-card-price">-60% &middot; $23.99</div>
+        </div>
+      </div>
+      <div class="deal-card">
+        <img src="https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/413150/header.jpg" alt="Stardew Valley">
+        <div class="deal-card-overlay">
+          <span class="mag-tag" style="margin-bottom:6px">DEAL</span>
+          <h4 class="deal-card-title">Stardew Valley</h4>
+          <div class="deal-card-price">-50% &middot; $7.49</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- EDITOR'S PICKS — MAGAZINE FEATURE -->
+  <section class="section">
+    <div class="sh">
+      <div>
+        <p class="sh-tag">HAND-TESTED</p>
+        <h2 class="sh-title">Editor's Picks &middot; Week 11</h2>
+      </div>
+      <a href="#" class="sh-link">All picks &rarr;</a>
+    </div>
+
+    <!-- Featured pick — full-width hero -->
+    <div class="pick-hero">
+      <img src="https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/1145350/header.jpg" alt="Hades II">
+      <div class="pick-hero-overlay">
+        <div class="pick-hero-head">
+          <h3 class="pick-hero-title">Hades II</h3>
+          <span class="pick-badge pick-badge-buy">BUY</span>
+          <span class="pick-score-big">92<small>/100</small></span>
+        </div>
+        <blockquote class="pick-quote">Supergiant delivers again. Runs flawlessly at locked 60fps on Deck with medium settings and FSR on.</blockquote>
+        <div class="pick-perf">SD: 60fps 3.2h &middot; Ally: 60fps 2.8h</div>
+      </div>
+    </div>
+
+    <!-- Two horizontal pick cards -->
+    <div class="pick-row">
+      <div class="pick-hcard">
+        <div class="pick-hcard-img">
+          <img src="https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/2379780/header.jpg" alt="Balatro">
+        </div>
+        <div class="pick-hcard-body">
+          <div class="pick-hcard-head">
+            <span class="pick-hcard-name">Balatro</span>
+            <span class="pick-badge pick-badge-buy">BUY</span>
+          </div>
+          <div class="pick-hcard-score">88<small>/100</small></div>
+          <p class="pick-hcard-note">The perfect handheld roguelike. Light on resources, heavy on addiction. Battery lasts forever.</p>
+          <div class="pick-hcard-perf">SD: 120fps 5.1h &middot; Ally: 120fps 4.6h</div>
+        </div>
+      </div>
+      <div class="pick-hcard">
+        <div class="pick-hcard-img">
+          <img src="https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/504230/header.jpg" alt="Celeste">
+        </div>
+        <div class="pick-hcard-body">
+          <div class="pick-hcard-head">
+            <span class="pick-hcard-name">Celeste</span>
+            <span class="pick-badge pick-badge-buy">BUY</span>
+          </div>
+          <div class="pick-hcard-score">95<small>/100</small></div>
+          <p class="pick-hcard-note">Precision platforming at its finest. D-pad controls are tight and battery impact is minimal.</p>
+          <div class="pick-hcard-perf">Ally: 60fps 4.8h &middot; SD: 60fps 5.2h</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- YOUR HANDHELD — COMPACT HORIZONTAL SCROLL -->
+  <section class="section">
+    <div class="sh">
+      <div>
+        <p class="sh-tag">PICK YOUR HANDHELD</p>
+        <h2 class="sh-title">Your Device</h2>
+      </div>
+      <a href="#" class="sh-link">All devices &rarr;</a>
+    </div>
+    <div class="device-scroll">
+      <a class="device-pill">
+        <div>
+          <div class="device-pill-mfr">Valve</div>
+          <div class="device-pill-name">Steam Deck</div>
+        </div>
+        <div class="device-pill-count">138 games</div>
+      </a>
+      <a class="device-pill">
+        <div>
+          <div class="device-pill-mfr">ASUS</div>
+          <div class="device-pill-name">ROG Ally</div>
+        </div>
+        <div class="device-pill-count">31 games</div>
+      </a>
+      <a class="device-pill">
+        <div>
+          <div class="device-pill-mfr">Lenovo</div>
+          <div class="device-pill-name">Legion Go S</div>
+        </div>
+        <div class="device-pill-count">15 games</div>
+      </a>
+      <a class="device-pill">
+        <div>
+          <div class="device-pill-mfr">Lenovo</div>
+          <div class="device-pill-name">Legion Go</div>
+        </div>
+        <div class="device-pill-count">12 games</div>
+      </a>
+      <a class="device-pill">
+        <div>
+          <div class="device-pill-mfr">ASUS</div>
+          <div class="device-pill-name">ROG Ally X</div>
+        </div>
+        <div class="device-pill-count">3 games</div>
+      </a>
+      <a class="device-pill">
+        <div>
+          <div class="device-pill-mfr">MSI</div>
+          <div class="device-pill-name">Claw 7 AI+</div>
+        </div>
+        <div class="device-pill-count">8 games</div>
+      </a>
+    </div>
+  </section>
+
+  <!-- NEWS — MAGAZINE GRID -->
+  <section class="section">
+    <div class="sh">
+      <div>
+        <p class="sh-tag">LATEST</p>
+        <h2 class="sh-title">News</h2>
+      </div>
+      <a href="#" class="sh-link">All news &rarr;</a>
+    </div>
+    <div class="news-grid">
+      <div class="news-card">
+        <div class="news-card-img">
+          <span class="news-badge news-badge-editorial">EDITORIAL</span>
+          <span class="news-card-img-text">Slay the Spire 2<br>No Microtransactions</span>
+        </div>
+        <div class="news-card-body">
+          <h3 class="news-card-title">Slay the Spire 2 Dev Refuses Microtransactions</h3>
+          <span class="news-card-date">Mar 12, 2026</span>
+        </div>
+      </div>
+      <div class="news-card">
+        <div class="news-card-img">
+          <span class="news-badge news-badge-update">UPDATE</span>
+          <span class="news-card-img-text">Dragon Quest I &amp; II<br>HD-2D Remake</span>
+        </div>
+        <div class="news-card-body">
+          <h3 class="news-card-title">Dragon Quest I &amp; II HD-2D Remake Gets Device Reviews</h3>
+          <span class="news-card-date">Mar 11, 2026</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA + STATS -->
+  <div class="bottom">
+    <div class="bottom-left">
+      <h3>The database grows with every report.</h3>
+      <p>2 minutes. No account. Help someone pick their next game.</p>
+    </div>
+    <div class="bottom-right">
+      <div class="stat"><span class="stat-val">6,220</span><span class="stat-lbl">Games</span></div>
+      <div class="stat"><span class="stat-val">5,514</span><span class="stat-lbl">Deck Compatible</span></div>
+      <div class="stat"><span class="stat-val">6</span><span class="stat-lbl">Devices</span></div>
+      <a href="#" class="btn-primary">SUBMIT A REPORT</a>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

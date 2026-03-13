@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mockup B: Modern SaaS — HandheldDB</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --bg: #0a0a0a; --raised: #111111; --elevated: #171717;
+    --accent: #D4FF00; --accent-muted: rgba(212,255,0,0.12);
+    --border: rgba(255,255,255,0.08); --border-subtle: rgba(255,255,255,0.04);
+    --text: #fafafa; --text-2: #a3a3a3; --text-3: #737373; --text-dim: #525252;
+    --font-h: 'Space Grotesk', sans-serif;
+    --font-b: 'Inter', sans-serif;
+    --font-m: 'JetBrains Mono', monospace;
+    --radius: 16px;
+    --shadow: 0 2px 8px rgba(0,0,0,0.3), 0 1px 2px rgba(0,0,0,0.2);
+    --shadow-hover: 0 12px 32px rgba(0,0,0,0.5), 0 4px 8px rgba(0,0,0,0.3);
+  }
+  body { background: var(--bg); color: var(--text); font-family: var(--font-b); }
+
+  /* ── HEADER ── */
+  .hdr { display: flex; align-items: center; height: 52px; max-width: 1120px; margin: 0 auto; padding: 0 24px; border-bottom: 1px solid var(--border); }
+  .hdr-logo { font-family: var(--font-h); font-weight: 700; font-size: 18px; text-transform: uppercase; color: var(--text); text-decoration: none; letter-spacing: -0.02em; }
+  .hdr-nav { display: flex; gap: 24px; margin-left: 32px; }
+  .hdr-nav a { font-size: 13px; color: var(--text-3); text-decoration: none; font-weight: 500; }
+  .hdr-nav a:hover { color: var(--text); }
+
+  /* ── HERO ── */
+  .hero { text-align: center; padding: 80px 24px 48px; max-width: 600px; margin: 0 auto; }
+  .hero-badge { display: inline-flex; align-items: center; gap: 8px; font-family: var(--font-m); font-size: 11px; color: var(--text-3); padding: 6px 14px; border: 1px solid var(--border); border-radius: 100px; margin-bottom: 24px; }
+  .hero-badge-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+  .hero h1 { font-family: var(--font-h); font-size: clamp(56px, 10vw, 96px); font-weight: 700; line-height: 0.9; letter-spacing: -0.04em; text-transform: uppercase; margin-bottom: 16px; }
+  .hero h1 span { color: var(--accent); }
+  .hero p { font-size: 16px; color: var(--text-3); margin-bottom: 32px; }
+  .hero-search { max-width: 480px; margin: 0 auto 20px; position: relative; }
+  .hero-search input { width: 100%; padding: 14px 20px; background: var(--raised); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-size: 15px; outline: none; }
+  .hero-search input::placeholder { color: var(--text-dim); }
+  .hero-search input:focus { border-color: var(--accent); }
+  .hero-hints { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; }
+  .hero-hints span { font-family: var(--font-m); font-size: 10px; color: var(--text-dim); letter-spacing: 0.08em; text-transform: uppercase; }
+  .hero-hints a { font-family: var(--font-m); font-size: 11px; color: var(--text-3); text-decoration: none; padding: 4px 10px; border: 1px solid var(--border-subtle); border-radius: 4px; }
+  .hero-hints a:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* ── CONTAINER ── */
+  .main { max-width: 1120px; margin: 0 auto; padding: 0 24px; }
+  .section { margin-bottom: 72px; }
+
+  /* ── SECTION HEADER ── */
+  .sh { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px; }
+  .sh-tag { font-family: var(--font-m); font-size: 10px; font-weight: 500; color: var(--accent); letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 4px; }
+  .sh-title { font-family: var(--font-h); font-size: 24px; font-weight: 700; letter-spacing: -0.02em; }
+  .sh-link { font-family: var(--font-m); font-size: 11px; color: var(--text-3); text-decoration: none; letter-spacing: 0.04em; text-transform: uppercase; }
+  .sh-link:hover { color: var(--accent); }
+
+  /* ── FEATURED DEAL ── */
+  .featured-deal { position: relative; border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); transition: box-shadow 0.25s, transform 0.25s; cursor: pointer; margin-bottom: 16px; }
+  .featured-deal:hover { box-shadow: var(--shadow-hover); transform: translateY(-4px); }
+  .featured-deal img { width: 100%; aspect-ratio: 16/9; object-fit: cover; display: block; }
+  .featured-deal-overlay { position: absolute; bottom: 0; left: 0; right: 0; padding: 32px; background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.5) 60%, transparent 100%); }
+  .featured-deal-title { font-family: var(--font-h); font-size: 28px; font-weight: 700; margin-bottom: 8px; }
+  .featured-deal-pricing { display: flex; align-items: center; gap: 12px; }
+  .featured-deal-discount { font-family: var(--font-m); font-weight: 800; font-size: 20px; color: #22c55e; background: rgba(34,197,94,0.15); padding: 4px 10px; border-radius: 8px; }
+  .featured-deal-price { font-family: var(--font-m); font-weight: 700; font-size: 24px; color: var(--text); }
+  .featured-deal-was { font-family: var(--font-m); font-size: 14px; color: var(--text-dim); text-decoration: line-through; }
+  .badge-historical { display: inline-flex; align-items: center; gap: 4px; font-family: var(--font-m); font-size: 10px; font-weight: 700; color: #facc15; background: rgba(250,204,21,0.15); padding: 4px 10px; border-radius: 6px; letter-spacing: 0.04em; }
+
+  /* ── DEAL CARDS GRID ── */
+  .deals-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .deal-card { border-radius: var(--radius); overflow: hidden; background: var(--raised); box-shadow: var(--shadow); transition: box-shadow 0.25s, transform 0.25s; cursor: pointer; }
+  .deal-card:hover { box-shadow: var(--shadow-hover); transform: translateY(-4px); }
+  .deal-card-img { position: relative; }
+  .deal-card-img img { width: 100%; aspect-ratio: 16/9; object-fit: cover; display: block; }
+  .deal-card-badge { position: absolute; top: 12px; right: 12px; font-family: var(--font-m); font-weight: 800; font-size: 13px; color: #22c55e; background: rgba(10,10,10,0.85); padding: 4px 10px; border-radius: 8px; }
+  .deal-card-body { padding: 20px 24px; }
+  .deal-card-name { font-family: var(--font-h); font-size: 16px; font-weight: 700; margin-bottom: 6px; }
+  .deal-card-pricing { display: flex; align-items: center; gap: 8px; }
+  .deal-card-now { font-family: var(--font-m); font-weight: 700; font-size: 16px; color: #4ade80; }
+  .deal-card-was { font-family: var(--font-m); font-size: 12px; color: var(--text-dim); text-decoration: line-through; }
+
+  /* ── DEVICE CARDS 2x2 ── */
+  .devices-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+  .device-card { padding: 28px 32px; border-radius: var(--radius); background: var(--raised); border: 1px solid var(--border-subtle); box-shadow: var(--shadow); transition: box-shadow 0.25s, transform 0.25s, border-color 0.25s; cursor: pointer; }
+  .device-card:hover { box-shadow: var(--shadow-hover); transform: translateY(-4px); border-color: var(--accent); }
+  .device-card-mfr { font-family: var(--font-m); font-size: 10px; font-weight: 600; color: var(--accent); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 6px; }
+  .device-card-name { font-family: var(--font-h); font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+  .device-card-count { font-family: var(--font-m); font-size: 32px; font-weight: 800; color: var(--text); margin-bottom: 4px; }
+  .device-card-count-label { font-family: var(--font-m); font-size: 11px; color: var(--text-dim); letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 16px; }
+  .device-card-specs { display: flex; gap: 16px; flex-wrap: wrap; }
+  .device-spec { font-family: var(--font-m); font-size: 11px; color: var(--text-3); display: flex; align-items: center; gap: 4px; }
+  .device-spec-icon { font-size: 13px; opacity: 0.5; }
+
+  /* ── PICKS LIST ── */
+  .picks-list { border-radius: var(--radius); overflow: hidden; background: var(--raised); box-shadow: var(--shadow); }
+  .pick-item { display: flex; align-items: center; gap: 20px; padding: 20px 24px; border-bottom: 1px solid var(--border-subtle); transition: background 0.15s; }
+  .pick-item:last-child { border-bottom: none; }
+  .pick-item:hover { background: var(--elevated); }
+  .pick-thumb { width: 80px; height: 80px; border-radius: 10px; overflow: hidden; flex-shrink: 0; }
+  .pick-thumb img { width: 100%; height: 100%; object-fit: cover; }
+  .pick-info { flex: 1; min-width: 0; }
+  .pick-info-top { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; }
+  .pick-name { font-family: var(--font-h); font-size: 16px; font-weight: 700; }
+  .pick-verdict { font-family: var(--font-m); font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 4px; letter-spacing: 0.06em; }
+  .pick-verdict-buy { background: rgba(74,222,128,0.15); color: #4ade80; }
+  .pick-verdict-wait { background: rgba(250,204,21,0.15); color: #facc15; }
+  .pick-verdict-skip { background: rgba(239,68,68,0.15); color: #ef4444; }
+  .pick-score { font-family: var(--font-m); font-size: 13px; font-weight: 700; color: var(--text); }
+  .pick-score small { color: var(--text-dim); font-weight: 500; }
+  .pick-meta { font-family: var(--font-m); font-size: 11px; color: var(--text-3); margin-bottom: 4px; }
+  .pick-note { font-size: 12px; color: var(--text-dim); line-height: 1.5; }
+
+  /* ── CTA + STATS ── */
+  .bottom { display: flex; align-items: center; justify-content: space-between; padding: 32px 40px; border-radius: var(--radius); background: var(--raised); box-shadow: var(--shadow); margin-bottom: 48px; }
+  .bottom-left h3 { font-family: var(--font-h); font-size: 20px; font-weight: 700; margin-bottom: 6px; }
+  .bottom-left p { font-size: 14px; color: var(--text-3); margin-bottom: 16px; }
+  .btn-primary { display: inline-block; padding: 12px 28px; background: var(--accent); color: #0a0a0a; font-family: var(--font-m); font-size: 12px; font-weight: 700; letter-spacing: 0.06em; text-decoration: none; border-radius: 10px; text-transform: uppercase; transition: opacity 0.15s; }
+  .btn-primary:hover { opacity: 0.88; }
+  .bottom-right { display: flex; align-items: center; gap: 40px; }
+  .stat { text-align: center; }
+  .stat-val { display: block; font-family: var(--font-m); font-weight: 700; font-size: 28px; }
+  .stat-lbl { font-family: var(--font-m); font-size: 10px; color: var(--text-dim); letter-spacing: 0.1em; text-transform: uppercase; }
+
+  /* ── LABEL ── */
+  .mockup-label { position: fixed; top: 12px; right: 12px; background: var(--accent); color: #0a0a0a; font-family: var(--font-m); font-size: 11px; font-weight: 700; padding: 6px 12px; border-radius: 6px; z-index: 100; letter-spacing: 0.04em; }
+
+  @media (max-width: 768px) {
+    .deals-grid { grid-template-columns: 1fr; }
+    .devices-grid { grid-template-columns: 1fr; }
+    .bottom { flex-direction: column; gap: 24px; text-align: center; }
+    .bottom-right { flex-wrap: wrap; justify-content: center; gap: 24px; }
+    .pick-item { flex-direction: column; align-items: flex-start; }
+    .pick-thumb { width: 100%; height: auto; aspect-ratio: 16/9; }
+  }
+</style>
+</head>
+<body>
+<div class="mockup-label">B: MODERN SAAS</div>
+
+<!-- HEADER -->
+<header class="hdr">
+  <a href="#" class="hdr-logo">HDB</a>
+  <nav class="hdr-nav">
+    <a href="#">Games</a>
+    <a href="#">Devices</a>
+    <a href="#">Discover</a>
+    <a href="#">Compare</a>
+    <a href="#">News</a>
+  </nav>
+</header>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-badge">
+    <span class="hero-badge-dot"></span>
+    <span>6,220 games tracked</span>
+  </div>
+  <h1>DOES IT<br><span>RUN?</span></h1>
+  <p>Performance data for every handheld. Community-powered.</p>
+  <div class="hero-search">
+    <input type="text" placeholder="Search games...">
+  </div>
+  <div class="hero-hints">
+    <span>Popular:</span>
+    <a href="#">Elden Ring</a>
+    <a href="#">Cyberpunk 2077</a>
+    <a href="#">Baldur's Gate 3</a>
+  </div>
+</section>
+
+<div class="main">
+
+  <!-- HOT DEALS -->
+  <section class="section">
+    <div class="sh">
+      <div>
+        <p class="sh-tag">SAVE BIG</p>
+        <h2 class="sh-title">Hot Deals</h2>
+      </div>
+      <a href="#" class="sh-link">All deals &rarr;</a>
+    </div>
+
+    <!-- Featured Deal -->
+    <div class="featured-deal">
+      <img src="https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/1091500/header.jpg" alt="Cyberpunk 2077">
+      <div class="featured-deal-overlay">
+        <div class="featured-deal-title">Cyberpunk 2077</div>
+        <div class="featured-deal-pricing">
+          <span class="featured-deal-discount">-75%</span>
+          <span class="featured-deal-price">$14.99</span>
+          <span class="featured-deal-was">$59.99</span>
+          <span class="badge-historical">&#9733; Historical Low</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Deal Cards Grid -->
+    <div class="deals-grid">
+      <div class="deal-card">
+        <div class="deal-card-img">
+          <img src="https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/1245620/header.jpg" alt="Elden Ring">
+          <span class="deal-card-badge">-60%</span>
+        </div>
+        <div class="deal-card-body">
+          <div class="deal-card-name">Elden Ring</div>
+          <div class="deal-card-pricing">
+            <span class="deal-card-now">$23.99</span>
+            <span class="deal-card-was">$59.99</span>
+          </div>
+        </div>
+      </div>
+      <div class="deal-card">
+        <div class="deal-card-img">
+          <img src="https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/413150/header.jpg" alt="Stardew Valley">
+          <span class="deal-card-badge">-50%</span>
+        </div>
+        <div class="deal-card-body">
+          <div class="deal-card-name">Stardew Valley</div>
+          <div class="deal-card-pricing">
+            <span class="deal-card-now">$7.49</span>
+            <span class="deal-card-was">$14.99</span>
+          </div>
+        </div>
+      </div>
+      <div class="deal-card">
+        <div class="deal-card-img">
+          <img src="https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/1086940/header.jpg" alt="Baldur's Gate 3">
+          <span class="deal-card-badge">-40%</span>
+        </div>
+        <div class="deal-card-body">
+          <div class="deal-card-name">Baldur's Gate 3</div>
+          <div class="deal-card-pricing">
+            <span class="deal-card-now">$35.99</span>
+            <span class="deal-card-was">$59.99</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PICK YOUR HANDHELD -->
+  <section class="section">
+    <div class="sh">
+      <div>
+        <p class="sh-tag">PICK YOUR HANDHELD</p>
+        <h2 class="sh-title">Your Device</h2>
+      </div>
+      <a href="#" class="sh-link">All devices &rarr;</a>
+    </div>
+    <div class="devices-grid">
+      <div class="device-card">
+        <div class="device-card-mfr">Valve</div>
+        <div class="device-card-name">Steam Deck</div>
+        <div class="device-card-count">138</div>
+        <div class="device-card-count-label">Games Tested</div>
+        <div class="device-card-specs">
+          <span class="device-spec"><span class="device-spec-icon">&#9881;</span> AMD Van Gogh</span>
+          <span class="device-spec"><span class="device-spec-icon">&#9889;</span> 40Wh</span>
+          <span class="device-spec"><span class="device-spec-icon">&#9724;</span> 1280x800</span>
+        </div>
+      </div>
+      <div class="device-card">
+        <div class="device-card-mfr">ASUS</div>
+        <div class="device-card-name">ROG Ally</div>
+        <div class="device-card-count">31</div>
+        <div class="device-card-count-label">Games Tested</div>
+        <div class="device-card-specs">
+          <span class="device-spec"><span class="device-spec-icon">&#9881;</span> AMD Z1 Extreme</span>
+          <span class="device-spec"><span class="device-spec-icon">&#9889;</span> 40Wh</span>
+          <span class="device-spec"><span class="device-spec-icon">&#9724;</span> 1920x1080</span>
+        </div>
+      </div>
+      <div class="device-card">
+        <div class="device-card-mfr">Lenovo</div>
+        <div class="device-card-name">Legion Go</div>
+        <div class="device-card-count">15</div>
+        <div class="device-card-count-label">Games Tested</div>
+        <div class="device-card-specs">
+          <span class="device-spec"><span class="device-spec-icon">&#9881;</span> AMD Z1 Extreme</span>
+          <span class="device-spec"><span class="device-spec-icon">&#9889;</span> 49.2Wh</span>
+          <span class="device-spec"><span class="device-spec-icon">&#9724;</span> 2560x1600</span>
+        </div>
+      </div>
+      <div class="device-card">
+        <div class="device-card-mfr">MSI</div>
+        <div class="device-card-name">MSI Claw</div>
+        <div class="device-card-count">12</div>
+        <div class="device-card-count-label">Games Tested</div>
+        <div class="device-card-specs">
+          <span class="device-spec"><span class="device-spec-icon">&#9881;</span> Intel Core Ultra</span>
+          <span class="device-spec"><span class="device-spec-icon">&#9889;</span> 53Wh</span>
+          <span class="device-spec"><span class="device-spec-icon">&#9724;</span> 1920x1080</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- THIS WEEK'S PICKS -->
+  <section class="section">
+    <div class="sh">
+      <div>
+        <p class="sh-tag">HAND-TESTED</p>
+        <h2 class="sh-title">This Week's Picks</h2>
+      </div>
+      <a href="#" class="sh-link">All picks &rarr;</a>
+    </div>
+    <div class="picks-list">
+      <div class="pick-item">
+        <div class="pick-thumb">
+          <img src="https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/1145350/header.jpg" alt="Hades II">
+        </div>
+        <div class="pick-info">
+          <div class="pick-info-top">
+            <span class="pick-name">Hades II</span>
+            <span class="pick-verdict pick-verdict-buy">BUY</span>
+            <span class="pick-score">92<small>/100</small></span>
+          </div>
+          <div class="pick-meta">Steam Deck &middot; 60fps &middot; 3.2h battery</div>
+          <p class="pick-note">Supergiant delivers again. Runs flawlessly at locked 60fps on Deck with medium settings.</p>
+        </div>
+      </div>
+      <div class="pick-item">
+        <div class="pick-thumb">
+          <img src="https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/2379780/header.jpg" alt="Balatro">
+        </div>
+        <div class="pick-info">
+          <div class="pick-info-top">
+            <span class="pick-name">Balatro</span>
+            <span class="pick-verdict pick-verdict-buy">BUY</span>
+            <span class="pick-score">88<small>/100</small></span>
+          </div>
+          <div class="pick-meta">ROG Ally &middot; 120fps &middot; 5.1h battery</div>
+          <p class="pick-note">Perfect handheld roguelike. Light on resources, heavy on addiction. Battery lasts forever.</p>
+        </div>
+      </div>
+      <div class="pick-item">
+        <div class="pick-thumb">
+          <img src="https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/504230/header.jpg" alt="Celeste">
+        </div>
+        <div class="pick-info">
+          <div class="pick-info-top">
+            <span class="pick-name">Celeste</span>
+            <span class="pick-verdict pick-verdict-buy">BUY</span>
+            <span class="pick-score">95<small>/100</small></span>
+          </div>
+          <div class="pick-meta">Steam Deck &middot; 60fps &middot; 4.8h battery</div>
+          <p class="pick-note">Precision platforming at its finest. D-pad controls are tight and battery impact is minimal.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA + STATS -->
+  <div class="bottom">
+    <div class="bottom-left">
+      <h3>The database grows with every report.</h3>
+      <p>2 minutes. No account. Help someone pick their next game.</p>
+      <a href="#" class="btn-primary">SUBMIT A REPORT</a>
+    </div>
+    <div class="bottom-right">
+      <div class="stat"><span class="stat-val">6,220</span><span class="stat-lbl">Games</span></div>
+      <div class="stat"><span class="stat-val">5,514</span><span class="stat-lbl">Deck Compatible</span></div>
+      <div class="stat"><span class="stat-val">6</span><span class="stat-lbl">Devices</span></div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
