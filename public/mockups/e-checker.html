@@ -1,0 +1,1346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HandheldDB — Real FPS for Every Handheld</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════════
+   E: THE CHECKER — HandheldDB Homepage
+   Philosophy: The homepage IS the product.
+   ═══════════════════════════════════════════ */
+
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  /* Surfaces */
+  --bg: #0a0a0a;
+  --raised: #111111;
+  --elevated: #171717;
+  --overlay: #1f1f1f;
+
+  /* Accent */
+  --accent: #D4FF00;
+  --accent-hover: #e8ff4d;
+  --accent-muted: rgba(212,255,0,0.10);
+  --accent-on: #0a0a0a;
+
+  /* Borders */
+  --border-subtle: rgba(255,255,255,0.04);
+  --border: rgba(255,255,255,0.08);
+  --border-strong: rgba(255,255,255,0.14);
+
+  /* Text */
+  --text: #fafafa;
+  --text-2: #a3a3a3;
+  --text-3: #737373;
+  --text-dim: #525252;
+
+  /* FPS Performance */
+  --fps-excellent: #22c55e;
+  --fps-good: #84cc16;
+  --fps-fair: #eab308;
+  --fps-poor: #f97316;
+  --fps-bad: #ef4444;
+
+  /* Fonts */
+  --font-h: 'Space Grotesk', system-ui, sans-serif;
+  --font-b: 'Inter', system-ui, sans-serif;
+  --font-m: 'JetBrains Mono', ui-monospace, monospace;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-b);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+::selection { background: var(--accent-muted); color: var(--text); }
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+
+/* ── Layout ── */
+.w { max-width: 1120px; margin: 0 auto; padding: 0 24px; }
+
+/* ── Mockup Label ── */
+.mockup-label {
+  position: fixed; top: 0; left: 0; right: 0;
+  background: var(--accent); color: var(--accent-on);
+  text-align: center; font-family: var(--font-m);
+  font-weight: 600; font-size: 12px; padding: 5px 0;
+  z-index: 9999; letter-spacing: 0.5px;
+}
+
+/* ═══════════════════════════════════════════
+   HEADER
+   ═══════════════════════════════════════════ */
+.hdr {
+  position: sticky; top: 28px; z-index: 100;
+  background: rgba(10,10,10,0.82);
+  backdrop-filter: blur(16px) saturate(1.4);
+  -webkit-backdrop-filter: blur(16px) saturate(1.4);
+  border-bottom: 1px solid var(--border);
+}
+.hdr-inner {
+  display: flex; align-items: center; height: 52px;
+}
+.hdr-logo {
+  font-family: var(--font-h); font-weight: 700; font-size: 17px;
+  color: var(--text); text-decoration: none; letter-spacing: -0.03em;
+  display: flex; align-items: center; gap: 0;
+}
+.hdr-logo span { color: var(--accent); }
+.hdr-nav { display: flex; gap: 24px; margin-left: 36px; }
+.hdr-nav a {
+  font-size: 13px; color: var(--text-3); text-decoration: none;
+  font-weight: 500; letter-spacing: 0.01em;
+  transition: color 0.15s;
+}
+.hdr-nav a:hover { color: var(--text); }
+.hdr-right { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+.hdr-search {
+  background: var(--raised); border: 1px solid var(--border);
+  border-radius: 0; padding: 7px 12px 7px 32px;
+  font-size: 13px; color: var(--text); width: 180px;
+  font-family: var(--font-b); outline: none;
+  transition: border-color 0.15s, width 0.25s;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23525252' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cline x1='21' y1='21' x2='16.65' y2='16.65'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: 10px center;
+}
+.hdr-search::placeholder { color: var(--text-dim); }
+.hdr-search:focus { border-color: var(--accent); width: 240px; }
+.btn-submit {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 7px 16px; background: var(--accent); color: var(--accent-on);
+  font-family: var(--font-m); font-size: 11px; font-weight: 700;
+  letter-spacing: 0.04em; text-decoration: none;
+  border: none; cursor: pointer; text-transform: uppercase;
+  transition: background 0.15s;
+}
+.btn-submit:hover { background: var(--accent-hover); }
+
+/* ═══════════════════════════════════════════
+   HERO — Compact, purposeful, tool-like
+   ═══════════════════════════════════════════ */
+.hero {
+  padding: 48px 0 0;
+  text-align: center;
+}
+.hero-tagline {
+  font-family: var(--font-h); font-size: 32px; font-weight: 700;
+  color: var(--text); letter-spacing: -0.03em;
+  margin-bottom: 8px;
+}
+.hero-tagline em {
+  font-style: normal; color: var(--accent);
+}
+.hero-sub {
+  font-size: 15px; color: var(--text-3);
+  margin-bottom: 24px;
+}
+
+/* Stats strip */
+.hero-stats {
+  display: flex; justify-content: center; gap: 24px;
+  font-family: var(--font-m); font-size: 12px; color: var(--text-dim);
+  margin-bottom: 28px;
+}
+.hero-stats span { display: flex; align-items: center; gap: 6px; }
+.hero-stats strong { color: var(--text-2); font-weight: 600; font-size: 13px; }
+.hero-stats .sep { color: var(--border-strong); }
+
+/* Search bar — THE main event */
+.hero-search {
+  position: relative; max-width: 600px; margin: 0 auto 16px;
+}
+.hero-search-input {
+  width: 100%; padding: 16px 20px 16px 48px;
+  background: var(--raised); border: 1px solid var(--border);
+  border-radius: 0; color: var(--text);
+  font-size: 16px; font-family: var(--font-b);
+  outline: none; transition: border-color 0.15s, box-shadow 0.15s;
+}
+.hero-search-input::placeholder { color: var(--text-dim); }
+.hero-search-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent), 0 0 20px rgba(212,255,0,0.06);
+}
+.hero-search-icon {
+  position: absolute; left: 18px; top: 50%; transform: translateY(-50%);
+  color: var(--text-dim); pointer-events: none;
+}
+.hero-search-kbd {
+  position: absolute; right: 14px; top: 50%; transform: translateY(-50%);
+  font-family: var(--font-m); font-size: 10px; color: var(--text-dim);
+  border: 1px solid var(--border); padding: 2px 6px;
+  letter-spacing: 0.02em;
+}
+
+/* Popular links */
+.hero-popular {
+  display: flex; justify-content: center; gap: 6px; align-items: center;
+  margin-bottom: 32px; flex-wrap: wrap;
+}
+.hero-popular-label {
+  font-family: var(--font-m); font-size: 10px; color: var(--text-dim);
+  letter-spacing: 0.08em; text-transform: uppercase; margin-right: 4px;
+}
+.hero-popular a {
+  font-family: var(--font-m); font-size: 11px; color: var(--text-3);
+  text-decoration: none; padding: 4px 10px;
+  border: 1px solid var(--border-subtle);
+  transition: all 0.15s;
+}
+.hero-popular a:hover { border-color: var(--accent); color: var(--accent); }
+
+/* ═══════════════════════════════════════════
+   DEVICE TABS — The interactive heart
+   ═══════════════════════════════════════════ */
+.device-tabs {
+  display: flex; justify-content: center; gap: 6px;
+  padding-bottom: 32px; flex-wrap: wrap;
+}
+.device-tab {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 8px 16px; border: 1px solid var(--border);
+  background: transparent; color: var(--text-3);
+  font-family: var(--font-m); font-size: 12px; font-weight: 500;
+  cursor: pointer; transition: all 0.15s;
+  letter-spacing: 0.01em;
+}
+.device-tab:hover {
+  border-color: var(--border-strong); color: var(--text-2);
+}
+.device-tab.active {
+  border-color: var(--accent); color: var(--accent);
+  background: var(--accent-muted);
+}
+.device-tab .count {
+  font-size: 10px; color: var(--text-dim); font-weight: 400;
+}
+.device-tab.active .count { color: rgba(212,255,0,0.5); }
+
+/* ═══════════════════════════════════════════
+   SECTION SYSTEM
+   ═══════════════════════════════════════════ */
+.section { padding-bottom: 48px; }
+.section-hdr {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 16px;
+}
+.section-tag {
+  font-family: var(--font-m); font-size: 10px; font-weight: 600;
+  color: var(--accent); letter-spacing: 0.1em;
+  text-transform: uppercase; margin-bottom: 4px;
+}
+.section-title {
+  font-family: var(--font-h); font-size: 20px; font-weight: 700;
+  letter-spacing: -0.02em; color: var(--text);
+}
+.section-title .device-name { color: var(--accent); }
+.section-link {
+  font-family: var(--font-m); font-size: 11px; color: var(--text-dim);
+  text-decoration: none; letter-spacing: 0.04em;
+  transition: color 0.15s;
+}
+.section-link:hover { color: var(--accent); }
+
+/* ═══════════════════════════════════════════
+   GAME GRID — Dense, scannable, data-rich
+   ═══════════════════════════════════════════ */
+.tier-label {
+  font-family: var(--font-m); font-size: 10px; font-weight: 600;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  margin-bottom: 10px; display: flex; align-items: center; gap: 8px;
+}
+.tier-label .line {
+  flex: 1; height: 1px; background: var(--border-subtle);
+}
+.tier-great { color: var(--fps-excellent); }
+.tier-playable { color: var(--fps-fair); }
+
+.game-grid {
+  display: grid; grid-template-columns: repeat(5, 1fr);
+  gap: 10px; margin-bottom: 20px;
+}
+
+.game-card {
+  background: var(--raised); border: 1px solid var(--border);
+  overflow: hidden; cursor: pointer;
+  transition: border-color 0.15s, transform 0.15s;
+  position: relative;
+}
+.game-card:hover {
+  border-color: var(--border-strong);
+  transform: translateY(-2px);
+}
+.game-card-img {
+  width: 100%; aspect-ratio: 460/215;
+  object-fit: cover; display: block;
+  filter: brightness(0.85);
+  transition: filter 0.2s;
+}
+.game-card:hover .game-card-img { filter: brightness(1); }
+.game-card-body {
+  padding: 10px 12px 12px;
+}
+.game-card-name {
+  font-size: 13px; font-weight: 600; color: var(--text);
+  margin-bottom: 6px; line-height: 1.2;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.game-card-data {
+  display: flex; align-items: baseline; gap: 8px;
+}
+.game-card-fps {
+  font-family: var(--font-m); font-size: 22px; font-weight: 800;
+  letter-spacing: -0.03em; line-height: 1;
+}
+.game-card-fps-unit {
+  font-size: 10px; font-weight: 500; opacity: 0.5;
+  margin-left: 1px;
+}
+.game-card-meta {
+  display: flex; flex-direction: column; gap: 1px;
+}
+.game-card-verdict {
+  font-family: var(--font-m); font-size: 10px; font-weight: 600;
+  letter-spacing: 0.02em;
+}
+.game-card-battery {
+  font-family: var(--font-m); font-size: 10px; color: var(--text-dim);
+}
+.game-card-reports {
+  font-family: var(--font-m); font-size: 9px; color: var(--text-dim);
+  position: absolute; top: 8px; right: 8px;
+  background: rgba(10,10,10,0.75);
+  backdrop-filter: blur(4px);
+  padding: 2px 6px;
+}
+
+/* FPS color utilities */
+.c-exc { color: var(--fps-excellent); }
+.c-good { color: var(--fps-good); }
+.c-fair { color: var(--fps-fair); }
+.c-poor { color: var(--fps-poor); }
+.c-bad { color: var(--fps-bad); }
+
+/* Device content panels */
+.device-content { display: none; }
+.device-content.active { display: block; animation: fadeContent 0.2s ease-out; }
+@keyframes fadeContent {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ═══════════════════════════════════════════
+   RECENTLY TESTED — Live community pulse
+   ═══════════════════════════════════════════ */
+.live-indicator {
+  display: inline-flex; align-items: center; gap: 6px;
+}
+.live-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--fps-excellent);
+  animation: livePulse 2s ease-in-out infinite;
+}
+@keyframes livePulse {
+  0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(34,197,94,0.4); }
+  50% { opacity: 0.6; box-shadow: 0 0 0 4px rgba(34,197,94,0); }
+}
+
+.feed {
+  border: 1px solid var(--border); overflow: hidden;
+}
+.feed-row {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border-subtle);
+  transition: background 0.1s;
+}
+.feed-row:last-child { border-bottom: none; }
+.feed-row:hover { background: var(--elevated); }
+.feed-fps {
+  font-family: var(--font-m); font-size: 13px; font-weight: 700;
+  width: 56px; text-align: right; flex-shrink: 0;
+}
+.feed-fps-unit { font-size: 9px; font-weight: 500; opacity: 0.5; }
+.feed-game {
+  font-size: 13px; font-weight: 600; color: var(--text);
+  flex: 1; min-width: 0;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.feed-arrow {
+  color: var(--text-dim); font-size: 11px; flex-shrink: 0;
+}
+.feed-device {
+  font-family: var(--font-m); font-size: 11px; color: var(--text-3);
+  flex-shrink: 0;
+}
+.feed-verdict {
+  font-family: var(--font-m); font-size: 10px; font-weight: 600;
+  flex-shrink: 0; min-width: 56px;
+}
+.feed-time {
+  font-family: var(--font-m); font-size: 10px; color: var(--text-dim);
+  flex-shrink: 0; min-width: 40px; text-align: right;
+}
+
+/* ═══════════════════════════════════════════
+   EXPLORE DEVICES — Horizontal scroll
+   ═══════════════════════════════════════════ */
+.devices-scroll {
+  display: flex; gap: 12px; overflow-x: auto;
+  padding-bottom: 8px;
+  scrollbar-width: thin; scrollbar-color: #333 transparent;
+}
+.dvc-card {
+  min-width: 200px; max-width: 200px; flex-shrink: 0;
+  background: var(--raised); border: 1px solid var(--border);
+  padding: 18px 16px; cursor: pointer;
+  transition: border-color 0.15s, transform 0.15s;
+}
+.dvc-card:hover {
+  border-color: var(--border-strong); transform: translateY(-2px);
+}
+.dvc-mfr {
+  font-family: var(--font-m); font-size: 9px; font-weight: 600;
+  color: var(--accent); letter-spacing: 0.1em;
+  text-transform: uppercase; margin-bottom: 4px;
+}
+.dvc-name {
+  font-family: var(--font-h); font-size: 15px; font-weight: 700;
+  color: var(--text); margin-bottom: 12px;
+}
+.dvc-stat {
+  display: flex; align-items: baseline; gap: 6px;
+  margin-bottom: 10px;
+}
+.dvc-count {
+  font-family: var(--font-m); font-size: 28px; font-weight: 800;
+  color: var(--text); line-height: 1; letter-spacing: -0.03em;
+}
+.dvc-count-label {
+  font-family: var(--font-m); font-size: 10px; color: var(--text-dim);
+  letter-spacing: 0.04em;
+}
+.dvc-best {
+  font-family: var(--font-m); font-size: 10px; color: var(--text-3);
+  display: flex; align-items: center; gap: 4px;
+}
+.dvc-best-fps {
+  font-weight: 700;
+}
+
+/* ═══════════════════════════════════════════
+   BOTTOM CTA — Dignified, compact
+   ═══════════════════════════════════════════ */
+.cta {
+  display: flex; align-items: center; justify-content: space-between;
+  background: var(--raised); border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  padding: 24px 28px; margin-bottom: 48px;
+  gap: 24px;
+}
+.cta-text p {
+  font-size: 15px; font-weight: 600; color: var(--text);
+  margin-bottom: 2px;
+}
+.cta-text span {
+  font-size: 13px; color: var(--text-3);
+}
+.cta-right {
+  display: flex; align-items: center; gap: 24px; flex-shrink: 0;
+}
+.cta-stats {
+  display: flex; gap: 20px;
+  font-family: var(--font-m); font-size: 12px; color: var(--text-dim);
+}
+.cta-stats strong { color: var(--text-2); }
+
+/* ═══════════════════════════════════════════
+   FOOTER
+   ═══════════════════════════════════════════ */
+footer {
+  border-top: 1px solid var(--border);
+  padding: 28px 0; text-align: center;
+  font-size: 12px; color: var(--text-dim);
+  font-family: var(--font-m);
+}
+
+/* ═══════════════════════════════════════════
+   RESPONSIVE
+   ═══════════════════════════════════════════ */
+@media (max-width: 900px) {
+  .game-grid { grid-template-columns: repeat(3, 1fr); }
+}
+@media (max-width: 768px) {
+  .hdr-nav { display: none; }
+  .hdr-search { width: 140px; }
+  .hdr-search:focus { width: 180px; }
+  .hero-tagline { font-size: 24px; }
+  .hero-stats { gap: 12px; font-size: 11px; flex-wrap: wrap; }
+  .game-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .device-tabs { gap: 4px; }
+  .device-tab { padding: 6px 10px; font-size: 11px; }
+  .feed-device { display: none; }
+  .cta { flex-direction: column; text-align: center; gap: 16px; }
+  .cta-right { flex-direction: column; gap: 12px; }
+  .section-hdr { flex-direction: column; align-items: flex-start; gap: 4px; }
+}
+@media (max-width: 480px) {
+  .game-grid { grid-template-columns: repeat(2, 1fr); }
+  .game-card-fps { font-size: 18px; }
+  .hero-search-input { font-size: 15px; padding: 14px 16px 14px 42px; }
+}
+</style>
+</head>
+<body>
+
+<div class="mockup-label">E: THE CHECKER (NEW CONCEPT)</div>
+
+<!-- ═══════════ HEADER ═══════════ -->
+<header class="hdr">
+  <div class="w hdr-inner">
+    <a href="#" class="hdr-logo">Handheld<span>DB</span></a>
+    <nav class="hdr-nav">
+      <a href="#">Games</a>
+      <a href="#">Devices</a>
+      <a href="#">Compare</a>
+      <a href="#">News</a>
+    </nav>
+    <div class="hdr-right">
+      <input type="text" class="hdr-search" placeholder="Search...">
+      <button class="btn-submit">Submit Report</button>
+    </div>
+  </div>
+</header>
+
+<!-- ═══════════ HERO ═══════════ -->
+<section class="hero">
+  <div class="w">
+    <h1 class="hero-tagline">Real FPS data for <em>every handheld.</em></h1>
+    <p class="hero-sub">Community-tested performance. No guesswork.</p>
+
+    <div class="hero-stats">
+      <span><strong>6,220</strong> games</span>
+      <span class="sep">·</span>
+      <span><strong>14,800</strong> reports</span>
+      <span class="sep">·</span>
+      <span><strong>6</strong> devices</span>
+    </div>
+
+    <div class="hero-search">
+      <svg class="hero-search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#525252" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" class="hero-search-input" placeholder="Search 6,220 games...">
+      <span class="hero-search-kbd">/</span>
+    </div>
+
+    <div class="hero-popular">
+      <span class="hero-popular-label">Popular</span>
+      <a href="#">Elden Ring</a>
+      <a href="#">Cyberpunk 2077</a>
+      <a href="#">Baldur's Gate 3</a>
+      <a href="#">Hades II</a>
+      <a href="#">Balatro</a>
+    </div>
+
+    <!-- Device Tabs -->
+    <div class="device-tabs">
+      <button class="device-tab active" data-device="deck">
+        Steam Deck <span class="count">138</span>
+      </button>
+      <button class="device-tab" data-device="ally">
+        ROG Ally <span class="count">31</span>
+      </button>
+      <button class="device-tab" data-device="legion-s">
+        Legion Go S <span class="count">15</span>
+      </button>
+      <button class="device-tab" data-device="legion">
+        Legion Go <span class="count">12</span>
+      </button>
+      <button class="device-tab" data-device="ally-x">
+        ROG Ally X <span class="count">3</span>
+      </button>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ TOP ON DEVICE ═══════════ -->
+<section class="section">
+  <div class="w">
+
+    <!-- ─── STEAM DECK ─── -->
+    <div class="device-content active" id="panel-deck">
+      <div class="section-hdr">
+        <div>
+          <p class="section-tag">Performance Data</p>
+          <h2 class="section-title">Top on <span class="device-name">Steam Deck</span></h2>
+        </div>
+        <a href="#" class="section-link">All 138 games →</a>
+      </div>
+
+      <div class="tier-label tier-great">
+        Runs Great · 60+ fps <span class="line"></span>
+      </div>
+      <div class="game-grid">
+        <div class="game-card">
+          <span class="game-card-reports">23 reports</span>
+          <img class="game-card-img" src="https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/632470/header.jpg" alt="Disco Elysium">
+          <div class="game-card-body">
+            <div class="game-card-name">Disco Elysium</div>
+            <div class="game-card-data">
+              <span class="game-card-fps c-exc">138<span class="game-card-fps-unit">fps</span></span>
+              <div class="game-card-meta">
+                <span class="game-card-verdict c-exc">Excellent</span>
+                <span class="game-card-battery">4.2h battery</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="game-card">
+          <span class="game-card-reports">18 reports</span>
+          <img class="game-card-img" src="https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/1145360/header.jpg" alt="Hades">
+          <div class="game-card-body">
+            <div class="game-card-name">Hades</div>
+            <div class="game-card-data">
+              <span class="game-card-fps c-exc">98<span class="game-card-fps-unit">fps</span></span>
+              <div class="game-card-meta">
+                <span class="game-card-verdict c-exc">Excellent</span>
+                <span class="game-card-battery">3.8h battery</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="game-card">
+          <span class="game-card-reports">31 reports</span>
+          <img class="game-card-img" src="https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/413150/header.jpg" alt="Stardew Valley">
+          <div class="game-card-body">
+            <div class="game-card-name">Stardew Valley</div>
+            <div class="game-card-data">
+              <span class="game-card-fps c-exc">144<span class="game-card-fps-unit">fps</span></span>
+              <div class="game-card-meta">
+                <span class="game-card-verdict c-exc">Excellent</span>
+                <span class="game-card-battery">5.1h battery</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="game-card">
+          <span class="game-card-reports">14 reports</span>
+          <img class="game-card-img" src="https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/2379780/header.jpg" alt="Balatro">
+          <div class="game-card-body">
+            <div class="game-card-name">Balatro</div>
+            <div class="game-card-data">
+              <span class="game-card-fps c-exc">120<span class="game-card-fps-unit">fps</span></span>
+              <div class="game-card-meta">
+                <span class="game-card-verdict c-exc">Excellent</span>
+                <span class="game-card-battery">5.1h battery</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="game-card">
+          <span class="game-card-reports">9 reports</span>
+          <img class="game-card-img" src="https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/504230/header.jpg" alt="Celeste">
+          <div class="game-card-body">
+            <div class="game-card-name">Celeste</div>
+            <div class="game-card-data">
+              <span class="game-card-fps c-exc">60<span class="game-card-fps-unit">fps</span></span>
+              <div class="game-card-meta">
+                <span class="game-card-verdict c-exc">Excellent</span>
+                <span class="game-card-battery">5.2h battery</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tier-label tier-playable">
+        Playable · 30–59 fps <span class="line"></span>
+      </div>
+      <div class="game-grid">
+        <div class="game-card">
+          <span class="game-card-reports">42 reports</span>
+          <img class="game-card-img" src="https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/1245620/header.jpg" alt="Elden Ring">
+          <div class="game-card-body">
+            <div class="game-card-name">Elden Ring</div>
+            <div class="game-card-data">
+              <span class="game-card-fps c-fair">38<span class="game-card-fps-unit">fps</span></span>
+              <div class="game-card-meta">
+                <span class="game-card-verdict c-good">Good</span>
+                <span class="game-card-battery">2.1h battery</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="game-card">
+          <span class="game-card-reports">37 reports</span>
+          <img class="game-card-img" src="https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/1091500/header.jpg" alt="Cyberpunk 2077">
+          <div class="game-card-body">
+            <div class="game-card-name">Cyberpunk 2077</div>
+            <div class="game-card-data">
+              <span class="game-card-fps c-fair">33<span class="game-card-fps-unit">fps</span></span>
+              <div class="game-card-meta">
+                <span class="game-card-verdict c-fair">Fair</span>
+                <span class="game-card-battery">1.8h battery</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="game-card">
+          <span class="game-card-reports">29 reports</span>
+          <img class="game-card-img" src="https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/1086940/header.jpg" alt="Baldur's Gate 3">
+          <div class="game-card-body">
+            <div class="game-card-name">Baldur's Gate 3</div>
+            <div class="game-card-data">
+              <span class="game-card-fps c-good">42<span class="game-card-fps-unit">fps</span></span>
+              <div class="game-card-meta">
+                <span class="game-card-verdict c-good">Good</span>
+                <span class="game-card-battery">2.4h battery</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="game-card">
+          <span class="game-card-reports">11 reports</span>
+          <img class="game-card-img" src="https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/1938090/header.jpg" alt="Call of Duty MW3">
+          <div class="game-card-body">
+            <div class="game-card-name">Call of Duty: MW III</div>
+            <div class="game-card-data">
+              <span class="game-card-fps c-fair">35<span class="game-card-fps-unit">fps</span></span>
+              <div class="game-card-meta">
+                <span class="game-card-verdict c-fair">Fair</span>
+                <span class="game-card-battery">1.5h battery</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="game-card">
+          <span class="game-card-reports">8 reports</span>
+          <img class="game-card-img" src="https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/292030/header.jpg" alt="The Witcher 3">
+          <div class="game-card-body">
+            <div class="game-card-name">The Witcher 3</div>
+            <div class="game-card-data">
+              <span class="game-card-fps c-fair">40<span class="game-card-fps-unit">fps</span></span>
+              <div class="game-card-meta">
+                <span class="game-card-verdict c-good">Good</span>
+                <span class="game-card-battery">2.3h battery</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── ROG ALLY ─── -->
+    <div class="device-content" id="panel-ally">
+      <div class="section-hdr">
+        <div>
+          <p class="section-tag">Performance Data</p>
+          <h2 class="section-title">Top on <span class="device-name">ROG Ally</span></h2>
+        </div>
+        <a href="#" class="section-link">All 31 games →</a>
+      </div>
+
+      <div class="tier-label tier-great">
+        Runs Great · 60+ fps <span class="line"></span>
+      </div>
+      <div class="game-grid">
+        <div class="game-card">
+          <span class="game-card-reports">12 reports</span>
+          <img class="game-card-img" src="https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/1145360/header.jpg" alt="Hades">
+          <div class="game-card-body">
+            <div class="game-card-name">Hades</div>
+            <div class="game-card-data">
+              <span class="game-card-fps c-exc">120<span class="game-card-fps-unit">fps</span></span>
+              <div class="game-card-meta">
+                <span class="game-card-verdict c-exc">Excellent</span>
+                <span class="game-card-battery">3.2h battery</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="game-card">
+          <span class="game-card-reports">8 reports</span>
+          <img class="game-card-img" src="https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/632470/header.jpg" alt="Disco Elysium">
+          <div class="game-card-body">
+            <div class="game-card-name">Disco Elysium</div>
+            <div class="game-card-data">
+              <span class="game-card-fps c-exc">144<span class="game-card-fps-unit">fps</span></span>
+              <div class="game-card-meta">
+                <span class="game-card-verdict c-exc">Excellent</span>
+                <span class="game-card-battery">3.8h battery</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="game-card">
+          <span class="game-card-reports">6 reports</span>
+          <img class="game-card-img" src="https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/2379780/header.jpg" alt="Balatro">
+          <div class="game-card-body">
+            <div class="game-card-name">Balatro</div>
+            <div class="game-card-data">
+              <span class="game-card-fps c-exc">120<span class="game-card-fps-unit">fps</span></span>
+              <div class="game-card-meta">
+                <span class="game-card-verdict c-exc">Excellent</span>
+                <span class="game-card-battery">4.6h battery</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="game-card">
+          <span class="game-card-reports">5 reports</span>
+          <img class="game-card-img" src="https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/413150/header.jpg" alt="Stardew Valley">
+          <div class="game-card-body">
+            <div class="game-card-name">Stardew Valley</div>
+            <div class="game-card-data">
+              <span class="game-card-fps c-exc">144<span class="game-card-fps-unit">fps</span></span>
+              <div class="game-card-meta">
+                <span class="game-card-verdict c-exc">Excellent</span>
+                <span class="game-card-battery">4.8h battery</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="game-card">
+          <span class="game-card-reports">4 reports</span>
+          <img class="game-card-img" src="https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/504230/header.jpg" alt="Celeste">
+          <div class="game-card-body">
+            <div class="game-card-name">Celeste</div>
+            <div class="game-card-data">
+              <span class="game-card-fps c-exc">120<span class="game-card-fps-unit">fps</span></span>
+              <div class="game-card-meta">
+                <span class="game-card-verdict c-exc">Excellent</span>
+                <span class="game-card-battery">4.2h battery</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tier-label tier-playable">
+        Playable · 30–59 fps <span class="line"></span>
+      </div>
+      <div class="game-grid">
+        <div class="game-card">
+          <span class="game-card-reports">9 reports</span>
+          <img class="game-card-img" src="https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/1245620/header.jpg" alt="Elden Ring">
+          <div class="game-card-body">
+            <div class="game-card-name">Elden Ring</div>
+            <div class="game-card-data">
+              <span class="game-card-fps c-good">52<span class="game-card-fps-unit">fps</span></span>
+              <div class="game-card-meta">
+                <span class="game-card-verdict c-good">Good</span>
+                <span class="game-card-battery">1.8h battery</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="game-card">
+          <span class="game-card-reports">7 reports</span>
+          <img class="game-card-img" src="https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/1091500/header.jpg" alt="Cyberpunk 2077">
+          <div class="game-card-body">
+            <div class="game-card-name">Cyberpunk 2077</div>
+            <div class="game-card-data">
+              <span class="game-card-fps c-fair">45<span class="game-card-fps-unit">fps</span></span>
+              <div class="game-card-meta">
+                <span class="game-card-verdict c-good">Good</span>
+                <span class="game-card-battery">1.5h battery</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="game-card">
+          <span class="game-card-reports">5 reports</span>
+          <img class="game-card-img" src="https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/1086940/header.jpg" alt="Baldur's Gate 3">
+          <div class="game-card-body">
+            <div class="game-card-name">Baldur's Gate 3</div>
+            <div class="game-card-data">
+              <span class="game-card-fps c-good">55<span class="game-card-fps-unit">fps</span></span>
+              <div class="game-card-meta">
+                <span class="game-card-verdict c-good">Good</span>
+                <span class="game-card-battery">2.0h battery</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="game-card">
+          <span class="game-card-reports">3 reports</span>
+          <img class="game-card-img" src="https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/292030/header.jpg" alt="The Witcher 3">
+          <div class="game-card-body">
+            <div class="game-card-name">The Witcher 3</div>
+            <div class="game-card-data">
+              <span class="game-card-fps c-good">58<span class="game-card-fps-unit">fps</span></span>
+              <div class="game-card-meta">
+                <span class="game-card-verdict c-good">Good</span>
+                <span class="game-card-battery">1.9h battery</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── LEGION GO S ─── -->
+    <div class="device-content" id="panel-legion-s">
+      <div class="section-hdr">
+        <div>
+          <p class="section-tag">Performance Data</p>
+          <h2 class="section-title">Top on <span class="device-name">Legion Go S</span></h2>
+        </div>
+        <a href="#" class="section-link">All 15 games →</a>
+      </div>
+
+      <div class="tier-label tier-great">
+        Runs Great · 60+ fps <span class="line"></span>
+      </div>
+      <div class="game-grid">
+        <div class="game-card">
+          <span class="game-card-reports">5 reports</span>
+          <img class="game-card-img" src="https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/413150/header.jpg" alt="Stardew Valley">
+          <div class="game-card-body">
+            <div class="game-card-name">Stardew Valley</div>
+            <div class="game-card-data">
+              <span class="game-card-fps c-exc">144<span class="game-card-fps-unit">fps</span></span>
+              <div class="game-card-meta">
+                <span class="game-card-verdict c-exc">Excellent</span>
+                <span class="game-card-battery">4.5h battery</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="game-card">
+          <span class="game-card-reports">4 reports</span>
+          <img class="game-card-img" src="https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/2379780/header.jpg" alt="Balatro">
+          <div class="game-card-body">
+            <div class="game-card-name">Balatro</div>
+            <div class="game-card-data">
+              <span class="game-card-fps c-exc">120<span class="game-card-fps-unit">fps</span></span>
+              <div class="game-card-meta">
+                <span class="game-card-verdict c-exc">Excellent</span>
+                <span class="game-card-battery">4.2h battery</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="game-card">
+          <span class="game-card-reports">3 reports</span>
+          <img class="game-card-img" src="https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/1145360/header.jpg" alt="Hades">
+          <div class="game-card-body">
+            <div class="game-card-name">Hades</div>
+            <div class="game-card-data">
+              <span class="game-card-fps c-exc">110<span class="game-card-fps-unit">fps</span></span>
+              <div class="game-card-meta">
+                <span class="game-card-verdict c-exc">Excellent</span>
+                <span class="game-card-battery">3.0h battery</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tier-label tier-playable">
+        Playable · 30–59 fps <span class="line"></span>
+      </div>
+      <div class="game-grid">
+        <div class="game-card">
+          <span class="game-card-reports">4 reports</span>
+          <img class="game-card-img" src="https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/1245620/header.jpg" alt="Elden Ring">
+          <div class="game-card-body">
+            <div class="game-card-name">Elden Ring</div>
+            <div class="game-card-data">
+              <span class="game-card-fps c-good">48<span class="game-card-fps-unit">fps</span></span>
+              <div class="game-card-meta">
+                <span class="game-card-verdict c-good">Good</span>
+                <span class="game-card-battery">1.6h battery</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="game-card">
+          <span class="game-card-reports">3 reports</span>
+          <img class="game-card-img" src="https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/1091500/header.jpg" alt="Cyberpunk 2077">
+          <div class="game-card-body">
+            <div class="game-card-name">Cyberpunk 2077</div>
+            <div class="game-card-data">
+              <span class="game-card-fps c-fair">40<span class="game-card-fps-unit">fps</span></span>
+              <div class="game-card-meta">
+                <span class="game-card-verdict c-fair">Fair</span>
+                <span class="game-card-battery">1.4h battery</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── LEGION GO ─── -->
+    <div class="device-content" id="panel-legion">
+      <div class="section-hdr">
+        <div>
+          <p class="section-tag">Performance Data</p>
+          <h2 class="section-title">Top on <span class="device-name">Legion Go</span></h2>
+        </div>
+        <a href="#" class="section-link">All 12 games →</a>
+      </div>
+
+      <div class="tier-label tier-great">
+        Runs Great · 60+ fps <span class="line"></span>
+      </div>
+      <div class="game-grid">
+        <div class="game-card">
+          <span class="game-card-reports">4 reports</span>
+          <img class="game-card-img" src="https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/632470/header.jpg" alt="Disco Elysium">
+          <div class="game-card-body">
+            <div class="game-card-name">Disco Elysium</div>
+            <div class="game-card-data">
+              <span class="game-card-fps c-exc">144<span class="game-card-fps-unit">fps</span></span>
+              <div class="game-card-meta">
+                <span class="game-card-verdict c-exc">Excellent</span>
+                <span class="game-card-battery">3.9h battery</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="game-card">
+          <span class="game-card-reports">3 reports</span>
+          <img class="game-card-img" src="https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/1086940/header.jpg" alt="Baldur's Gate 3">
+          <div class="game-card-body">
+            <div class="game-card-name">Baldur's Gate 3</div>
+            <div class="game-card-data">
+              <span class="game-card-fps c-good">58<span class="game-card-fps-unit">fps</span></span>
+              <div class="game-card-meta">
+                <span class="game-card-verdict c-good">Good</span>
+                <span class="game-card-battery">2.2h battery</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="game-card">
+          <span class="game-card-reports">3 reports</span>
+          <img class="game-card-img" src="https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/1145360/header.jpg" alt="Hades">
+          <div class="game-card-body">
+            <div class="game-card-name">Hades</div>
+            <div class="game-card-data">
+              <span class="game-card-fps c-exc">120<span class="game-card-fps-unit">fps</span></span>
+              <div class="game-card-meta">
+                <span class="game-card-verdict c-exc">Excellent</span>
+                <span class="game-card-battery">3.1h battery</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tier-label tier-playable">
+        Playable · 30–59 fps <span class="line"></span>
+      </div>
+      <div class="game-grid">
+        <div class="game-card">
+          <span class="game-card-reports">3 reports</span>
+          <img class="game-card-img" src="https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/1091500/header.jpg" alt="Cyberpunk 2077">
+          <div class="game-card-body">
+            <div class="game-card-name">Cyberpunk 2077</div>
+            <div class="game-card-data">
+              <span class="game-card-fps c-fair">42<span class="game-card-fps-unit">fps</span></span>
+              <div class="game-card-meta">
+                <span class="game-card-verdict c-fair">Fair</span>
+                <span class="game-card-battery">1.6h battery</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="game-card">
+          <span class="game-card-reports">2 reports</span>
+          <img class="game-card-img" src="https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/1245620/header.jpg" alt="Elden Ring">
+          <div class="game-card-body">
+            <div class="game-card-name">Elden Ring</div>
+            <div class="game-card-data">
+              <span class="game-card-fps c-good">50<span class="game-card-fps-unit">fps</span></span>
+              <div class="game-card-meta">
+                <span class="game-card-verdict c-good">Good</span>
+                <span class="game-card-battery">1.7h battery</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── ROG ALLY X ─── -->
+    <div class="device-content" id="panel-ally-x">
+      <div class="section-hdr">
+        <div>
+          <p class="section-tag">Performance Data</p>
+          <h2 class="section-title">Top on <span class="device-name">ROG Ally X</span></h2>
+        </div>
+        <a href="#" class="section-link">All 3 games →</a>
+      </div>
+
+      <div class="tier-label tier-great">
+        Runs Great · 60+ fps <span class="line"></span>
+      </div>
+      <div class="game-grid">
+        <div class="game-card">
+          <span class="game-card-reports">2 reports</span>
+          <img class="game-card-img" src="https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/1245620/header.jpg" alt="Elden Ring">
+          <div class="game-card-body">
+            <div class="game-card-name">Elden Ring</div>
+            <div class="game-card-data">
+              <span class="game-card-fps c-exc">60<span class="game-card-fps-unit">fps</span></span>
+              <div class="game-card-meta">
+                <span class="game-card-verdict c-exc">Excellent</span>
+                <span class="game-card-battery">2.1h battery</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="game-card">
+          <span class="game-card-reports">1 report</span>
+          <img class="game-card-img" src="https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/1091500/header.jpg" alt="Cyberpunk 2077">
+          <div class="game-card-body">
+            <div class="game-card-name">Cyberpunk 2077</div>
+            <div class="game-card-data">
+              <span class="game-card-fps c-good">52<span class="game-card-fps-unit">fps</span></span>
+              <div class="game-card-meta">
+                <span class="game-card-verdict c-good">Good</span>
+                <span class="game-card-battery">1.6h battery</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ═══════════ RECENTLY TESTED ═══════════ -->
+<section class="section">
+  <div class="w">
+    <div class="section-hdr">
+      <div>
+        <p class="section-tag">
+          <span class="live-indicator"><span class="live-dot"></span> Live</span>
+        </p>
+        <h2 class="section-title">Recently Tested</h2>
+      </div>
+      <a href="#" class="section-link">All reports →</a>
+    </div>
+
+    <div class="feed">
+      <div class="feed-row">
+        <span class="feed-fps c-fair">38<span class="feed-fps-unit">fps</span></span>
+        <span class="feed-game">Elden Ring</span>
+        <span class="feed-arrow">→</span>
+        <span class="feed-device">Steam Deck</span>
+        <span class="feed-verdict c-good">Good</span>
+        <span class="feed-time">2m</span>
+      </div>
+      <div class="feed-row">
+        <span class="feed-fps c-exc">60<span class="feed-fps-unit">fps</span></span>
+        <span class="feed-game">Hades II</span>
+        <span class="feed-arrow">→</span>
+        <span class="feed-device">ROG Ally</span>
+        <span class="feed-verdict c-exc">Excellent</span>
+        <span class="feed-time">5m</span>
+      </div>
+      <div class="feed-row">
+        <span class="feed-fps c-good">42<span class="feed-fps-unit">fps</span></span>
+        <span class="feed-game">Baldur's Gate 3</span>
+        <span class="feed-arrow">→</span>
+        <span class="feed-device">Legion Go</span>
+        <span class="feed-verdict c-good">Good</span>
+        <span class="feed-time">8m</span>
+      </div>
+      <div class="feed-row">
+        <span class="feed-fps c-exc">144<span class="feed-fps-unit">fps</span></span>
+        <span class="feed-game">Stardew Valley</span>
+        <span class="feed-arrow">→</span>
+        <span class="feed-device">Steam Deck</span>
+        <span class="feed-verdict c-exc">Excellent</span>
+        <span class="feed-time">12m</span>
+      </div>
+      <div class="feed-row">
+        <span class="feed-fps c-fair">33<span class="feed-fps-unit">fps</span></span>
+        <span class="feed-game">Cyberpunk 2077</span>
+        <span class="feed-arrow">→</span>
+        <span class="feed-device">Steam Deck</span>
+        <span class="feed-verdict c-fair">Fair</span>
+        <span class="feed-time">18m</span>
+      </div>
+      <div class="feed-row">
+        <span class="feed-fps c-exc">120<span class="feed-fps-unit">fps</span></span>
+        <span class="feed-game">Balatro</span>
+        <span class="feed-arrow">→</span>
+        <span class="feed-device">ROG Ally</span>
+        <span class="feed-verdict c-exc">Excellent</span>
+        <span class="feed-time">24m</span>
+      </div>
+      <div class="feed-row">
+        <span class="feed-fps c-good">55<span class="feed-fps-unit">fps</span></span>
+        <span class="feed-game">Baldur's Gate 3</span>
+        <span class="feed-arrow">→</span>
+        <span class="feed-device">ROG Ally</span>
+        <span class="feed-verdict c-good">Good</span>
+        <span class="feed-time">31m</span>
+      </div>
+      <div class="feed-row">
+        <span class="feed-fps c-exc">98<span class="feed-fps-unit">fps</span></span>
+        <span class="feed-game">Hades</span>
+        <span class="feed-arrow">→</span>
+        <span class="feed-device">Steam Deck</span>
+        <span class="feed-verdict c-exc">Excellent</span>
+        <span class="feed-time">45m</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ EXPLORE DEVICES ═══════════ -->
+<section class="section">
+  <div class="w">
+    <div class="section-hdr">
+      <div>
+        <p class="section-tag">Pick Your Handheld</p>
+        <h2 class="section-title">Explore Devices</h2>
+      </div>
+      <a href="#" class="section-link">All devices →</a>
+    </div>
+
+    <div class="devices-scroll">
+      <div class="dvc-card">
+        <div class="dvc-mfr">Valve</div>
+        <div class="dvc-name">Steam Deck</div>
+        <div class="dvc-stat">
+          <span class="dvc-count">138</span>
+          <span class="dvc-count-label">games tested</span>
+        </div>
+        <div class="dvc-best">Best: <span class="dvc-best-fps c-exc">Stardew Valley 144fps</span></div>
+      </div>
+      <div class="dvc-card">
+        <div class="dvc-mfr">ASUS</div>
+        <div class="dvc-name">ROG Ally</div>
+        <div class="dvc-stat">
+          <span class="dvc-count">31</span>
+          <span class="dvc-count-label">games tested</span>
+        </div>
+        <div class="dvc-best">Best: <span class="dvc-best-fps c-exc">Disco Elysium 144fps</span></div>
+      </div>
+      <div class="dvc-card">
+        <div class="dvc-mfr">Lenovo</div>
+        <div class="dvc-name">Legion Go S</div>
+        <div class="dvc-stat">
+          <span class="dvc-count">15</span>
+          <span class="dvc-count-label">games tested</span>
+        </div>
+        <div class="dvc-best">Best: <span class="dvc-best-fps c-exc">Stardew Valley 144fps</span></div>
+      </div>
+      <div class="dvc-card">
+        <div class="dvc-mfr">Lenovo</div>
+        <div class="dvc-name">Legion Go</div>
+        <div class="dvc-stat">
+          <span class="dvc-count">12</span>
+          <span class="dvc-count-label">games tested</span>
+        </div>
+        <div class="dvc-best">Best: <span class="dvc-best-fps c-exc">Disco Elysium 144fps</span></div>
+      </div>
+      <div class="dvc-card">
+        <div class="dvc-mfr">ASUS</div>
+        <div class="dvc-name">ROG Ally X</div>
+        <div class="dvc-stat">
+          <span class="dvc-count">3</span>
+          <span class="dvc-count-label">games tested</span>
+        </div>
+        <div class="dvc-best">Best: <span class="dvc-best-fps c-exc">Elden Ring 60fps</span></div>
+      </div>
+      <div class="dvc-card">
+        <div class="dvc-mfr">MSI</div>
+        <div class="dvc-name">Claw 7 AI+</div>
+        <div class="dvc-stat">
+          <span class="dvc-count">8</span>
+          <span class="dvc-count-label">games tested</span>
+        </div>
+        <div class="dvc-best">Best: <span class="dvc-best-fps c-exc">Hades 120fps</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ BOTTOM CTA ═══════════ -->
+<section class="section">
+  <div class="w">
+    <div class="cta">
+      <div class="cta-text">
+        <p>Every report makes the database better.</p>
+        <span>2 minutes. No account needed.</span>
+      </div>
+      <div class="cta-right">
+        <div class="cta-stats">
+          <span><strong>6,220</strong> games</span>
+          <span><strong>5,514</strong> Deck compat</span>
+          <span><strong>6</strong> devices</span>
+        </div>
+        <button class="btn-submit">SUBMIT A REPORT</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ FOOTER ═══════════ -->
+<footer>
+  <div class="w">
+    © 2026 HandheldDB · Community-powered handheld performance database
+  </div>
+</footer>
+
+<!-- ═══════════ JAVASCRIPT ═══════════ -->
+<script>
+// Device tab switching
+const tabs = document.querySelectorAll('.device-tab');
+const panels = document.querySelectorAll('.device-content');
+const deviceMap = {
+  'deck': 'panel-deck',
+  'ally': 'panel-ally',
+  'legion-s': 'panel-legion-s',
+  'legion': 'panel-legion',
+  'ally-x': 'panel-ally-x'
+};
+
+tabs.forEach(tab => {
+  tab.addEventListener('click', () => {
+    const device = tab.dataset.device;
+
+    // Update active tab
+    tabs.forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+
+    // Update active panel
+    panels.forEach(p => p.classList.remove('active'));
+    const panel = document.getElementById(deviceMap[device]);
+    if (panel) {
+      panel.classList.add('active');
+    }
+  });
+});
+
+// Keyboard shortcut for search
+document.addEventListener('keydown', (e) => {
+  if (e.key === '/' && !['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) {
+    e.preventDefault();
+    document.querySelector('.hero-search-input').focus();
+  }
+});
+</script>
+
+</body>
+</html>
